@@ -3,9 +3,9 @@ package models
 import play.api.Play
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.db.slick.DatabaseConfigProvider
+//import play.api.db.slick.DatabaseConfigProvider
 import slick.driver.JdbcProfile
-//import slick.driver.SqliteDriver.api._
+import slick.driver.H2Driver.api._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 
@@ -38,17 +38,24 @@ class UserTableDef(tag: Tag) extends Table[User](tag, "user") {
 
 object Users {
 
-  val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
+  val h2meml = {
+    url = "jdbc:h2:mem:test1"
+    driver = org.h2.Driver
+    connectionPopl = disabled
+    keepAliveConnection = true
+  }
+
+  val db = Database.forConfig("h2meml")
 
   val users = TableQuery[UserTableDef]
 
   def add(user: User) = {
-    dbConfig.db.run(users += user).map(res => "Usser added").recover {
+    db.run(users += user).map(res => "User added").recover {
       case ex: Exception => ex.getCause.getMessage
     }
   }
 
   def listAll = {
-    dbConfig.db.run(users.result)
+    db.run(users.result)
   }
 }
