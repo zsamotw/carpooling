@@ -14,9 +14,20 @@ class HomeController @Inject() extends Controller {
     Ok(views.html.index())
   }
 
-  def showUsers() = Action { implicit request =>
+  def showUsers() = Action.async { implicit request =>
     Users.listAll map { users =>
       Ok(views.html.users(users))
     }
+  }
+
+  def addUser() = Action {implicit  request =>
+    val user = userForm.form.bindFromRequest.get
+    Users.add(user)
+    Redirect(routes.HomeController.index)
+  }
+
+  def showUserFromKindergarten(kg: String) = Action {implicit request =>
+    val usersFrom = Users.findUsersFromKindergarten(kg)
+    Ok(views.html.kindergarten(usersFrom))
   }
 }

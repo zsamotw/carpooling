@@ -1,0 +1,8 @@
+@(usersFrom: Seq[User])
+
+@for(user <- usersFrom) {
+@user.name
+@user.surname
+@user.city
+@user.email
+}
