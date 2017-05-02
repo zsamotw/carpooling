@@ -1,15 +1,14 @@
 package models
 
-import play.api.Play
 import play.api.data.Form
 import play.api.data.Forms._
-
+import play.api.db.slick.DatabaseConfigProvider
+import play.api.Play
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
-import slick.driver.JdbcProfile
 import slick.driver.H2Driver.api._
-
-import scala.concurrent.Await._
+import slick.driver.JdbcProfile
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext.Implicits.global
 
 
@@ -29,7 +28,7 @@ object userForm {
 }
 
 
-class UserTableDef(tag: Tag) extends Table[User](tag, "user") {
+/*class UserTableDef(tag: Tag) extends Table[User](tag, "myDb") {
   def name = column[String] ("name")
   def surname = column[String]("surname")
   def city = column[String]("city")
@@ -38,26 +37,30 @@ class UserTableDef(tag: Tag) extends Table[User](tag, "user") {
   def kindergarten = column[String]("kindergarten")
 
   override def * = (name, surname, city, street, email, kindergarten) <> (User.tupled, User.unapply)
-}
+}*/
 
 object Users {
 
-  val db = Database.forConfig("h2meml")
+  //val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
 
-  lazy val users = TableQuery[UserTableDef]
+  var users = List[User]()
 
-  def add(user: User): Future[String] = {
-    db.run(users += user).map(res => "User added").recover {
-      case ex: Exception => ex.getCause.getMessage
-    }
+
+  def add(user: User) = {
+    users = user :: users
+    val kg = Kindergartens.kindergartens find (_.kName == user.kindergarten)
+    kg.get.users += user
   }
 
-  def listAll: Future[Seq[User]] = {
-    db.run(users.result)
+  def listAll = {
+    users
   }
 
   def findUsersFromKindergarten(kg: String) = {
-
-    Await.result(db.run(users.result), 2.seconds)
+    val usersFrom = users.filter(_.kindergarten == kg)
+    usersFrom match {
+      case Nil => (users.filter(_.kindergarten contains(kg)), "There are no kindergarten. Some Other with similar name:")
+      case _ => (usersFrom, "Users from:")
+    }
   }
 }

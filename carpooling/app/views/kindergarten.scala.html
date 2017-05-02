@@ -1,8 +1,15 @@
-@(usersFrom: Seq[User])
+@(kindergartenTuple: (List[Kindergarten], String))
 
-@for(user <- usersFrom) {
+@kindergartenTuple._2 <br>
+
+@for(kindergarten <- kindergartenTuple._1) {
+@kindergarten.kName <br>
+@for(user <- kindergarten.users) {
 @user.name
 @user.surname
 @user.city
 @user.email
+<br>
+}
+<br>
 }

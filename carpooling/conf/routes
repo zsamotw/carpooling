@@ -5,8 +5,10 @@
 
 # An example controller showing a sample home page
 GET     /                           controllers.HomeController.index
-POST    /user                       controllers.HomeController.addUser
-POST    /kindergarten/:id           controllers.HomeController.showUserFromKindergarten(id)
+GET     /addUser                    controllers.HomeController.addUser
+GET     /users                      controllers.HomeController.showUsers
+GET     /addkindergarten            controllers.HomeController.addKindergarten
+GET     /findkindergarten/          controllers.HomeController.showUsersFromKindergarten
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

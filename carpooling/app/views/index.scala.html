@@ -1,9 +1,9 @@
-@()
+@(userName: String)(kName: String)
 
 @main("Welcome to our Family of Familis") {
   <h1>Welcome to carpooling app for parents! Don't afraid about design. App is in progress.</h1>
 <h2>You can add youself to our database -> name, contact and location. Fill this form:<br>
-<form action="@routes.HomeController.addUser()" method="post">
+<form action="@routes.HomeController.addUser()" method="get">
   <input name="name" type="text" value="name">
   <input name="surname" type="text" value="surname">
   <input name="city" type="text" value="city">
@@ -11,13 +11,23 @@
   <input name="email" type="text" value="email">
   <input name="kindergarten" type="text" value="kindergarten">
   <input type="submit">
-</form>
-
-If you want to find parents from concrete kindergarten fill this form:<br>
-<form action="" method="post">
-  <input name="kName" type="text" value="kindergarten name">
-  <input name="kStreet" type="text" value="kindergarten street">
-  <input name="kCity" type="text" value="kindergarten city">
-  <button>find kindergarten</button>
 </form></h2>
+
+
+<h3>If you want to add your kindergarten fill this form:<br>
+<form action="@routes.HomeController.addKindergarten()" method="get">
+    <input name="kName" type="text" value="kindergarten name">
+    <button>add kindergarten</button>
+</form></h3>
+
+<h4>If you want to find parents from concrete kindergarten fill this form:<br>
+<form action="@routes.HomeController.showUsersFromKindergarten()" method="get">
+  <input name="kName" type="text" value="kindergarten name">
+  <button>find kindergarten</button>
+</form></h4>
+
+Add user: @userName<br>
+Add kindergarten: @kName
 }
+
+
