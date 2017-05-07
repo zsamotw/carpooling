@@ -1,16 +1,12 @@
 package models
 
+import scala.io.Source
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.db.slick.DatabaseConfigProvider
-import play.api.Play
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
-import slick.driver.H2Driver.api._
+import play.api.Play.current
+import slick.driver.SQLiteDriver.api._
 import slick.driver.JdbcProfile
-import scala.collection.mutable.ListBuffer
-import scala.concurrent.ExecutionContext.Implicits.global
-
 
 case class User(name: String, surname: String, city: String, street: String, email: String, kindergarten: String)
 
@@ -27,8 +23,7 @@ object userForm {
   )
 }
 
-
-/*class UserTableDef(tag: Tag) extends Table[User](tag, "myDb") {
+class UserTableDef(tag: Tag) extends Table[User](tag, "UsersDb") {
   def name = column[String] ("name")
   def surname = column[String]("surname")
   def city = column[String]("city")
@@ -37,30 +32,31 @@ object userForm {
   def kindergarten = column[String]("kindergarten")
 
   override def * = (name, surname, city, street, email, kindergarten) <> (User.tupled, User.unapply)
-}*/
+}
 
 object Users {
 
-  //val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
+  val dbConfig = DatabaseConfigProvider.get[JdbcProfile](current)
+  import dbConfig.driver.api._
 
-  var users = List[User]()
+  var users = TableQuery[UserTableDef]
 
 
   def add(user: User) = {
-    users = user :: users
-    val kg = Kindergartens.kindergartens find (_.kName == user.kindergarten)
-    kg.get.users += user
+    users += user
+    dbConfig.db.run(users.result)
+  }
+
+  def searchGeoPoint(user: User) = {
+    val query = "http://nominatim.openstreetmap.org/search/" + user.street + "," + user.city + ", Poland?format=json&polygon=1"
+    val jsonResult = Source.fromURL(query)
   }
 
   def listAll = {
-    users
+    dbConfig.db.run(users.result)
   }
 
   def findUsersFromKindergarten(kg: String) = {
-    val usersFrom = users.filter(_.kindergarten == kg)
-    usersFrom match {
-      case Nil => (users.filter(_.kindergarten contains(kg)), "There are no kindergarten. Some Other with similar name:")
-      case _ => (usersFrom, "Users from:")
+    dbConfig.db.run(users.filter(_.kindergarten === kg).result)
     }
-  }
 }

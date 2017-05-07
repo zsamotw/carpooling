@@ -1,9 +1,9 @@
-@(userName: String)(kName: String)
+@(userName: String)
 
 @main("Welcome to our Family of Familis") {
-  <h1>Welcome to carpooling app for parents! Don't afraid about design. App is in progress.</h1>
+<h1>Welcome to carpooling app for parents! Don't afraid about design. App is in progress.</h1>
 <h2>You can add youself to our database -> name, contact and location. Fill this form:<br>
-<form action="@routes.HomeController.addUser()" method="get">
+<form action="@routes.HomeController.addUser()" method="post">
   <input name="name" type="text" value="name">
   <input name="surname" type="text" value="surname">
   <input name="city" type="text" value="city">
@@ -13,21 +13,14 @@
   <input type="submit">
 </form></h2>
 
-
-<h3>If you want to add your kindergarten fill this form:<br>
-<form action="@routes.HomeController.addKindergarten()" method="get">
-    <input name="kName" type="text" value="kindergarten name">
-    <button>add kindergarten</button>
-</form></h3>
-
 <h4>If you want to find parents from concrete kindergarten fill this form:<br>
-<form action="@routes.HomeController.showUsersFromKindergarten()" method="get">
-  <input name="kName" type="text" value="kindergarten name">
+<form action="@routes.HomeController.showUsersFromKindergarten()" method="post">
+  <input name="name" type="text" value="kindergarten name">
   <button>find kindergarten</button>
 </form></h4>
 
-Add user: @userName<br>
-Add kindergarten: @kName
+added user: @userName
+
 }
 
 

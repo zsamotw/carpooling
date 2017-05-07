@@ -1,5 +1,6 @@
 //Don't work yet
 
+
 package models
 
 import play.api.Play
@@ -11,19 +12,26 @@ import slick.driver.H2Driver.api._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext.Implicits.global
 
-case class Kindergarten(kName: String, users: ListBuffer[User])
+case class Kindergarten(name: String)
 
-case class KindergartenFormData(kName: String)
+case class KindergartenFormData(name: String)
+
+/*class KindergartenTableDef(tag: Tag) extends Table[Kindergarten](tag, "myDb") {
+
+  def name = column[String] ("name")
+  override def * = (name) <> (Kindergarten.tupled, Kindergarten.unapply)
+}*/
 
 object KindergartenSearchForm {
 
   val form = Form (
     mapping (
-      "kName" -> text
+      "name" -> text
     ) (KindergartenFormData.apply) (KindergartenFormData.unapply)
   )
 }
 
+/*
 object Kindergartens {
 
   var kindergartens = List[Kindergarten]()
@@ -42,4 +50,5 @@ object Kindergartens {
     }
   }
 }
+*/
 
