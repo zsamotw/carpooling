@@ -1,37 +1,52 @@
 package models
 
-import scala.io.Source
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.db.slick.DatabaseConfigProvider
-import play.api.Play.current
+import play.api.Play._
 import slick.driver.SQLiteDriver.api._
 import slick.driver.JdbcProfile
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
+import scala.io.Source
 
-case class User(name: String, surname: String, city: String, street: String, email: String, kindergarten: String)
+case class User(email: String, password: String, name: String, surname: String, city: String, street: String, kindergarten: String)
+
+case class Login(email: String, password: String)
 
 object userForm {
   val form = Form (
     mapping (
+      "email" -> text,
+      "password" -> text,
       "name" -> text,
       "surname" -> text,
       "city" -> text,
       "street" -> text,
-      "email" -> text,
       "kindergarten" -> text
     ) (User.apply) (User.unapply)
   )
 }
 
+object loginForm {
+  val form = Form (
+    mapping (
+      "email" -> text,
+      "password" -> text
+    ) (Login.apply)(Login.unapply)
+  )
+}
+
 class UserTableDef(tag: Tag) extends Table[User](tag, "UsersDb") {
+  def email = column[String] ("email")
+  def password = column[String] ("password")
   def name = column[String] ("name")
   def surname = column[String]("surname")
   def city = column[String]("city")
   def street = column[String]("street")
-  def email = column[String]("email")
   def kindergarten = column[String]("kindergarten")
 
-  override def * = (name, surname, city, street, email, kindergarten) <> (User.tupled, User.unapply)
+  override def * = (email, password, name, surname, city, street, kindergarten) <> (User.tupled, User.unapply)
 }
 
 object Users {
@@ -41,6 +56,11 @@ object Users {
 
   var users = TableQuery[UserTableDef]
 
+  def validateLogin(login: Login) = {
+    val userFuture = dbConfig.db.run(users.filter(_.email === login.email).result)
+    val user = Await.result(userFuture, 2.seconds)(0)
+    if(user.password == login.password) true else false
+  }
 
   def add(user: User) = {
     users += user

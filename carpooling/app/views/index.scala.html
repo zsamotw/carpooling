@@ -1,25 +1,16 @@
 @(userName: String)
 
 @main("Welcome to our Family of Familis") {
-<h1>Welcome to carpooling app for parents! Don't afraid about design. App is in progress.</h1>
-<h2>You can add youself to our database -> name, contact and location. Fill this form:<br>
-<form action="@routes.HomeController.addUser()" method="post">
-  <input name="name" type="text" value="name">
-  <input name="surname" type="text" value="surname">
-  <input name="city" type="text" value="city">
-  <input name="street" type="text" value="street">
-  <input name="email" type="text" value="email">
-  <input name="kindergarten" type="text" value="kindergarten">
-  <input type="submit">
-</form></h2>
+Welcome to carpooling app for parents! Don't afraid about design. App is in progress.
+<a href="user">create user</a> or <a href="login">login</a><br><br>
 
-<h4>If you want to find parents from concrete kindergarten fill this form:<br>
+If you want to find parents from concrete kindergarten fill this form:<br>
 <form action="@routes.HomeController.showUsersFromKindergarten()" method="post">
   <input name="name" type="text" value="kindergarten name">
   <button>find kindergarten</button>
-</form></h4>
-
-added user: @userName
+</form>
+<br>
+user: @userName
 
 }
 

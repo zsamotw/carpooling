@@ -5,8 +5,10 @@
 
 # An example controller showing a sample home page
 GET      /                           controllers.HomeController.index
+GET      /login                      controllers.HomeController.login
+POST     /validatelogin              controllers.HomeController.validateLogin
 POST     /addUser                    controllers.HomeController.addUser
-GET      /users                      controllers.HomeController.showUsers
+GET      /user                       controllers.HomeController.userMenu
 #POST    /addkindergarten            controllers.HomeController.addKindergarten
 POST     /findkindergarten/          controllers.HomeController.showUsersFromKindergarten
 

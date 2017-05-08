@@ -1,0 +1,14 @@
+
+@(userForm: Form[User])(implicit messages: play.api.i18n.Messages)
+You can add youself to our database -> name, contact and location. Fill this form:<br>
+
+@helper.form(action=routes.HomeController.addUser()) {
+@helper.inputText(userForm("email"))
+@helper.inputText(userForm("password"))
+@helper.inputText(userForm("name"))
+@helper.inputText(userForm("surname"))
+@helper.inputText(userForm("city"))
+@helper.inputText(userForm("street"))
+@helper.inputText(userForm("kindergarten"))
+<button type="submit">Add user</button>
+}

@@ -1,24 +1,33 @@
 package controllers
 
+import javax.inject.Inject
+import models._
 import play.api.mvc._
+import play.api.i18n.{I18nSupport, MessagesApi}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext
-import models._
 
-@Singleton
-class HomeController extends Controller {
+
+class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller  with I18nSupport {
 
   def index = Action { implicit request =>
-    Ok(views.html.index(""))
+    Ok(views.html.index("Not logged"))
   }
 
-  def showUsers() = Action.async { implicit request =>
-    Users.listAll map { users =>
-      Ok(views.html.users(users))
-    }
+  def login = Action { implicit request =>
+    Ok(views.html.login(loginForm.form))
   }
+
+  def validateLogin = Action { implicit request =>
+    val login = loginForm.form.bindFromRequest.get
+    if(Users.validateLogin(login)) Ok(views.html.index("Logged"))
+    else Ok(views.html.incorrectLogin())
+  }
+
+  def userMenu() = Action{ implicit request =>
+    Ok(views.html.user(userForm.form))
+    }
 
   def addUser() = Action.async {implicit  request =>
     val user = userForm.form.bindFromRequest.get
