@@ -1,11 +1,14 @@
 package models
 
+import jdk.nashorn.internal.parser.JSONParser
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.db.slick.DatabaseConfigProvider
+import play.api.libs.json._
 import play.api.Play._
 import slick.driver.SQLiteDriver.api._
 import slick.driver.JdbcProfile
+
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.io.Source
@@ -58,7 +61,7 @@ object Users {
 
   def validateLogin(login: Login) = {
     val userFuture = dbConfig.db.run(users.filter(_.email === login.email).result)
-    val user = Await.result(userFuture, 2.seconds)(0)
+    val user = Await.result(userFuture, 2.seconds).headOption.get
     if(user.password == login.password) true else false
   }
 
@@ -68,8 +71,25 @@ object Users {
   }
 
   def searchGeoPoint(user: User) = {
-    val query = "http://nominatim.openstreetmap.org/search/" + user.street + "," + user.city + ", Poland?format=json&polygon=1"
-    val jsonResult = Source.fromURL(query)
+    val query = "http://nominatim.openstreetmap.org/search/" + user.street + "," + user.city + ", Poland?format=json&polygon=1&addressdetails=1&limit=1"
+    val res = Source.fromURL(query).mkString
+    val jsonRes = Json.parse(res)
+    val latRead = (JsPath \\ "lat").read[Double]
+    val lonRead = (JsPath \\ "lon").read[Double]
+
+    val latResult = jsonRes.validate[Double](latRead)
+    val lonResult = jsonRes.validate[Double](lonRead)
+
+    val lat = latResult match {
+      case s: JsSuccess[Double] => s.get
+      case e: JsError => 0.0
+    }
+
+    val lon = lonResult match {
+      case s: JsSuccess[Double] => s.get
+      case e: JsError => 0.0
+    }
+    (lat,lon)
   }
 
   def listAll = {
