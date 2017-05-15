@@ -1,8 +1,9 @@
-@(usersFrom: Seq[User])
+@import scala.collection.mutable.ListBuffer
+@(usersFrom: ListBuffer[User])
 
 Users from: <br>
 
 @for(user <- usersFrom) {
-@user.name
+@user.name  @user.len   @user.lon
 <br>
 }
