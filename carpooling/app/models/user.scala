@@ -1,17 +1,16 @@
 package models
 
-import jdk.nashorn.internal.parser.JSONParser
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scala.io.Source
+
+import play.api.Play._
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.json._
-import play.api.Play._
-import slick.driver.SQLiteDriver.api._
 import slick.driver.JdbcProfile
-
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
-import scala.io.Source
+import slick.driver.SQLiteDriver.api._
 
 case class User(email: String, password: String, name: String, surname: String, city: String, street: String, kindergarten: String)
 
@@ -55,7 +54,6 @@ class UserTableDef(tag: Tag) extends Table[User](tag, "UsersDb") {
 object Users {
 
   val dbConfig = DatabaseConfigProvider.get[JdbcProfile](current)
-  import dbConfig.driver.api._
 
   var users = TableQuery[UserTableDef]
 
@@ -74,21 +72,8 @@ object Users {
     val query = "http://nominatim.openstreetmap.org/search/" + user.street + "," + user.city + ", Poland?format=json&polygon=1&addressdetails=1&limit=1"
     val res = Source.fromURL(query).mkString
     val jsonRes = Json.parse(res)
-    val latRead = (JsPath \\ "lat").read[Double]
-    val lonRead = (JsPath \\ "lon").read[Double]
-
-    val latResult = jsonRes.validate[Double](latRead)
-    val lonResult = jsonRes.validate[Double](lonRead)
-
-    val lat = latResult match {
-      case s: JsSuccess[Double] => s.get
-      case e: JsError => 0.0
-    }
-
-    val lon = lonResult match {
-      case s: JsSuccess[Double] => s.get
-      case e: JsError => 0.0
-    }
+    val lat = (jsonRes \\ "lat").map(_.as[String])
+    val lon = (jsonRes \\ "lon").map(_.as[String])
     (lat,lon)
   }
 
