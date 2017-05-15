@@ -12,7 +12,7 @@ import scala.concurrent.duration._
 class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller  with I18nSupport {
 
   def index = Action { implicit request =>
-    Ok(views.html.index("Not logged"))
+    Ok(views.html.index("Nobody"))
   }
 
   def login = Action { implicit request =>
