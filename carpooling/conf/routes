@@ -9,8 +9,10 @@ GET      /login                      controllers.HomeController.login
 POST     /validatelogin              controllers.HomeController.validateLogin
 POST     /addUser                    controllers.HomeController.addUser
 GET      /user                       controllers.HomeController.userMenu
-#POST    /addkindergarten            controllers.HomeController.addKindergarten
-POST     /findkindergarten/          controllers.HomeController.showUsersFromKindergarten
+GET      /kindergarten               controllers.HomeController.kindergartenMenu
+POST     /addKindergarten            controllers.HomeController.addKindergarten
+GET      /findKindergarten           controllers.HomeController.findKindergarten
+POST     /findparents                controllers.HomeController.showUsersFromKindergarten
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

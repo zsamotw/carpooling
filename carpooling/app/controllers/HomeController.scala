@@ -12,7 +12,11 @@ import scala.concurrent.duration._
 class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller  with I18nSupport {
 
   def index = Action { implicit request =>
-    Ok(views.html.index("Nobody"))
+    request.session.get("connected").map { user =>
+      Ok(views.html.index(user + " is connected"))
+    }.getOrElse{
+      Ok(views.html.index("Nobody is connected"))
+    }
   }
 
   def login = Action { implicit request =>
@@ -21,7 +25,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def validateLogin = Action { implicit request =>
     val login = loginForm.form.bindFromRequest.get
-    if(Users.validateLogin(login)) Ok(views.html.index("Logged"))
+    if(Users.validateLogin(login)) Ok(views.html.index("You are logged with login: " + login.email)).withSession("connected" -> login.email)
     else Ok(views.html.incorrectLogin())
   }
 
@@ -31,23 +35,37 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def addUser() = Action {implicit  request =>
     val uForm = userForm.form.bindFromRequest.get
-    val lenlon = Users.searchGeoPoint(uForm)
+    val lenlon = Utils.searchGeoPoint(uForm)
     val user = User(uForm.email, uForm.password, uForm.name, uForm.surname, uForm.city, uForm.street, uForm.kindergarten, lenlon._1, lenlon._2)
     Users.add(user)
-      Ok(views.html.index(user.name))
+    Ok(views.html.index("User " + user.name + " was added"))
   }
 
-/*  def addKindergarten() = Action{implicit request =>
-    val kgForm = KindergartenSearchForm.form.bindFromRequest.get
-    val kg = new Kindergarten(kgForm.kName, ListBuffer[User]())
+  def kindergartenMenu() = Action { implicit request =>
+    Ok(views.html.addkindergarten(KindergartenForm.form))
+  }
+
+  def addKindergarten() = Action{ implicit request =>
+    val kgFromForm = KindergartenForm.form.bindFromRequest.get
+    val kg = Kindergarten(kgFromForm.name, kgFromForm.street, kgFromForm.num, kgFromForm.city, "len", "lon")
     Kindergartens.add(kg)
-    Ok(views.html.index("")(kgForm.kName))
-  }*/
+    Ok(views.html.index("Kindergarten " + kg.name + " was added"))
+  }
+
+  def findKindergarten() = Action { implicit request =>
+    Ok(views.html.findparentsfromkindergarten(KindergartenForm.form))
+  }
 
   def showUsersFromKindergarten = Action {implicit request =>
-    val kg = KindergartenSearchForm.form.bindFromRequest.get
-    val usersFrom = Users.findUsersFromKindergarten(kg.name)
-    Ok(views.html.kindergarten(usersFrom))
+    try {
+    val kgFromForm = KindergartenForm.form.bindFromRequest.get
+    val lenlon = Utils.searchGeoPoint(kgFromForm)
+    val kg = Kindergarten(kgFromForm.name, kgFromForm.street, kgFromForm.num, kgFromForm.city, lenlon._1, lenlon._2)
+    val usersFrom = Users.findUsersFromKindergarten(kgFromForm.name)
+      Ok(views.html.parents(kg, usersFrom))
+    } catch {
+      case e: NoSuchElementException => Ok(views.html.index("There is no such kindergarten in db"))
+    }
   }
 }
 

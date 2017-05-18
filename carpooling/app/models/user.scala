@@ -3,7 +3,6 @@ package models
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.io.Source
-
 import play.api.Play._
 import play.api.data.Form
 import play.api.data.Forms._
@@ -17,31 +16,27 @@ import scala.collection.mutable.ListBuffer
 
 case class User(email: String, password: String, name: String, surname: String, city: String, street: String, kindergarten: String, len: String, lon: String)
 
-case class UForm(email: String, password: String, name: String, surname: String, city: String, street: String, kindergarten: String)
+case class UserFormData(email: String, password: String, name: String, surname: String, city: String, street: String, kindergarten: String)
 
 case class Login(email: String, password: String)
 
 object userForm {
-  val form = Form (
-    mapping (
+  val form = Form(
+    mapping(
       "email" -> text,
       "password" -> text,
       "name" -> text,
       "surname" -> text,
       "city" -> text,
       "street" -> text,
-      "kindergarten" -> text
-    ) (UForm.apply) (UForm.unapply)
-  )
+      "kindergarten" -> text)(UserFormData.apply)(UserFormData.unapply))
 }
 
 object loginForm {
-  val form = Form (
-    mapping (
+  val form = Form(
+    mapping(
       "email" -> text,
-      "password" -> text
-    ) (Login.apply)(Login.unapply)
-  )
+      "password" -> text)(Login.apply)(Login.unapply))
 }
 
 /*class UserTableDef(tag: Tag) extends Table[User](tag, "UsersDb") {
@@ -58,7 +53,7 @@ object loginForm {
 
 object Users {
 
-/*  val dbConfig = DatabaseConfigProvider.get[JdbcProfile](current)
+  /*  val dbConfig = DatabaseConfigProvider.get[JdbcProfile](current)
   import dbConfig.driver.api._*/
 
   var users: ListBuffer[User] = ListBuffer()
@@ -67,30 +62,21 @@ object Users {
     val user = users find (_.email == login.email)
     user match {
       case None => false
-      case Some(u:User) => if (u.password == login.password) true else false
-     }
+      case Some(u: User) => if (u.password == login.password) true else false
+    }
   }
 
   def add(user: User) = {
     users += user
   }
 
-  def searchGeoPoint(user: UForm) = {
-    val query = "http://nominatim.openstreetmap.org/search/" + user.street + "," + user.city + ",Poland?format=json&polygon=1&addressdetails=1&limit=1"
-    val res = Source.fromURL(query).mkString
-    val jsonRes = Json.parse(res)
-    val lat = (jsonRes \\ "lat").head.toString
-    val lon = (jsonRes \\ "lon").head.toString
-    (lat,lon)
-  }
-
   def listAll = {
-    for(user <- users) {
+    for (user <- users) {
       println(user.toString)
     }
   }
 
   def findUsersFromKindergarten(kg: String) = {
-    users filter(_.kindergarten == kg)
-    }
+    users filter (_.kindergarten == kg)
+  }
 }

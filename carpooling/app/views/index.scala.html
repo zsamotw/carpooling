@@ -1,16 +1,14 @@
-@(userName: String)
+@(mess: String)
 
 @main("Welcome to our Family of Familis") {
 Welcome to carpooling app for parents! Don't afraid about design. App is in progress.
 <a href="user">create user</a> or <a href="login">login</a><br><br>
+<a href="kindergarten">create kindergarten</a><br><br>
 
-If you want to find parents from concrete kindergarten fill this form:<br>
-<form action="@routes.HomeController.showUsersFromKindergarten()" method="post">
-  <input name="name" type="text" value="kindergarten name">
-  <button>find kindergarten</button>
-</form>
-<br>
-user: @userName
+<a href="findKindergarten">find parents from kindergarten</a><br><br>
+
+
+current info: @mess
 
 }
 
