@@ -1,0 +1,12 @@
+@(kindergartenForm: Form[KindergartenFormData])(implicit messages: play.api.i18n.Messages)
+
+Add kindergarten to database:
+
+@helper.form(action=routes.HomeController.addKindergarten()) {
+@helper.inputText(kindergartenForm("name"))
+@helper.inputText(kindergartenForm("street"))
+@helper.inputText(kindergartenForm("num"))
+@helper.inputText(kindergartenForm("city"))
+<button type="submit">Add kindergarten</button>
+
+}

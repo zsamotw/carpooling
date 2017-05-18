@@ -1,0 +1,9 @@
+@import scala.collection.mutable.ListBuffer
+
+@(kg: Kindergarten, usersFrom: ListBuffer[User])
+
+Parents from @kg.name : @kg.len @kg.lon<br>
+@for(user <- usersFrom) {
+@user.name @user.surname @user.len @user.lon<br>	     
+}
+
