@@ -1,18 +1,13 @@
 package models
 
-import scala.concurrent.Await
-import scala.concurrent.duration._
-import scala.io.Source
+import com.mongodb.casbah.Imports._
 import play.api.Play._
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.db.slick.DatabaseConfigProvider
 import play.api.libs.json._
-import slick.driver.JdbcProfile
-import slick.driver.SQLiteDriver.api._
-
-/// only for branch nobd
-import scala.collection.mutable.ListBuffer
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scala.io.Source
 
 case class User(email: String, password: String, name: String, surname: String, city: String, street: String, kindergarten: String, len: String, lon: String)
 
@@ -39,44 +34,43 @@ object loginForm {
       "password" -> text)(Login.apply)(Login.unapply))
 }
 
-/*class UserTableDef(tag: Tag) extends Table[User](tag, "UsersDb") {
-  def email = column[String] ("email")
-  def password = column[String] ("password")
-  def name = column[String] ("name")
-  def surname = column[String]("surname")
-  def city = column[String]("city")
-  def street = column[String]("street")
-  def kindergarten = column[String]("kindergarten")
-
-  override def * = (email, password, name, surname, city, street, kindergarten) <> (User.tupled, User.unapply)
-}*/
-
 object Users {
 
-  /*  val dbConfig = DatabaseConfigProvider.get[JdbcProfile](current)
-  import dbConfig.driver.api._*/
-
-  var users: ListBuffer[User] = ListBuffer()
-
   def validateLogin(login: Login): Boolean = {
-    val user = users find (_.email == login.email)
-    user match {
+    val userOpt = MongoFactory.users.findOne(MongoDBObject("email" -> login.email))
+    userOpt match {
       case None => false
-      case Some(u: User) => if (u.password == login.password) true else false
+      case Some(u) => if (u.getAs[String]("password").get == login.password) true else false
     }
   }
 
   def add(user: User) = {
-    users += user
+    MongoFactory.users += MongoFactory.buildMongoDbUser(user)
   }
 
   def listAll = {
-    for (user <- users) {
-      println(user.toString)
-    }
+    val allUsers = MongoFactory.users.find
+    convertCursorToList(allUsers)
   }
 
   def findUsersFromKindergarten(kg: String) = {
-    users filter (_.kindergarten == kg)
+    val usersFrom = MongoFactory.users.find("kindergarten" $eq kg)
+    convertCursorToList(usersFrom)
+  }
+
+  def convertCursorToList(MongoUsers: com.mongodb.casbah.MongoCursor) = {
+    val res =
+      for {userMongo <- MongoUsers
+      val email = userMongo.getAs[String]("email").get
+      val password = userMongo.getAs[String]("password").get
+      val name = userMongo.getAs[String]("name").get
+      val surname = userMongo.getAs[String]("surname").get
+      val street = userMongo.getAs[String]("street").get
+      val city = userMongo.getAs[String]("city").get
+      val kindergarten = userMongo.getAs[String]("kindergarten").get
+      val lat = userMongo.getAs[String]("len").get
+      val lon = userMongo.getAs[String]("lon").get
+    } yield new User(email, password, name, surname, street, city, kindergarten, lat, lon)
+    res.toList
   }
 }
