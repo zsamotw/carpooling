@@ -29,6 +29,15 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     else Ok(views.html.incorrectLogin())
   }
 
+  def logout = Action { implicit request =>
+    Ok(views.html.index("Your session is finished. Logout")).withNewSession
+  }
+
+  def allKindergartens() = Action { implicit request =>
+    val all = Kindergartens.listAll
+    Ok(views.html.allkindergartens(all))
+  }
+
   def userMenu() = Action { implicit request =>
       Ok(views.html.user(userForm.form))
   }
@@ -42,11 +51,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   }
 
   def kindergartenMenu() = Action { implicit request =>
-    //request.session.get("connected").map { login =>
       Ok(views.html.addkindergarten(KindergartenForm.form))
-    //}.getOrElse {
-    //  Ok(views.html.index("You have to login first"))
-    //}
   }
 
   def addKindergarten() = Action{ implicit request =>
@@ -58,23 +63,22 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   }
 
   def findKindergarten() = Action { implicit request =>
-    //request.session.get("connected").map { login =>
+    request.session.get("connected").map { login =>
       Ok(views.html.findparentsfromkindergarten(KindergartenForm.form))
-    //}.getOrElse {
-    //  Ok(views.html.index("You have to login first"))
-    //}
+    }.getOrElse {
+      Ok(views.html.index("You have to login first"))
+    }
   }
 
   def showUsersFromKindergarten = Action {implicit request =>
-    //try {
+    try {
       val kgFromForm = KindergartenForm.form.bindFromRequest.get
-      val latLon = GeoUtils.searchGeoPoint(kgFromForm)
-      val kg = Kindergarten(kgFromForm.name, kgFromForm.street, kgFromForm.num, kgFromForm.city, latLon._1, latLon._2)
+      val kg = Kindergartens.find(kgFromForm.name, kgFromForm.street, kgFromForm.city)
       val usersFrom = Users.findUsersFromKindergarten(kgFromForm.name)
       Ok(views.html.parents(kg, usersFrom))
-    //} catch {
-    //  case e: NoSuchElementException => Ok(views.html.index("There is no such kindergarten in db"))
-    //}
+    } catch {
+      case e: NoSuchElementException => Ok(views.html.index("There is no such kindergarten in db"))
+    }
   }
 }
 

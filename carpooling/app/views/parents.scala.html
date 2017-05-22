@@ -1,10 +1,8 @@
-@import scala.collection.mutable.ListBuffer
-
 @(kg: Kindergarten, usersFrom: List[User])
 
-Parents from @kg.name : @kg.len @kg.lon<br>
+Parents from @kg.name on @kg.street in @kg.city: @kg.len @kg.lon<br><br>
 @for(user <- usersFrom) {
-@user.name @user.surname @user.len @user.lon<br>	     
+@user.name @user.surname @user.street @user.email @user.len @user.lon<br>	     
 }
 
 <br><a href="/">homepage</a>
