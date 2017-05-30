@@ -29,8 +29,6 @@ object GeoUtils {
 
 object MongoFactory {
 
-  private val SERVER = "localhost"
-  private val PORT = 27017
   private val DATABASE = "carpooling"
   private val USERS = "users"
   private val KINDERGARTENS = "kindergartens"

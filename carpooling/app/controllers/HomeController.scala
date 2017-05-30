@@ -39,7 +39,8 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   }
 
   def userMenu() = Action { implicit request =>
-      Ok(views.html.user(userForm.form))
+    val kindergartens = Kindergartens.listAll
+    Ok(views.html.adduser(userForm.form, kindergartens))
   }
 
   def addUser() = Action {implicit  request =>
@@ -47,7 +48,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     val latLon = GeoUtils.searchGeoPoint(userFromForm)
     val user = User(userFromForm.email, userFromForm.password, userFromForm.name, userFromForm.surname, userFromForm.city, userFromForm.street, userFromForm.kindergarten, latLon._1, latLon._2)
     Users.add(user)
-    Ok(views.html.index("User " + user.name + " was added"))
+    Ok(views.html.index("User " + user.name + " was added. You are login")).withSession("connected" -> user.email)
   }
 
   def kindergartenMenu() = Action { implicit request =>
@@ -64,7 +65,8 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def findKindergarten() = Action { implicit request =>
     request.session.get("connected").map { login =>
-      Ok(views.html.findparentsfromkindergarten(KindergartenForm.form))
+      val kindergartens = Kindergartens.listAll
+      Ok(views.html.findusersfromkindergarten(KindergartenForm.form, kindergartens))
     }.getOrElse {
       Ok(views.html.index("You have to login first"))
     }
@@ -75,9 +77,18 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
       val kgFromForm = KindergartenForm.form.bindFromRequest.get
       val kg = Kindergartens.find(kgFromForm.name, kgFromForm.street, kgFromForm.city)
       val usersFrom = Users.findUsersFromKindergarten(kgFromForm.name)
-      Ok(views.html.parents(kg, usersFrom))
+      Ok(views.html.showusers(kg, usersFrom))
     } catch {
       case e: NoSuchElementException => Ok(views.html.index("There is no such kindergarten in db"))
+    }
+  }
+
+  def showUserPanel = Action {implicit request =>
+    request.session.get("connected").map { login =>
+      val user = Users.findLoggedUser(login)
+      Ok(views.html.panel(user))
+    }.getOrElse {
+      Ok(views.html.index("You have to login first"))
     }
   }
 }

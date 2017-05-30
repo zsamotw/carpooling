@@ -1,5 +1,5 @@
 
-@(userForm: Form[UserFormData])(implicit messages: play.api.i18n.Messages)
+@(userForm: Form[UserFormData], kindergartens: List[models.Kindergarten])(implicit messages: play.api.i18n.Messages)
 You can add youself to our database -> name, contact and location. Fill this form:<br>
 
 @helper.form(action=routes.HomeController.addUser()) {
@@ -9,7 +9,12 @@ You can add youself to our database -> name, contact and location. Fill this for
 @helper.inputText(userForm("surname"))
 @helper.inputText(userForm("city"))
 @helper.inputText(userForm("street"))
-@helper.inputText(userForm("kindergarten"))
+@helper.select(
+userForm("kindergarten"),
+options = for(kg <- kindergartens) yield (kg.name  -> kg.name),
+'_default -> "choose your kindergarten",
+'_label -> "Kindergarten name"
+)
 <button type="submit">Add user</button>
 }
 

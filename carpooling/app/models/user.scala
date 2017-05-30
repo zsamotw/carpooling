@@ -58,19 +58,35 @@ object Users {
     convertCursorToList(usersFrom)
   }
 
+  def findLoggedUser(email: String) = {
+    val loggedUserOpt = MongoFactory.users.findOne("email" $eq email)
+    loggedUserOpt match {
+      case Some(u) =>
+        val name = u.as[String]("name")
+        val surname = u.as[String]("surname")
+        val street = u.as[String]("street")
+        val city = u.as[String]("city")
+        val kindergarten = u.as[String]("kindergarten")
+        val email = u.as[String]("email")
+        (name, surname, street, city, kindergarten, email)
+      case None => ("There is no user with this login","","","","","")
+    }
+  }
+
   def convertCursorToList(MongoUsers: com.mongodb.casbah.MongoCursor) = {
     val res =
       for {userMongo <- MongoUsers
-      val email = userMongo.getAs[String]("email").get
-      val password = userMongo.getAs[String]("password").get
-      val name = userMongo.getAs[String]("name").get
-      val surname = userMongo.getAs[String]("surname").get
-      val street = userMongo.getAs[String]("street").get
-      val city = userMongo.getAs[String]("city").get
-      val kindergarten = userMongo.getAs[String]("kindergarten").get
-      val lat = userMongo.getAs[String]("len").get
-      val lon = userMongo.getAs[String]("lon").get
+        email = userMongo.getAs[String]("email").get
+        password = userMongo.getAs[String]("password").get
+        name = userMongo.getAs[String]("name").get
+        surname = userMongo.getAs[String]("surname").get
+        street = userMongo.getAs[String]("street").get
+        city = userMongo.getAs[String]("city").get
+        kindergarten = userMongo.getAs[String]("kindergarten").get
+        lat = userMongo.getAs[String]("len").get
+        lon = userMongo.getAs[String]("lon").get
     } yield new User(email, password, name, surname, street, city, kindergarten, lat, lon)
     res.toList
   }
+
 }
