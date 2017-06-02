@@ -1,13 +1,8 @@
 package models
 
 import com.mongodb.casbah.Imports._
-import play.api.Play._
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.libs.json._
-import scala.concurrent.Await
-import scala.concurrent.duration._
-import scala.io.Source
 
 case class User(email: String, password: String, name: String, surname: String, city: String, street: String, kindergarten: String, len: String, lon: String)
 
@@ -46,6 +41,16 @@ object Users {
 
   def add(user: User) = {
     MongoFactory.users += MongoFactory.buildMongoDbUser(user)
+    val kindergarten = MongoFactory.kindergartens.findOne("name" $eq user.kindergarten)
+    kindergarten match {
+      case Some(kg) =>
+        val usersEmails = kg.as[String]("usersemails")
+        val usersEmailsAfter = usersEmails + ", " + user.email
+        val query = MongoDBObject("name" -> kg.as[String]("name"))
+        val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
+        MongoFactory.kindergartens.findAndModify(query, update)
+      case None => throw new NoSuchElementException
+    }
   }
 
   def listAll = {
@@ -56,6 +61,7 @@ object Users {
   def findUsersFromKindergarten(kg: String) = {
     val usersFrom = MongoFactory.users.find("kindergarten" $eq kg)
     convertCursorToList(usersFrom)
+
   }
 
   def findLoggedUser(email: String) = {
@@ -69,7 +75,7 @@ object Users {
         val kindergarten = u.as[String]("kindergarten")
         val email = u.as[String]("email")
         (name, surname, street, city, kindergarten, email)
-      case None => ("There is no user with this login","","","","","")
+      case None => throw new NoSuchElementException
     }
   }
 
@@ -83,10 +89,25 @@ object Users {
         street = userMongo.getAs[String]("street").get
         city = userMongo.getAs[String]("city").get
         kindergarten = userMongo.getAs[String]("kindergarten").get
-        lat = userMongo.getAs[String]("len").get
+        len = userMongo.getAs[String]("len").get
         lon = userMongo.getAs[String]("lon").get
-    } yield new User(email, password, name, surname, street, city, kindergarten, lat, lon)
+    } yield new User(email, password, name, surname, street, city, kindergarten, len, lon)
     res.toList
+  }
+
+  def convertDBObjectToUser(userMongo: MongoDBObject) = {
+    val email = userMongo.getAs[String]("email").get
+    val password =  userMongo.getAs[String]("password").get
+    val name = userMongo.getAs[String]("name").get
+    val surname =  userMongo.getAs[String]("surname").get
+    val street =  userMongo.getAs[String]("street").get
+    val city =  userMongo.getAs[String]("city").get
+    val kindergarten =  userMongo.getAs[String]("kindergarten").get
+    val len =  userMongo.getAs[String]("len").get
+    val lon =  userMongo.getAs[String]("lon").get
+    new User(email, password, name, surname, city, street, kindergarten, len, lon)
+
+
   }
 
 }

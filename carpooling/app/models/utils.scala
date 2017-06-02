@@ -29,14 +29,14 @@ object GeoUtils {
 
 object MongoFactory {
 
-  private val DATABASE = "carpooling"
-  private val USERS = "users"
-  private val KINDERGARTENS = "kindergartens"
+  private val Database = "carpooling"
+  private val Users = "users"
+  private val Kindergartens = "kindergartens"
 
   val connection = MongoClient()
-  val db = connection(DATABASE)
-  val users = db(USERS)
-  val kindergartens = db(KINDERGARTENS)
+  val db = connection(Database)
+  val users = db(Users)
+  val kindergartens = db(Kindergartens)
 
   def buildMongoDbUser(user: User): MongoDBObject = {
     val builder = MongoDBObject.newBuilder
@@ -60,7 +60,12 @@ object MongoFactory {
     builder += "city" -> kg.city
     builder += "len" -> kg.len
     builder += "lon" -> kg.lon
+    builder += "usersemails" -> ""
     builder.result
+  }
+
+  def addUserToKindergarten = {
+
   }
 }
 

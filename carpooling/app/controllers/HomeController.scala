@@ -4,10 +4,7 @@ import javax.inject.Inject
 import models._
 import play.api.mvc._
 import play.api.i18n.{I18nSupport, MessagesApi}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
-
+import java.io.IOException
 
 class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller  with I18nSupport {
 
@@ -44,11 +41,25 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   }
 
   def addUser() = Action {implicit  request =>
-    val userFromForm = userForm.form.bindFromRequest.get
-    val latLon = GeoUtils.searchGeoPoint(userFromForm)
-    val user = User(userFromForm.email, userFromForm.password, userFromForm.name, userFromForm.surname, userFromForm.city, userFromForm.street, userFromForm.kindergarten, latLon._1, latLon._2)
-    Users.add(user)
-    Ok(views.html.index("User " + user.name + " was added. You are login")).withSession("connected" -> user.email)
+    try {
+      val userFromForm = userForm.form.bindFromRequest.get
+      val latLon = GeoUtils.searchGeoPoint(userFromForm)
+      val user =
+        User(
+          userFromForm.email,
+          userFromForm.password,
+          userFromForm.name,
+          userFromForm.surname,
+          userFromForm.city,
+          userFromForm.street,
+          userFromForm.kindergarten,
+          latLon._1,
+          latLon._2)
+      Users.add(user)
+      Ok(views.html.index("User " + user.name + " was added. You are login")).withSession("connected" -> user.email)
+    } catch {
+      case e: IOException => Ok(views.html.index("Oooops, something wrong with address or internet connection"))
+    }
   }
 
   def kindergartenMenu() = Action { implicit request =>
@@ -56,11 +67,23 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   }
 
   def addKindergarten() = Action{ implicit request =>
-    val kgFromForm = KindergartenForm.form.bindFromRequest.get
-    val latLon = GeoUtils.searchGeoPoint(kgFromForm)
-    val kg = Kindergarten(kgFromForm.name, kgFromForm.street, kgFromForm.num, kgFromForm.city, latLon._1, latLon._2)
-    Kindergartens.add(kg)
-    Ok(views.html.index("Kindergarten " + kg.name + " was added"))
+    try {
+      val kgFromForm = KindergartenForm.form.bindFromRequest.get
+      val latLon = GeoUtils.searchGeoPoint(kgFromForm)
+      val kg =
+        Kindergarten(
+          kgFromForm.name,
+          kgFromForm.street,
+          kgFromForm.num,
+          kgFromForm.city,
+          latLon._1,
+          latLon._2,
+          List[String]())
+      Kindergartens.add(kg)
+      Ok(views.html.index("Kindergarten " + kg.name + " was added"))
+    } catch {
+      case e: IOException => Ok(views.html.index("Oooops, something wrong with kindergarten address or internet connection"))
+    }
   }
 
   def findKindergarten() = Action { implicit request =>
@@ -75,9 +98,9 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   def showUsersFromKindergarten = Action {implicit request =>
     try {
       val kgFromForm = KindergartenForm.form.bindFromRequest.get
-      val kg = Kindergartens.find(kgFromForm.name, kgFromForm.street, kgFromForm.city)
-      val usersFrom = Users.findUsersFromKindergarten(kgFromForm.name)
-      Ok(views.html.showusers(kg, usersFrom))
+      val kindergarten = Kindergartens.find(kgFromForm.name, kgFromForm.street, kgFromForm.city)
+      val usersFrom = Kindergartens.findUsersFromKindergarten(kindergarten)
+      Ok(views.html.showusers(kindergarten, usersFrom))
     } catch {
       case e: NoSuchElementException => Ok(views.html.index("There is no such kindergarten in db"))
     }

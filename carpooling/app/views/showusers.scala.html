@@ -1,8 +1,9 @@
-@(kg: Kindergarten, usersFrom: List[User])
+@(kindergarten: Kindergarten, usersFrom: List[User])
 
-Parents from @kg.name on @kg.street in @kg.city: @kg.len @kg.lon<br><br>
+Parents from @kindergarten.name on @kindergarten.street in @kindergarten.city: @kindergarten.len @kindergarten.lon<br><br>
 @for(user <- usersFrom) {
-@user.name @user.surname @user.street @user.email @user.len @user.lon<br>	     
-}
+	     @user.name @user.surname @user.street @user.city @user.email @user.len @user.lon<br>
+	     }
 
+	     
 <br><a href="/">homepage</a>
