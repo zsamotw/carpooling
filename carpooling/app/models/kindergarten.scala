@@ -43,7 +43,7 @@ object Kindergartens {
   def findUsersFromKindergarten(kindergarten: Kindergarten) = {
     val usersEmails = kindergarten.usersEmails
     val emailsList = for (email <- usersEmails) yield email
-    val usersMongo = for (email <- emailsList) yield MongoFactory.users.findOne(MongoDBObject("email" -> email.trim)).get
+    val usersMongo = for (email <- emailsList) yield MongoFactory.users.findOne(MongoDBObject("email" -> email.trim)).get //TODO: add match
     val users = for(user <- usersMongo) yield Users.convertDBObjectToUser(user)
     users
   }

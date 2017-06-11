@@ -32,10 +32,10 @@ object loginForm {
 object Users {
 
   def validateLogin(login: Login): Boolean = {
-    val userOpt = MongoFactory.users.findOne(MongoDBObject("email" -> login.email))
-    userOpt match {
+    val userMongoOpt = MongoFactory.users.findOne(MongoDBObject("email" -> login.email))
+    userMongoOpt match {
       case None => false
-      case Some(u) => if (u.getAs[String]("password").get == login.password) true else false
+      case Some(user) => if (user.getAs[String]("password").get == login.password) true else false
     }
   }
 

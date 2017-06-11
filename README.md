@@ -1,4 +1,4 @@
 # carpooling
 App for parents who taking their children to kindergarten.
-Work in progress.
-The most updated branch is "mongo"
+Works in progress.
+Application uses Mongo DB and Nominatim(Open Street Maps)
