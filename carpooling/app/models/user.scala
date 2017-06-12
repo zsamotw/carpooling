@@ -39,6 +39,14 @@ object Users {
     }
   }
 
+  def isOnlyOne(user: User) = {
+    val userMongo = MongoFactory.users.findOne(MongoDBObject("email" -> user.email))
+    userMongo match {
+      case None => true
+      case Some(user) => false
+    }
+  }
+
   def add(user: User) = {
     MongoFactory.users += MongoFactory.buildMongoDbUser(user)
     val kindergarten = MongoFactory.kindergartens.findOne("name" $eq user.kindergarten)

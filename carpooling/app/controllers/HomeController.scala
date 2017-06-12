@@ -11,7 +11,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   def index = Action { implicit request =>
     request.session.get("connected").map { user =>
       Ok(views.html.index(user + " is connected"))
-    }.getOrElse{
+    }.getOrElse {
       Ok(views.html.index("Nobody is connected"))
     }
   }
@@ -20,7 +20,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     Ok(views.html.login(loginForm.form))
   }
 
-  def validateLogin = Action { implicit request =>
+  def validateLoginAndPassword = Action { implicit request =>
     val login = loginForm.form.bindFromRequest.get
     if(Users.validateLogin(login)) Ok(views.html.index("You are logged with login: " + login.email)).withSession("connected" -> login.email)
     else Ok(views.html.incorrectLogin())
@@ -36,11 +36,15 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   }
 
   def userMenu() = Action { implicit request =>
-    val kindergartens = Kindergartens.listAll
-    Ok(views.html.adduser(userForm.form, kindergartens))
+    request.session.get("connected").map {user =>
+      Ok(views.html.index(user + " .You can't create more account"))
+    }.getOrElse {
+      val kindergartens = Kindergartens.listAll
+      Ok(views.html.adduser(userForm.form, kindergartens))
+    }
   }
 
-  def addUser() = Action {implicit  request =>
+  def addUser() = Action { implicit  request =>
     try {
       val userFromForm = userForm.form.bindFromRequest.get
       val latLon = GeoUtils.searchGeoPoint(userFromForm)
@@ -55,8 +59,13 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
           userFromForm.kindergarten,
           latLon._1,
           latLon._2)
-      Users.add(user)
-      Ok(views.html.index("User " + user.name + " was added. You are login")).withSession("connected" -> user.email)
+      Users.isOnlyOne(user) match {
+        case true => {
+          Users.add(user)
+          Ok(views.html.index("User " + user.name + " was added. You are login")).withSession("connected" -> user.email)
+        }
+        case false => Ok(views.html.index("User with this login exists"))
+      }
     } catch {
       case e: IOException => Ok(views.html.index("Oooops, something wrong with address or internet connection"))
     }
@@ -95,7 +104,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     }
   }
 
-  def showUsersFromKindergarten = Action {implicit request =>
+  def showUsersFromKindergarten = Action { implicit request =>
     try {
       val kgFromForm = KindergartenForm.form.bindFromRequest.get
       val kindergarten = Kindergartens.find(kgFromForm.name, kgFromForm.street, kgFromForm.city)
@@ -106,7 +115,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     }
   }
 
-  def showUserPanel = Action {implicit request =>
+  def showUserPanel = Action { implicit request =>
     request.session.get("connected").map { login =>
       val user = Users.findLoggedUser(login)
       Ok(views.html.panel(user))

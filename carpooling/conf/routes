@@ -7,7 +7,7 @@
 GET      /                           controllers.HomeController.index
 GET      /login                      controllers.HomeController.login
 GET      /logout                     controllers.HomeController.logout
-POST     /validatelogin              controllers.HomeController.validateLogin
+POST     /validatelogin              controllers.HomeController.validateLoginAndPassword
 POST     /addUser                    controllers.HomeController.addUser
 GET      /user                       controllers.HomeController.userMenu
 GET      /kindergarten               controllers.HomeController.kindergartenMenu

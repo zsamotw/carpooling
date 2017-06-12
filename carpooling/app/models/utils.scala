@@ -9,12 +9,16 @@ import com.mongodb.casbah.Imports._
 object GeoUtils {
 
   def searchGeoPoint(user: UserFormData) = {
-    val query = "http://nominatim.openstreetmap.org/search/" + user.street + "," + user.city + ",Poland?format=json&polygon=1&addressdetails=1&limit=1"
+    val street = user.street split(" ") mkString("%20")
+    val city = user.city split(" ") mkString("%20")
+    val query = "http://nominatim.openstreetmap.org/search/" + street + "," + city + ",Poland?format=json&polygon=1&addressdetails=1&limit=1"
     parseLatLonFromQuery(query)
   }
 
   def searchGeoPoint(kg: KindergartenFormData) = {
-    val query = "http://nominatim.openstreetmap.org/search/" + kg.street + "," + kg.city + ",Poland?format=json&polygon=1&addressdetails=1&limit=1"
+     val street = kg.street split(" ") mkString("%20")
+    val city = kg.city split(" ") mkString("%20")
+    val query = "http://nominatim.openstreetmap.org/search/" + street + "," + city + ",Poland?format=json&polygon=1&addressdetails=1&limit=1"
     parseLatLonFromQuery(query)
   }
 
@@ -62,10 +66,6 @@ object MongoFactory {
     builder += "lon" -> kg.lon
     builder += "usersemails" -> ""
     builder.result
-  }
-
-  def addUserToKindergarten = {
-
   }
 }
 
