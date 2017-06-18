@@ -9,8 +9,8 @@ import java.io.IOException
 class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller  with I18nSupport {
 
   def index = Action { implicit request =>
-    request.session.get("connected").map { user =>
-      Ok(views.html.index(user + " is connected"))
+    request.session.get("connected").map { email =>
+      Ok(views.html.index("User with login:" + email + " is connected"))
     }.getOrElse {
       Ok(views.html.index("Nobody is connected"))
     }
@@ -36,8 +36,8 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   }
 
   def userMenu() = Action { implicit request =>
-    request.session.get("connected").map {user =>
-      Ok(views.html.index(user + " .You can't create more account"))
+    request.session.get("connected").map {email =>
+      Ok(views.html.index("Hallo user with login: " + email + " .You can't create more account"))
     }.getOrElse {
       val kindergartens = Kindergartens.listAll
       Ok(views.html.adduser(userForm.form, kindergartens))
@@ -71,6 +71,16 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     }
   }
 
+  def deleteUser() = Action { implicit request =>
+    request.session.get("connected").map { email =>
+      val user = Users.findUserByEmail(email)
+      Users.delete(user)
+      Ok(views.html.index("You just delete yourself user: " + email)).withNewSession
+    } getOrElse {
+      Ok(views.html.index("Problem with delete your accout"))
+    }
+   
+  }
   def kindergartenMenu() = Action { implicit request =>
       Ok(views.html.addkindergarten(KindergartenForm.form))
   }
@@ -96,7 +106,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   }
 
   def findKindergarten() = Action { implicit request =>
-    request.session.get("connected").map { login =>
+    request.session.get("connected").map { email =>
       val kindergartens = Kindergartens.listAll
       Ok(views.html.findusersfromkindergarten(KindergartenForm.form, kindergartens))
     }.getOrElse {
@@ -116,8 +126,8 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   }
 
   def showUserPanel = Action { implicit request =>
-    request.session.get("connected").map { login =>
-      val user = Users.findLoggedUser(login)
+    request.session.get("connected").map { email =>
+      val user = Users.findUserByEmail(email)
       Ok(views.html.panel(user))
     }.getOrElse {
       Ok(views.html.index("You have to login first"))

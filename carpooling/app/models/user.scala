@@ -11,6 +11,7 @@ case class UserFormData(email: String, password: String, name: String, surname: 
 case class Login(email: String, password: String)
 
 object userForm {
+
   val form = Form(
     mapping(
       "email" -> text,
@@ -23,6 +24,7 @@ object userForm {
 }
 
 object loginForm {
+
   val form = Form(
     mapping(
       "email" -> text,
@@ -53,7 +55,7 @@ object Users {
     kindergarten match {
       case Some(kg) =>
         val usersEmails = kg.as[String]("usersemails")
-        val usersEmailsAfter = usersEmails + ", " + user.email
+        val usersEmailsAfter = usersEmails + "," + user.email
         val query = MongoDBObject("name" -> kg.as[String]("name"))
         val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
         MongoFactory.kindergartens.findAndModify(query, update)
@@ -61,28 +63,31 @@ object Users {
     }
   }
 
+  def delete(user: User) = {
+    val kindergarten = MongoFactory.kindergartens.findOne("name" $eq user.kindergarten)
+    kindergarten match {
+      case Some(kg) => 
+        val usersEmails = kg.as[String]("usersemails")
+        val usersEmailsAfter = usersEmails.split(",").toList.filter(e => e != user.email).mkString(",")
+        val query = MongoDBObject("name" -> kg.as[String]("name"))
+        val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
+        MongoFactory.kindergartens.findAndModify(query, update)
+      case None => throw new NoSuchElementException
+    }
+    MongoFactory.users.remove("email" $eq user.email)
+    
+  }
+
   def listAll = {
     val allUsers = MongoFactory.users.find
     convertCursorToList(allUsers)
   }
 
-  def findUsersFromKindergarten(kg: String) = {
-    val usersFrom = MongoFactory.users.find("kindergarten" $eq kg)
-    convertCursorToList(usersFrom)
-
-  }
-
-  def findLoggedUser(email: String) = {
-    val loggedUserOpt = MongoFactory.users.findOne("email" $eq email)
-    loggedUserOpt match {
+  def findUserByEmail(email: String) = {
+    val UserOpt = MongoFactory.users.findOne("email" $eq email)
+    UserOpt match {
       case Some(u) =>
-        val name = u.as[String]("name")
-        val surname = u.as[String]("surname")
-        val street = u.as[String]("street")
-        val city = u.as[String]("city")
-        val kindergarten = u.as[String]("kindergarten")
-        val email = u.as[String]("email")
-        (name, surname, street, city, kindergarten, email)
+        convertDBObjectToUser(u)
       case None => throw new NoSuchElementException
     }
   }

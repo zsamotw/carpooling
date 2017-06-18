@@ -1,15 +1,14 @@
-@(user: (String, String, String, String, String, String))
+@(user: User)
 
-@{val(name, surname, street, city, kindergarten, email) = user}
 
-@user._1  @user._2<br>
+@user.name  @user.surname<br>
 Address:
-@user._3  @user._4<br>
+@user.street  @user.city<br>
 Kindergaten:
-@user._5<br>
+@user.kindergarten<br>
 email:
-@user._6<br><br>
+@user.email<br><br>
 
 <br><a href="/">homepage</a><br><br><br>
 
-!Delete me!
+<a href="/deleteuser">Delete me!<a>
