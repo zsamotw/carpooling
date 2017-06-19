@@ -4,9 +4,9 @@ import com.mongodb.casbah.Imports._
 import play.api.data.Form
 import play.api.data.Forms._
 
-case class User(email: String, password: String, name: String, surname: String, city: String, street: String, kindergarten: String, len: String, lon: String)
+case class User(email: String, password: String, name: String, surname: String, city: String, street: String, kindergarten: KindergartenFormData, len: String, lon: String)
 
-case class UserFormData(email: String, password: String, name: String, surname: String, city: String, street: String, kindergarten: String)
+case class UserFormData(email: String, password: String, name: String, surname: String, city: String, street: String, kgName: String, kgStreet: String, kgNum: Int, kgCity: String)
 
 case class Login(email: String, password: String)
 
@@ -20,7 +20,10 @@ object userForm {
       "surname" -> text,
       "city" -> text,
       "street" -> text,
-      "kindergarten" -> text)(UserFormData.apply)(UserFormData.unapply))
+      "kgName" -> text,
+      "kgStreet" -> text,
+      "kgNum" -> number,
+      "kgCity" -> text)(UserFormData.apply)(UserFormData.unapply))
 }
 
 object loginForm {
@@ -51,7 +54,12 @@ object Users {
 
   def add(user: User) = {
     MongoFactory.users += MongoFactory.buildMongoDbUser(user)
-    val kindergarten = MongoFactory.kindergartens.findOne("name" $eq user.kindergarten)
+    val kindergarten = MongoFactory.kindergartens.findOne(MongoDBObject(
+      "name" -> user.kindergarten.name,
+      "street" -> user.kindergarten.street,
+      "num" -> user.kindergarten.num,
+      "city" -> user.kindergarten.city))
+
     kindergarten match {
       case Some(kg) =>
         val usersEmails = kg.as[String]("usersemails")
@@ -64,7 +72,12 @@ object Users {
   }
 
   def delete(user: User) = {
-    val kindergarten = MongoFactory.kindergartens.findOne("name" $eq user.kindergarten)
+    val kindergarten = MongoFactory.kindergartens.findOne(MongoDBObject(
+      "name" -> user.kindergarten.name,
+      "street" -> user.kindergarten.street,
+      "num" -> user.kindergarten.num,
+      "city" -> user.kindergarten.city))
+
     kindergarten match {
       case Some(kg) => 
         val usersEmails = kg.as[String]("usersemails")
@@ -75,7 +88,6 @@ object Users {
       case None => throw new NoSuchElementException
     }
     MongoFactory.users.remove("email" $eq user.email)
-    
   }
 
   def listAll = {
@@ -94,17 +106,33 @@ object Users {
 
   def convertCursorToList(MongoUsers: com.mongodb.casbah.MongoCursor) = {
     val res =
-      for {userMongo <- MongoUsers
+      for { userMongo <- MongoUsers
         email = userMongo.getAs[String]("email").get
         password = userMongo.getAs[String]("password").get
         name = userMongo.getAs[String]("name").get
         surname = userMongo.getAs[String]("surname").get
         street = userMongo.getAs[String]("street").get
         city = userMongo.getAs[String]("city").get
-        kindergarten = userMongo.getAs[String]("kindergarten").get
+        kgName = userMongo.getAs[String]("kgname").get
+        kgStreet = userMongo.getAs[String]("kgstreet").get
+        kgNum = userMongo.getAs[Int]("kgnum").get
+        kgCity = userMongo.getAs[String]("kgcity").get
         len = userMongo.getAs[String]("len").get
         lon = userMongo.getAs[String]("lon").get
-    } yield new User(email, password, name, surname, street, city, kindergarten, len, lon)
+      } yield User(
+        email,
+        password,
+        name,
+        surname,
+        street,
+        city,
+        KindergartenFormData(
+          kgName,
+          kgStreet,
+          kgNum.toInt,
+          kgCity),
+        len,
+        lon)
     res.toList
   }
 
@@ -115,12 +143,25 @@ object Users {
     val surname =  userMongo.getAs[String]("surname").get
     val street =  userMongo.getAs[String]("street").get
     val city =  userMongo.getAs[String]("city").get
-    val kindergarten =  userMongo.getAs[String]("kindergarten").get
+    val kgName =  userMongo.getAs[String]("kgname").get
+    val kgStreet =  userMongo.getAs[String]("kgstreet").get
+    val kgNum =  userMongo.getAs[Int]("kgnum").get
+    val kgCity =  userMongo.getAs[String]("kgcity").get
     val len =  userMongo.getAs[String]("len").get
     val lon =  userMongo.getAs[String]("lon").get
-    new User(email, password, name, surname, city, street, kindergarten, len, lon)
-
-
+    User(
+      email,
+      password,
+      name,
+      surname,
+      city,
+      street,
+      KindergartenFormData(
+        kgName,
+        kgStreet,
+        kgNum.toInt,
+        kgCity),
+      len,
+      lon)
   }
-
 }

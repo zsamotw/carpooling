@@ -31,8 +31,8 @@ object Kindergartens {
     convertCursorToList(kindergartens)
   }
 
-  def find(kgName: String, kgStreet: String, kgCity: String) = {
-    val query = MongoDBObject("name" -> kgName, "street" -> kgStreet, "city" -> kgCity)
+  def find(kgName: String, kgStreet: String, kgNum: Int, kgCity: String) = {
+    val query = MongoDBObject("name" -> kgName, "street" -> kgStreet, "num" -> kgNum, "city" -> kgCity)
     val kgMongo = MongoFactory.kindergartens.findOne(query)
     kgMongo match {
       case Some(kg) => convertDBObjectToKindergarten(kg)

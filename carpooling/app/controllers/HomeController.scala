@@ -56,7 +56,11 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
           userFromForm.surname,
           userFromForm.city,
           userFromForm.street,
-          userFromForm.kindergarten,
+          KindergartenFormData(
+            userFromForm.kgName,
+            userFromForm.kgStreet,
+            userFromForm.kgNum,
+            userFromForm.kgCity),
           latLon._1,
           latLon._2)
       Users.isOnlyOne(user) match {
@@ -117,7 +121,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   def showUsersFromKindergarten = Action { implicit request =>
     try {
       val kgFromForm = KindergartenForm.form.bindFromRequest.get
-      val kindergarten = Kindergartens.find(kgFromForm.name, kgFromForm.street, kgFromForm.city)
+      val kindergarten = Kindergartens.find(kgFromForm.name, kgFromForm.street, kgFromForm.num, kgFromForm.city)
       val usersFrom = Kindergartens.findUsersFromKindergarten(kindergarten)
       Ok(views.html.showusers(kindergarten, usersFrom))
     } catch {

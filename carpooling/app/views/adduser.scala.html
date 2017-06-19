@@ -10,11 +10,13 @@ You can add youself to our database -> name, contact and location. Fill this for
 @helper.inputText(userForm("city"))
 @helper.inputText(userForm("street"))
 @helper.select(
-userForm("kindergarten"),
+userForm("kgName"),
 options = for(kg <- kindergartens) yield (kg.name  -> kg.name),
 '_default -> "choose your kindergarten",
-'_label -> "Kindergarten name"
-)
+'_label -> "Kindergarten name")
+@helper.inputText(userForm("kgStreet"))
+@helper.inputText(userForm("kgNum"))
+@helper.inputText(userForm("kgCity"))
 <button type="submit">Add user</button>
 }
 

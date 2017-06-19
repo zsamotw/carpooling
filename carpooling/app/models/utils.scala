@@ -50,7 +50,10 @@ object MongoFactory {
     builder += "surname" -> user.surname
     builder += "street" -> user.street
     builder += "city" -> user.city
-    builder += "kindergarten" -> user.kindergarten
+    builder += "kgname" -> user.kindergarten.name
+    builder += "kgstreet" -> user.kindergarten.street
+    builder += "kgnum" -> user.kindergarten.num
+    builder += "kgcity" -> user.kindergarten.city
     builder += "len" -> user.len
     builder += "lon" -> user.lon
     builder.result
