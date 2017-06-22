@@ -8,6 +8,17 @@ Kindergaten:
 @user.kindergarten.name, @user.kindergarten.street no. @user.kindergarten.num in @user.kindergarten.city<br>
 email:
 @user.email<br><br>
+my carpools:
+@for (c <- user.carpools>) c<br>
+
+<br><br>
+
+Answer for requests:
+<form action="/answerforrequest" method = "get">
+<input name="email" type="select">
+<button>Answer</button>
+</form>
+
 
 <br><a href="/">homepage</a><br><br><br>
 

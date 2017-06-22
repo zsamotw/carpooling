@@ -4,9 +4,29 @@ import com.mongodb.casbah.Imports._
 import play.api.data.Form
 import play.api.data.Forms._
 
-case class User(email: String, password: String, name: String, surname: String, city: String, street: String, kindergarten: KindergartenFormData, len: String, lon: String)
+case class User(
+  email: String,
+  password: String,
+  name: String,
+  surname: String,
+  city: String,
+  street: String,kindergarten: KindergartenFormData,
+  requests: List[String],
+  carpools: List[String],
+  len: String,
+  lon: String)
 
-case class UserFormData(email: String, password: String, name: String, surname: String, city: String, street: String, kgName: String, kgStreet: String, kgNum: Int, kgCity: String)
+case class UserFormData(
+  email: String,
+  password: String,
+  name: String,
+  surname: String,
+  city: String,
+  street: String,
+  kgName: String,
+  kgStreet: String,
+  kgNum: Int,
+  kgCity: String)
 
 case class Login(email: String, password: String)
 
@@ -104,6 +124,62 @@ object Users {
     }
   }
 
+  def addRequest(email: String, loggedUserEmail: String) = {
+    val mongoUserOpt = MongoFactory.users.findOne("email" $eq email)
+    mongoUserOpt match {
+      case Some(u) =>
+        upadteUserInDB(u, "requests", loggedUserEmail)
+        // val userRequests = u.as[String]("requests")
+        // val userRequestsAfter = userRequests + "," + loggedUserEmail
+        // val query = MongoDBObject("email" -> email)
+        // val update = MongoDBObject("$set" -> MongoDBObject("requests" -> userRequestsAfter))
+        // MongoFactory.users.findAndModify(query, update)
+      case None => throw new NoSuchElementException
+    }
+  }
+
+ 
+
+  def addToCarpools(requestedUseremail: String, loggedUserEmail: String) = {
+
+    // def addEmail(user: MongoDBObject, email: String) = {
+    //   val userCarpools = u.as[String]("carpools")
+    //   val userEmail = u.as[String]("email")
+    //   val userCarpoolsAfter = userCarpools + "," + email
+    //   val query = MongoDBObject("email" -> userEmail)
+    //   val update = MongoDBObject("$set" -> MongoDBObject("carpools" -> userCarpoolsAfter))
+    //   MongoFactory.users.findAndModify(query, update)
+    // }
+
+    val loggedUserOpt = MongoFactory.users.findOne("loggedUserEmail" $eq email)
+    val requestUserOpt = MongoFactory.users.findOne("email" $eq email)
+    loggedUserOpt match {
+      case Some(u) =>
+        updateUserInDB(u, "carpools", requestedUseremail)
+      case None => throw new NoSuchElementException
+    }
+    requestUserOpt match {
+      case Some(u) =>
+        updateUserInDB(u, "carpools", loggedUserEmail)
+      case None => throw new NoSuchElementException
+    }
+  }
+
+  def convertCarpoolsToUsersList(user: User) = {
+    //zrob liste maili
+    //przez for yield MogoDBobjecy + covert to user
+    //
+  }
+
+  def upadateUserInDB(user: MongoDBObject, field: String, data: String) = {
+    val userFiled = user.as[String](field)
+    val userFieldAfter = userField + "," + data
+    val userEmail = user.as[String]("email")
+    val query = MongoDBObject(field -> userEmail)
+    val upadate = MongoDBObject("$set" -> MongoDBObject(field -> userFieldAfter))
+    MongoFactory.users.findAndModify(query, upadate)
+  }
+
   def convertCursorToList(MongoUsers: com.mongodb.casbah.MongoCursor) = {
     val res =
       for { userMongo <- MongoUsers
@@ -117,6 +193,8 @@ object Users {
         kgStreet = userMongo.getAs[String]("kgstreet").get
         kgNum = userMongo.getAs[Int]("kgnum").get
         kgCity = userMongo.getAs[String]("kgcity").get
+        requests = userMongo.getAs[String]("requests").get.split(",").map(_.trim).toList.drop(1)
+        carpools = userMongo.getAs[String]("carpools").get.split(",").map(_.trim).toList.drop(1)
         len = userMongo.getAs[String]("len").get
         lon = userMongo.getAs[String]("lon").get
       } yield User(
@@ -131,6 +209,8 @@ object Users {
           kgStreet,
           kgNum.toInt,
           kgCity),
+        requests,
+        carpools,
         len,
         lon)
     res.toList
@@ -147,6 +227,8 @@ object Users {
     val kgStreet =  userMongo.getAs[String]("kgstreet").get
     val kgNum =  userMongo.getAs[Int]("kgnum").get
     val kgCity =  userMongo.getAs[String]("kgcity").get
+    val requests = userMongo.getAs[String]("requests").get.split(",").map(_.trim).toList.drop(1)
+    val carpools = userMongo.getAs[String]("carpools").get.split(",").map(_.trim).toList.drop(1)
     val len =  userMongo.getAs[String]("len").get
     val lon =  userMongo.getAs[String]("lon").get
     User(
@@ -161,6 +243,8 @@ object Users {
         kgStreet,
         kgNum.toInt,
         kgCity),
+      requests,
+      carpools,
       len,
       lon)
   }

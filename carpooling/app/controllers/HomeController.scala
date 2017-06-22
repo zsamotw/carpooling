@@ -61,6 +61,8 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
             userFromForm.kgStreet,
             userFromForm.kgNum,
             userFromForm.kgCity),
+          List[String](),
+          List[String](),
           latLon._1,
           latLon._2)
       Users.isOnlyOne(user) match {
@@ -137,5 +139,24 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
       Ok(views.html.index("You have to login first"))
     }
   }
+
+  def sendRequest(email: String) = Action { implicit request =>
+    request.session.get("connected").map { loggedUserEmail =>
+      Users.addRequest(email, loggedUserEmail)
+      Ok(views.html.index("sens request to " + email))
+      }.getOrElse {
+        Ok(views.html.index("You have to login first"))
+      }
+  }
+
+  def answerForRequest(email: String) = Action { implicit request =>
+    request.session.get("connected"). map { loggedUserEmail =>
+      Users.addToCarpooles(email, loggedUserEmail)
+      Ok(views.html.index("You are carpooled with " + email))
+    }.getOrElse {
+      Ok(views.html.index("You have to login first"))
+    }
+  }
+
 }
 
