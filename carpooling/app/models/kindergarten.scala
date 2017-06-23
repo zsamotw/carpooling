@@ -4,7 +4,14 @@ import com.mongodb.casbah.Imports._
 import play.api.data.Form
 import play.api.data.Forms._
 
-case class Kindergarten(name: String, street: String, num: Int, city: String, len: String, lon: String, usersEmails: List[String])
+case class Kindergarten(
+  name: String,
+  street: String,
+  num: Int,
+  city: String,
+  len: String,
+  lon: String,
+  usersEmails: List[String])
 
 case class KindergartenFormData(name: String, street: String, num: Int, city: String)
 
@@ -57,7 +64,7 @@ object Kindergartens {
         city = kgMongo.getAs[String]("city").get
         len = kgMongo.getAs[String]("len").get
         lon = kgMongo.getAs[String]("lon").get
-        usersemails = kgMongo.getAs[String]("usersemails").get.split(",").map(_.trim).toList.drop(1)
+        usersemails = kgMongo.getAs[List[String]]("usersemails").get
       } yield new Kindergarten(name, street, num, city, len, lon, usersemails)
     res.toList
   }
@@ -69,7 +76,7 @@ object Kindergartens {
     val city = kgMongo.getAs[String]("city").get
     val len = kgMongo.getAs[String]("len").get
     val lon = kgMongo.getAs[String]("lon").get
-    val userEmails = kgMongo.getAs[String]("usersemails").get.split(",").toList.drop(1)
+    val userEmails = kgMongo.getAs[List[String]]("usersemails").get
     new Kindergarten(name, street, num, city, len, lon, userEmails)
   }
 }

@@ -61,8 +61,8 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
             userFromForm.kgStreet,
             userFromForm.kgNum,
             userFromForm.kgCity),
-          List[String](),
-          List[String](),
+          Set[String](),
+          Set[String](),
           latLon._1,
           latLon._2)
       Users.isOnlyOne(user) match {
@@ -134,25 +134,26 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   def showUserPanel = Action { implicit request =>
     request.session.get("connected").map { email =>
       val user = Users.findUserByEmail(email)
+      //val carpools = Users.covertCarpoolsToUsersList(user)  -> pass as arg
       Ok(views.html.panel(user))
     }.getOrElse {
       Ok(views.html.index("You have to login first"))
     }
   }
 
-  def sendRequest(email: String) = Action { implicit request =>
+  def sendRequest(emailFromGet: String) = Action { implicit request =>
     request.session.get("connected").map { loggedUserEmail =>
-      Users.addRequest(email, loggedUserEmail)
-      Ok(views.html.index("sens request to " + email))
+      Users.addRequest(emailFromGet, loggedUserEmail)
+      Redirect(routes.HomeController.showUserPanel())
       }.getOrElse {
         Ok(views.html.index("You have to login first"))
       }
   }
 
-  def answerForRequest(email: String) = Action { implicit request =>
+  def replyForRequest(emailFromGet: String) = Action { implicit request =>
     request.session.get("connected"). map { loggedUserEmail =>
-      Users.addToCarpooles(email, loggedUserEmail)
-      Ok(views.html.index("You are carpooled with " + email))
+      Users.addToCarpools(emailFromGet, loggedUserEmail)
+      Redirect(routes.HomeController.showUserPanel())
     }.getOrElse {
       Ok(views.html.index("You have to login first"))
     }

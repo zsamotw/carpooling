@@ -2,14 +2,7 @@
 
 Parents from @kindergarten.name on @kindergarten.street in @kindergarten.city: @kindergarten.len @kindergarten.lon<br><br>
 @for(user <- usersFrom) {
-	     @user.name @user.surname @user.street @user.city @user.email @user.len @user.lon<br>
-	     }
-
-You can send request to:
-<form action="/addrequest" method = "get">
-<input name="email" type="text">
-<button>Sendrequest</button>
-</form>
-
+  @user.name @user.surname @user.street @user.city @user.email @user.len @user.lon <a href="/sendrequest/@user.email">send request</a><br>
+}
 	     
 <br><a href="/">homepage</a>

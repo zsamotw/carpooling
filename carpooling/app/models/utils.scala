@@ -69,7 +69,7 @@ object MongoFactory {
     builder += "city" -> kg.city
     builder += "len" -> kg.len
     builder += "lon" -> kg.lon
-    builder += "usersemails" -> ""
+    builder += "usersemails" -> kg.usersEmails
     builder.result
   }
 }
