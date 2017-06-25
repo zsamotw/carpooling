@@ -8,8 +8,13 @@ You can add youself to our database -> name, contact and location. Fill this for
 @helper.inputText(userForm("password"))
 @helper.inputText(userForm("name"))
 @helper.inputText(userForm("surname"))
-@helper.inputText(userForm("city"))
 @helper.inputText(userForm("street"))
+@helper.inputText(userForm("city"))
+@helper.select(
+userForm("seats"),
+options = for(i <- 1 to 10) yield (i.toString -> i.toString),
+'_default -> "Number of free seats in your car",
+'_label -> "Seats")
 @helper.select(
 userForm("kgName"),
 options = for(kg <- kindergartens) yield (kg.name  -> kg.name),

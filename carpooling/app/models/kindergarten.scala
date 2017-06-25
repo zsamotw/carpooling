@@ -11,7 +11,7 @@ case class Kindergarten(
   city: String,
   len: String,
   lon: String,
-  usersEmails: List[String])
+  usersEmails: List[List[String]])
 
 case class KindergartenFormData(name: String, street: String, num: Int, city: String)
 
@@ -49,10 +49,17 @@ object Kindergartens {
 
   def findUsersFromKindergarten(kindergarten: Kindergarten) = {
     val usersEmails = kindergarten.usersEmails
-    val emailsList = for (email <- usersEmails) yield email
-    val usersMongo = for (email <- emailsList) yield MongoFactory.users.findOne(MongoDBObject("email" -> email.trim)).get //TODO: add match
-    val users = for(user <- usersMongo) yield Users.convertDBObjectToUser(user)
+    val users = {
+      for(groupEmails <- usersEmails) yield {
+        val group =
+          for(email <- groupEmails) yield {
+            Users.findUserByEmail(email)
+          }
+        group
+      }
+    }
     users
+
   }
 
   def convertCursorToList(MongoKindergatens: com.mongodb.casbah.MongoCursor) = {
@@ -64,7 +71,7 @@ object Kindergartens {
         city = kgMongo.getAs[String]("city").get
         len = kgMongo.getAs[String]("len").get
         lon = kgMongo.getAs[String]("lon").get
-        usersemails = kgMongo.getAs[List[String]]("usersemails").get
+        usersemails = kgMongo.getAs[List[List[String]]]("usersemails").get
       } yield new Kindergarten(name, street, num, city, len, lon, usersemails)
     res.toList
   }
@@ -76,8 +83,25 @@ object Kindergartens {
     val city = kgMongo.getAs[String]("city").get
     val len = kgMongo.getAs[String]("len").get
     val lon = kgMongo.getAs[String]("lon").get
-    val userEmails = kgMongo.getAs[List[String]]("usersemails").get
-    new Kindergarten(name, street, num, city, len, lon, userEmails)
+    val usersEmails = {
+      val mongoList = kgMongo.get("usersemails").get
+      val obj = MongoDBObject("list" -> mongoList)
+      val res = obj.as[BasicDBList]("list")
+      val list ={
+        for(el <- res) yield {
+          val elemList = {
+            val obj = MongoDBObject("list" -> el)
+            val res2 = obj.as[BasicDBList]("list")
+            for(e <- res2) yield {
+              e.toString
+            }
+          }
+          elemList.toList
+        }
+      }
+      list.toList
+    }
+    new Kindergarten(name, street, num, city, len, lon, usersEmails)
   }
 }
 

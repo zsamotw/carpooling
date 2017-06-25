@@ -54,14 +54,14 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
           userFromForm.password,
           userFromForm.name,
           userFromForm.surname,
-          userFromForm.city,
           userFromForm.street,
+          userFromForm.city,
+          userFromForm.seats,
           KindergartenFormData(
             userFromForm.kgName,
             userFromForm.kgStreet,
             userFromForm.kgNum,
             userFromForm.kgCity),
-          Set[String](),
           Set[String](),
           latLon._1,
           latLon._2)
@@ -103,7 +103,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
           kgFromForm.city,
           latLon._1,
           latLon._2,
-          List[String]())
+          List[List[String]]())
       Kindergartens.add(kg)
       Ok(views.html.index("Kindergarten " + kg.name + " was added"))
     } catch {
@@ -134,7 +134,6 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   def showUserPanel = Action { implicit request =>
     request.session.get("connected").map { email =>
       val user = Users.findUserByEmail(email)
-      //val carpools = Users.covertCarpoolsToUsersList(user)  -> pass as arg
       Ok(views.html.panel(user))
     }.getOrElse {
       Ok(views.html.index("You have to login first"))
@@ -153,7 +152,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   def replyForRequest(emailFromGet: String) = Action { implicit request =>
     request.session.get("connected"). map { loggedUserEmail =>
       Users.addToCarpools(emailFromGet, loggedUserEmail)
-      Redirect(routes.HomeController.showUserPanel())
+      Redirect(routes.HomeController.index())
     }.getOrElse {
       Ok(views.html.index("You have to login first"))
     }

@@ -1,8 +1,15 @@
-@(kindergarten: Kindergarten, usersFrom: List[User])
+@(kindergarten: Kindergarten, usersFrom: List[List[User]])
 
 Parents from @kindergarten.name on @kindergarten.street in @kindergarten.city: @kindergarten.len @kindergarten.lon<br><br>
-@for(user <- usersFrom) {
-  @user.name @user.surname @user.street @user.city @user.email @user.len @user.lon <a href="/sendrequest/@user.email">send request</a><br>
-}
+List of users:<br><br>
+@for(groupOfUsers <- usersFrom) {
+	<b>next group:</b><br><br>
+	      @for(user <- groupOfUsers) {
+			   @user.name @user.surname @user.street @user.lon @user.len<br>
+			   free seats: @user.seats    email: @user.email<br>
+			   <a href="/sendrequest/@user.email">send request</a><br><br>
+			}
+			}
+
 	     
 <br><a href="/">homepage</a>

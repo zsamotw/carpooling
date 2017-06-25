@@ -50,12 +50,12 @@ object MongoFactory {
     builder += "surname" -> user.surname
     builder += "street" -> user.street
     builder += "city" -> user.city
+    builder += "seats" -> user.seats
     builder += "kgname" -> user.kindergarten.name
     builder += "kgstreet" -> user.kindergarten.street
     builder += "kgnum" -> user.kindergarten.num
     builder += "kgcity" -> user.kindergarten.city
     builder += "requests" -> user.requests
-    builder += "carpools" -> user.carpools
     builder += "len" -> user.len
     builder += "lon" -> user.lon
     builder.result
@@ -69,7 +69,7 @@ object MongoFactory {
     builder += "city" -> kg.city
     builder += "len" -> kg.len
     builder += "lon" -> kg.lon
-    builder += "usersemails" -> kg.usersEmails
+    builder += "usersemails" -> List[List[String]]()
     builder.result
   }
 }

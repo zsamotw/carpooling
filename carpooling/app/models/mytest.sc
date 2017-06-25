@@ -30,3 +30,7 @@ val lon = lonResult match {
 
 
 //http://nominatim.openstreetmap.org/search/Miechowity,Krakow,Poland?format=json&polygon=1&addressdetails=1&limit=1
+
+val xs = 
+
+for()
