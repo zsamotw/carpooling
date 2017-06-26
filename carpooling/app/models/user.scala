@@ -76,23 +76,24 @@ object Users {
   }
 
   def add(user: User) = {
-    MongoFactory.users += MongoFactory.buildMongoDbUser(user)
     val kindergarten = Kindergartens.find(user.kindergarten.name, user.kindergarten.street, user.kindergarten.num, user.kindergarten.city)
     val usersEmailsAfter = (kindergarten.usersEmails ::: List(List(user.email)))
     val query = MongoDBObject("name" -> kindergarten.name, "street" -> kindergarten.street, "num" -> kindergarten.num, "city" -> kindergarten.city)
     val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
-    MongoFactory.kindergartens.findAndModify(query, update)
+    (user, query, update)
   }
 
   def delete(user: User) = {
     val kindergarten = Kindergartens.find(user.kindergarten.name, user.kindergarten.street, user.kindergarten.num, user.kindergarten.city)
     val usersEmailsGroup = kindergarten.usersEmails filter(group => group contains user.email)
     val usersEmailsGroupAfter = usersEmailsGroup map(group => group filter(email => email != user.email))
-    val usersEmailsAfter = (kindergarten.usersEmails filter (group => group != usersEmailsGroup.flatten)) ::: usersEmailsGroupAfter
+    val usersEmailsAfter = {
+      if ((usersEmailsGroupAfter.flatten) isEmpty) kindergarten.usersEmails filter (group => group != usersEmailsGroup.flatten)
+      else (kindergarten.usersEmails filter (group => group != usersEmailsGroup.flatten)) ::: usersEmailsGroupAfter
+    }
     val query = MongoDBObject("name" -> kindergarten.name, "street" -> kindergarten.street, "num" -> kindergarten.num, "city" -> kindergarten.city)
     val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
-    MongoFactory.kindergartens.findAndModify(query, update)
-    MongoFactory.users.remove("email" $eq user.email)
+    (user, query, update)
   }
 
   def listAll = {
@@ -109,17 +110,16 @@ object Users {
     }
   }
 
-  def findUserinDB(user: User) = {
-    val userMongo = MongoFactory.users.findOne(MongoObject("email" -> user.email))
-    userMongo match {
-      case None => throw new NoSuchElementException
-      case Some(u) => u
-    }
-  }
-
   def addRequest(requestedUserEmail: String, loggedUserEmail: String) = {
     val requestedUser = findUserByEmail(requestedUserEmail)
-    updateUserRequestsInDB(requestedUser, loggedUserEmail, (xs,y) => xs + y)
+    val f = (xs: Set[String], y: String) => xs + y 
+    (requestedUser, loggedUserEmail, f)
+  }
+
+  def deleteRequest(userToReplyEmail: String, loggedUserEmail: String) = {
+    val loggedUser = findUserByEmail(loggedUserEmail)
+    val f = (xs: Set[String], y: String) => xs - y
+    (loggedUser, userToReplyEmail, f)
   }
 
   def addToCarpools(userToReplyEmail: String, loggedUserEmail: String) = {
@@ -130,7 +130,6 @@ object Users {
       loggedUser.kindergarten.street,
       loggedUser.kindergarten.num,
       loggedUser.kindergarten.city)
-
     val loggedUserGroup = kindergarten.usersEmails filter(group => group contains loggedUser.email)
     val userToReplyGroup = kindergarten.usersEmails filter(group => group contains userToReply.email)
     val commonGroup = if (loggedUserGroup != userToReplyGroup) loggedUserGroup.flatten ::: userToReplyGroup.flatten else loggedUserGroup
@@ -140,34 +139,7 @@ object Users {
 
     val query = MongoDBObject("name" -> kindergarten.name, "street" -> kindergarten.street, "num" -> kindergarten.num, "city" -> kindergarten.city)
     val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
-    MongoFactory.kindergartens.findAndModify(query, update)
-    updateUserRequestsInDB(loggedUser, userToReplyEmail, (xs, y) => xs - y)
-  }
-
-  def updateUserRequestsInDB(user: User, data: String, f: ((Set[String], String) => Set[String])) = {
-    val userRequestAfter = f(user.requests, data)
-    val query = MongoDBObject("email" -> user.email)
-    val upadate = MongoDBObject("$set" -> MongoDBObject("requests" -> userRequestAfter.toList))
-    MongoFactory.users.findAndModify(query, upadate)
-  }
-
-  def updateUserStringDatainDB(user: User, field: String, data: String) = {
-    val query = MongoDBObject("email" -> user.email)
-    val upadate = MongoDBObject("$set" -> MongoDBObject(field -> data))
-    MongoFactory.users.findAndModify(query, upadate)
-  }
-
-  def updateUserIntDataInDB(user: User, field: String, data: Int, f: (Int, Int) => Int ) = {
-    val userMongo = finduserindb(user)
-    val dataBefore = userMongo.as[Int]("seats")
-    dataBefore match {
-      case None => NoSuchElementException
-      case Some(dataBefore) =>
-        val dataAfter = f(dataBefore, data)
-        val query = MongoDBObject("email" -> user.email)
-        val upadate = MongoDBObject("$set" -> MongoDBObject("field" -> dataAfter))
-        MongoFactory.users.findAndModify(query, upadate)
-    }
+    (query, update)
   }
 
   def convertCursorToList(MongoUsers: com.mongodb.casbah.MongoCursor) = {

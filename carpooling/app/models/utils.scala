@@ -72,6 +72,59 @@ object MongoFactory {
     builder += "usersemails" -> List[List[String]]()
     builder.result
   }
+
+  def addUser(data: (User, DBObject, DBObject)) = {
+    val(user, query, update) = data
+    kindergartens.findAndModify(query, update)
+    users += buildMongoDbUser(user)
+  }
+
+  def deleteUser(data: (User, DBObject, DBObject)) = {
+    val(user, query, update) = data
+    kindergartens.findAndModify(query, update)
+    users.remove("email" $eq user.email)
+  }
+
+  def findUserinDB(user: User) = {
+    val userMongo = users.findOne(MongoDBObject("email" -> user.email))
+    userMongo match {
+      case None => throw new NoSuchElementException
+      case Some(u) => u
+    }
+  }
+
+  def updateUserRequests(data: (User, String, (Set[String], String) => Set[String])) = {
+    val(requestedUser, loggedUserEmail, f) = data
+    val userRequestsAfter = f(requestedUser.requests, loggedUserEmail)
+    val query = MongoDBObject("email" -> requestedUser.email)
+    val upadate = MongoDBObject("$set" -> MongoDBObject("requests" -> userRequestsAfter.toList))
+    users.findAndModify(query, upadate)
+  }
+
+  def updateCarpools(data: (DBObject, DBObject)) = {
+    val(query, update) = data
+    kindergartens.findAndModify(query, update)
+  }
+
+    def updateUserStringDatainDB(user: User, field: String, data: String) = {
+    val query = MongoDBObject("email" -> user.email)
+    val upadate = MongoDBObject("$set" -> MongoDBObject(field -> data))
+    MongoFactory.users.findAndModify(query, upadate)
+  }
+
+  def updateUserIntDataInDB(user: User, field: String, data: Int, f: (Int, Int) => Int ) = {
+    val userMongo = MongoFactory.findUserinDB(user)
+    val dataBefore = userMongo.getAs[Int]("seats")
+    dataBefore match {
+      case Some(dataBefore) =>
+        val dataAfter = f(dataBefore, data)
+        val query = MongoDBObject("email" -> user.email)
+        val upadate = MongoDBObject("$set" -> MongoDBObject("field" -> dataAfter))
+        MongoFactory.users.findAndModify(query, upadate)
+      case None => throw new NoSuchElementException
+    }
+  }
+
 }
 
 

@@ -67,7 +67,8 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
           latLon._2)
       Users.isOnlyOne(user) match {
         case true => {
-          Users.add(user)
+          val dataToDB = Users.add(user)
+          MongoFactory.addUser(dataToDB)
           Ok(views.html.index("User " + user.name + " was added. You are login")).withSession("connected" -> user.email)
         }
         case false => Ok(views.html.index("User with this login exists"))
@@ -80,7 +81,8 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   def deleteUser() = Action { implicit request =>
     request.session.get("connected").map { email =>
       val user = Users.findUserByEmail(email)
-      Users.delete(user)
+      val dataToDB = Users.delete(user)
+      MongoFactory.deleteUser(dataToDB)
       Ok(views.html.index("You just delete yourself user: " + email)).withNewSession
     } getOrElse {
       Ok(views.html.index("Problem with delete your accout"))
@@ -142,7 +144,8 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def sendRequest(emailFromGet: String) = Action { implicit request =>
     request.session.get("connected").map { loggedUserEmail =>
-      Users.addRequest(emailFromGet, loggedUserEmail)
+      val dataToDB = Users.addRequest(emailFromGet, loggedUserEmail)
+      MongoFactory.updateUserRequests(dataToDB)
       Redirect(routes.HomeController.showUserPanel())
       }.getOrElse {
         Ok(views.html.index("You have to login first"))
@@ -151,7 +154,10 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def replyForRequest(emailFromGet: String) = Action { implicit request =>
     request.session.get("connected"). map { loggedUserEmail =>
-      Users.addToCarpools(emailFromGet, loggedUserEmail)
+      val dataToDBCarpools = Users.addToCarpools(emailFromGet, loggedUserEmail)
+      val dataToDBRequests = Users.deleteRequest(emailFromGet, loggedUserEmail)
+      MongoFactory.updateCarpools(dataToDBCarpools)
+      MongoFactory.updateUserRequests(dataToDBRequests)
       Redirect(routes.HomeController.index())
     }.getOrElse {
       Ok(views.html.index("You have to login first"))
