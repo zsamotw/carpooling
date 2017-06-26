@@ -106,7 +106,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
           latLon._1,
           latLon._2,
           List[List[String]]())
-      Kindergartens.add(kg)
+      MongoFactory.add(kg)
       Ok(views.html.index("Kindergarten " + kg.name + " was added"))
     } catch {
       case e: IOException => Ok(views.html.index("Oooops, something wrong with kindergarten address or internet connection"))

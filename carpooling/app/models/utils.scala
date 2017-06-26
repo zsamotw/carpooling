@@ -106,7 +106,7 @@ object MongoFactory {
     kindergartens.findAndModify(query, update)
   }
 
-    def updateUserStringDatainDB(user: User, field: String, data: String) = {
+  def updateUserStringDatainDB(user: User, field: String, data: String) = {
     val query = MongoDBObject("email" -> user.email)
     val upadate = MongoDBObject("$set" -> MongoDBObject(field -> data))
     MongoFactory.users.findAndModify(query, upadate)
@@ -123,6 +123,10 @@ object MongoFactory {
         MongoFactory.users.findAndModify(query, upadate)
       case None => throw new NoSuchElementException
     }
+  }
+
+  def add(kindergarten: Kindergarten) = {
+    kindergartens += buildMongoDbKindergarten(kindergarten)
   }
 
 }

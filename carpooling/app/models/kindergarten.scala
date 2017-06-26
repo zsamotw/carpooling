@@ -29,17 +29,17 @@ object KindergartenForm {
 
 object Kindergartens {
 
-  def add(kindergarten: Kindergarten) = {
-    MongoFactory.kindergartens += MongoFactory.buildMongoDbKindergarten(kindergarten)
-  }
-
   def listAll = {
     val kindergartens = MongoFactory.kindergartens.find
-    convertCursorToList(kindergartens)
+    convertCursorToKindergartensList(kindergartens)
   }
 
   def find(kgName: String, kgStreet: String, kgNum: Int, kgCity: String) = {
-    val query = MongoDBObject("name" -> kgName, "street" -> kgStreet, "num" -> kgNum, "city" -> kgCity)
+    val query = MongoDBObject(
+      "name" -> kgName,
+      "street" -> kgStreet,
+      "num" -> kgNum,
+      "city" -> kgCity)
     val kgMongo = MongoFactory.kindergartens.findOne(query)
     kgMongo match {
       case Some(kg) => convertDBObjectToKindergarten(kg)
@@ -52,17 +52,14 @@ object Kindergartens {
     val users = {
       for(groupEmails <- usersEmails) yield {
         val group =
-          for(email <- groupEmails) yield {
-            Users.findUserByEmail(email)
-          }
+          for(email <- groupEmails) yield Users.findUserByEmail(email)
         group
       }
     }
     users
-
   }
 
-  def convertCursorToList(MongoKindergatens: com.mongodb.casbah.MongoCursor) = {
+  def convertCursorToKindergartensList(MongoKindergatens: com.mongodb.casbah.MongoCursor) = {
     val res =
       for { kgMongo <- MongoKindergatens
         name = kgMongo.getAs[String]("name").get
@@ -84,8 +81,8 @@ object Kindergartens {
     val len = kgMongo.getAs[String]("len").get
     val lon = kgMongo.getAs[String]("lon").get
     val usersEmails = {
-      val mongoList = kgMongo.get("usersemails").get
-      val obj = MongoDBObject("list" -> mongoList)
+      val listMongo = kgMongo.get("usersemails").get
+      val obj = MongoDBObject("list" -> listMongo)
       val res = obj.as[BasicDBList]("list")
       val list ={
         for(el <- res) yield {

@@ -76,36 +76,52 @@ object Users {
   }
 
   def add(user: User) = {
-    val kindergarten = Kindergartens.find(user.kindergarten.name, user.kindergarten.street, user.kindergarten.num, user.kindergarten.city)
+    val kindergarten = Kindergartens.find(
+      user.kindergarten.name,
+      user.kindergarten.street,
+      user.kindergarten.num,
+      user.kindergarten.city)
     val usersEmailsAfter = (kindergarten.usersEmails ::: List(List(user.email)))
-    val query = MongoDBObject("name" -> kindergarten.name, "street" -> kindergarten.street, "num" -> kindergarten.num, "city" -> kindergarten.city)
+    val query = MongoDBObject(
+      "name" -> kindergarten.name,
+      "street" -> kindergarten.street,
+      "num" -> kindergarten.num,
+      "city" -> kindergarten.city)
     val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
     (user, query, update)
   }
 
   def delete(user: User) = {
-    val kindergarten = Kindergartens.find(user.kindergarten.name, user.kindergarten.street, user.kindergarten.num, user.kindergarten.city)
+    val kindergarten = Kindergartens.find(
+      user.kindergarten.name,
+      user.kindergarten.street,
+      user.kindergarten.num,
+      user.kindergarten.city)
     val usersEmailsGroup = kindergarten.usersEmails filter(group => group contains user.email)
     val usersEmailsGroupAfter = usersEmailsGroup map(group => group filter(email => email != user.email))
     val usersEmailsAfter = {
       if ((usersEmailsGroupAfter.flatten) isEmpty) kindergarten.usersEmails filter (group => group != usersEmailsGroup.flatten)
       else (kindergarten.usersEmails filter (group => group != usersEmailsGroup.flatten)) ::: usersEmailsGroupAfter
     }
-    val query = MongoDBObject("name" -> kindergarten.name, "street" -> kindergarten.street, "num" -> kindergarten.num, "city" -> kindergarten.city)
+    val query = MongoDBObject(
+      "name" -> kindergarten.name,
+      "street" -> kindergarten.street,
+      "num" -> kindergarten.num,
+      "city" -> kindergarten.city)
     val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
     (user, query, update)
   }
 
   def listAll = {
     val allUsers = MongoFactory.users.find
-    convertCursorToList(allUsers)
+    convertCursorToUsersList(allUsers)
   }
 
   def findUserByEmail(email: String) = {
-    val UserOpt = MongoFactory.users.findOne("email" $eq email)
-    UserOpt match {
-      case Some(u) =>
-        convertDBObjectToUser(u)
+    val userOpt = MongoFactory.users.findOne("email" $eq email)
+    userOpt match {
+      case Some(user) =>
+        convertDBObjectToUser(user)
       case None => throw new NoSuchElementException
     }
   }
@@ -130,6 +146,7 @@ object Users {
       loggedUser.kindergarten.street,
       loggedUser.kindergarten.num,
       loggedUser.kindergarten.city)
+
     val loggedUserGroup = kindergarten.usersEmails filter(group => group contains loggedUser.email)
     val userToReplyGroup = kindergarten.usersEmails filter(group => group contains userToReply.email)
     val commonGroup = if (loggedUserGroup != userToReplyGroup) loggedUserGroup.flatten ::: userToReplyGroup.flatten else loggedUserGroup
@@ -137,12 +154,16 @@ object Users {
       !(group contains loggedUser.email) && !(group contains userToReply.email))
     val usersEmailsAfter = usersEmailsWithout ::: List(commonGroup)
 
-    val query = MongoDBObject("name" -> kindergarten.name, "street" -> kindergarten.street, "num" -> kindergarten.num, "city" -> kindergarten.city)
+    val query = MongoDBObject(
+      "name" -> kindergarten.name,
+      "street" -> kindergarten.street,
+      "num" -> kindergarten.num,
+      "city" -> kindergarten.city)
     val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
     (query, update)
   }
 
-  def convertCursorToList(MongoUsers: com.mongodb.casbah.MongoCursor) = {
+  def convertCursorToUsersList(MongoUsers: com.mongodb.casbah.MongoCursor) = {
     val res =
       for { userMongo <- MongoUsers
         email = userMongo.getAs[String]("email").get
