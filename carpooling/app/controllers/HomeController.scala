@@ -153,13 +153,23 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   }
 
   def replyForRequest(emailFromGet: String) = Action { implicit request =>
-    request.session.get("connected"). map { loggedUserEmail =>
+    request.session.get("connected").map { loggedUserEmail =>
       val dataToDBCarpools = Users.addToCarpools(emailFromGet, loggedUserEmail)
       val dataToDBRequests = Users.deleteRequest(emailFromGet, loggedUserEmail)
       MongoFactory.updateCarpools(dataToDBCarpools)
       MongoFactory.updateUserRequests(dataToDBRequests)
       Redirect(routes.HomeController.index())
     }.getOrElse {
+      Ok(views.html.index("You have to login first"))
+    }
+  }
+
+  def rejectRequest(emailFromGet: String) = Action { implicit request =>
+    request.session.get("connected").map { loggedUserEmail =>
+      val dataToDB = Users.deleteRequest(emailFromGet, loggedUserEmail)
+      MongoFactory.updateUserRequests(dataToDB)
+      Redirect(routes.HomeController.showUserPanel())
+    } getOrElse {
       Ok(views.html.index("You have to login first"))
     }
   }
