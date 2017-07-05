@@ -14,12 +14,14 @@ GET      /kindergarten               controllers.HomeController.kindergartenMenu
 POST     /addKindergarten            controllers.HomeController.addKindergarten
 GET      /findKindergarten           controllers.HomeController.findKindergarten
 POST     /findparents                controllers.HomeController.showUsersFromKindergarten
+GET      /findmyparents              controllers.HomeController.showUsersFromMyKindergarten(msg: String ?= "Users from my kindergarten")
 GET      /allkindergartens           controllers.HomeController.allKindergartens
-GET      /panel                      controllers.HomeController.showUserPanel
+GET      /panel                      controllers.HomeController.showUserPanel(msg: String ?= "Nothing happens")
 GET      /deleteuser		     controllers.HomeController.deleteUser
 GET      /sendrequest/:email         controllers.HomeController.sendRequest(email)
 GET      /replyforrequest/:email     controllers.HomeController.replyForRequest(email)
 GET      /rejectrequest/:email       controllers.HomeController.rejectRequest(email)
+GET      /leavegroup                 controllers.HomeController.leaveGroup()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

@@ -97,8 +97,8 @@ object MongoFactory {
     val(requestedUser, loggedUserEmail, f) = data
     val userRequestsAfter = f(requestedUser.requests, loggedUserEmail)
     val query = MongoDBObject("email" -> requestedUser.email)
-    val upadate = MongoDBObject("$set" -> MongoDBObject("requests" -> userRequestsAfter.toList))
-    users.findAndModify(query, upadate)
+    val update = MongoDBObject("$set" -> MongoDBObject("requests" -> userRequestsAfter.toList))
+    users.findAndModify(query, update)
   }
 
   def updateCarpools(data: (DBObject, DBObject)) = {

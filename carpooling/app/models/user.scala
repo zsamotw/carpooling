@@ -158,21 +158,42 @@ object Users {
 
   def addToCarpools(userToReplyEmail: String, loggedUserEmail: String) = {
     val loggedUser = findUserByEmail(loggedUserEmail)
-    val userToReply = findUserByEmail(userToReplyEmail)
     val kindergarten = Kindergartens.find(
       loggedUser.kindergarten.name,
       loggedUser.kindergarten.street,
       loggedUser.kindergarten.num,
       loggedUser.kindergarten.city)
 
-    val loggedUserGroupEmailsList = kindergarten.usersEmails filter(group => group contains loggedUser.email)
-    val userToReplyGroupEmailsList = kindergarten.usersEmails filter(group => group contains userToReply.email)
+    val loggedUserGroupEmailsList = kindergarten.usersEmails filter(group => group contains loggedUserEmail)
+    val userToReplyGroupEmailsList = kindergarten.usersEmails filter(group => group contains userToReplyEmail)
     val commonGroupEmailsList = if (loggedUserGroupEmailsList != userToReplyGroupEmailsList)
       loggedUserGroupEmailsList.flatten ::: userToReplyGroupEmailsList.flatten
     else loggedUserGroupEmailsList
-    val usersEmailsWithout = kindergarten.usersEmails filter(group =>
-      !(group contains loggedUser.email) && !(group contains userToReply.email))
-    val usersEmailsAfter = usersEmailsWithout ::: List(commonGroupEmailsList)
+    val restUsersEmails = kindergarten.usersEmails filter(group =>
+      !(group contains loggedUserEmail) && !(group contains userToReplyEmail))
+    val usersEmailsAfter = restUsersEmails ::: List(commonGroupEmailsList)
+
+    val query = MongoDBObject(
+      "name" -> kindergarten.name,
+      "street" -> kindergarten.street,
+      "num" -> kindergarten.num,
+      "city" -> kindergarten.city)
+    val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
+    (query, update)
+  }
+
+  def removeFromCarpools(loggedUserEmail: String) = {
+    val loggedUser = findUserByEmail(loggedUserEmail)
+    val kindergarten = Kindergartens.find(
+      loggedUser.kindergarten.name,
+      loggedUser.kindergarten.street,
+      loggedUser.kindergarten.num,
+      loggedUser.kindergarten.city)
+
+    val loggedUserGroupEmailsList = kindergarten.usersEmails filter(group => group contains loggedUserEmail)
+    val groupAfter = loggedUserGroupEmailsList.flatten filter (email => email != loggedUserEmail)
+    val restUsersEmails = kindergarten.usersEmails filter(group => !(group contains loggedUserEmail))
+    val usersEmailsAfter = List(List(loggedUserEmail)) ::: List(groupAfter) ::: restUsersEmails
 
     val query = MongoDBObject(
       "name" -> kindergarten.name,
