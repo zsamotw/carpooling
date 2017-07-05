@@ -114,12 +114,12 @@ object MongoFactory {
 
   def updateUserIntDataInDB(user: User, field: String, data: Int, f: (Int, Int) => Int ) = {
     val userMongo = MongoFactory.findUserinDB(user)
-    val dataBefore = userMongo.getAs[Int]("seats")
+    val dataBefore = userMongo.getAs[Int](field)
     dataBefore match {
       case Some(dataBefore) =>
         val dataAfter = f(dataBefore, data)
         val query = MongoDBObject("email" -> user.email)
-        val upadate = MongoDBObject("$set" -> MongoDBObject("field" -> dataAfter))
+        val upadate = MongoDBObject("$set" -> MongoDBObject(field -> dataAfter))
         MongoFactory.users.findAndModify(query, upadate)
       case None => throw new NoSuchElementException
     }

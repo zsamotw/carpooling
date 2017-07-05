@@ -1,10 +1,11 @@
 package controllers
 
+import java.io.IOException
 import javax.inject.Inject
 import models._
 import play.api.mvc._
 import play.api.i18n.{I18nSupport, MessagesApi}
-import java.io.IOException
+
 
 class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller  with I18nSupport {
 
@@ -79,11 +80,14 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   }
 
   def deleteUser() = Action { implicit request =>
-    request.session.get("connected").map { email =>
-      val user = Users.findUserByEmail(email)
+    request.session.get("connected").map { loggedUserEmail =>
+      val user = Users.findUserByEmail(loggedUserEmail)
       val dataToDB = Users.delete(user)
+      val userGroup = Users.usersFromGroup(loggedUserEmail)
+
+      for(user <- userGroup) MongoFactory.updateUserIntDataInDB(user, "seats", 1, (x:Int, y: Int) => x + y)
       MongoFactory.deleteUser(dataToDB)
-      Ok(views.html.index("You just delete yourself user: " + email)).withNewSession
+      Ok(views.html.index("You just delete yourself user: " + loggedUserEmail)).withNewSession
     } getOrElse {
       Ok(views.html.index("Problem with delete your accout"))
     }
@@ -127,9 +131,13 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
       val kgFromForm = KindergartenForm.form.bindFromRequest.get
       val kindergarten = Kindergartens.find(kgFromForm.name, kgFromForm.street, kgFromForm.num, kgFromForm.city)
       val usersFrom = Kindergartens.findUsersFromKindergarten(kindergarten)
-      Ok(views.html.showusers(kindergarten, usersFrom))
+      val loggedUserEmail = request.session.get("connected").get
+      val loggedUser = Users.findUserByEmail(loggedUserEmail)
+      val loggedUserGroup = usersFrom filter (group => group contains loggedUser)
+      val restGroups = usersFrom filter(group => group != loggedUserGroup.flatten)
+      Ok(views.html.showusers(kindergarten, loggedUserGroup, restGroups))
     } catch {
-      case e: NoSuchElementException => Ok(views.html.index("There is no such kindergarten in db"))
+      case e: NoSuchElementException => Ok(views.html.index("There is no such kindergarten in db or there are problems with finding users"))
     }
   }
 
@@ -144,9 +152,13 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def sendRequest(emailFromGet: String) = Action { implicit request =>
     request.session.get("connected").map { loggedUserEmail =>
-      val dataToDB = Users.addRequest(emailFromGet, loggedUserEmail)
-      MongoFactory.updateUserRequests(dataToDB)
-      Redirect(routes.HomeController.showUserPanel())
+      val(loggedUserGroup, requestedUserGroup) = Users.returnGroupsOfUsers(loggedUserEmail, emailFromGet)
+      if(Users.areEnoughtSeats(loggedUserGroup, requestedUserGroup)) {
+        val dataToDB = Users.addRequest(emailFromGet, loggedUserEmail)
+        MongoFactory.updateUserRequests(dataToDB)
+        Redirect(routes.HomeController.index())
+      }
+      else Ok(views.html.index("Not enought seats in users's cars"))
       }.getOrElse {
         Ok(views.html.index("You have to login first"))
       }
@@ -156,9 +168,14 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     request.session.get("connected").map { loggedUserEmail =>
       val dataToDBCarpools = Users.addToCarpools(emailFromGet, loggedUserEmail)
       val dataToDBRequests = Users.deleteRequest(emailFromGet, loggedUserEmail)
+      val fstGroup = Users.usersFromGroup(emailFromGet)
+      val stdGroup = Users.usersFromGroup(loggedUserEmail)
+
+      for(user <- fstGroup) MongoFactory.updateUserIntDataInDB(user, "seats", stdGroup.length, (x:Int, y: Int) => x - y)
+      for(user <- stdGroup) MongoFactory.updateUserIntDataInDB(user, "seats", fstGroup.length, (x:Int, y: Int) => x - y)
       MongoFactory.updateCarpools(dataToDBCarpools)
       MongoFactory.updateUserRequests(dataToDBRequests)
-      Redirect(routes.HomeController.index())
+      Redirect(routes.HomeController.showUserPanel())
     }.getOrElse {
       Ok(views.html.index("You have to login first"))
     }

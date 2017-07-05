@@ -9,10 +9,9 @@ Current funcionality:
 - create kindergarten with its name and location
 - create user withs its name, location, number of free seats in the car and kindergarten where their children attending
 - delete user
-- send request to other users from the same kindergarten for carpooling
-- replay for request (and rejectrequest) what makes users grouped (requested user's group and replaying user's group become connected)
+- send request to other users from the same kindergarten for carpooling. It depends on if there are enought space in user's cars.
+- replay for request (and reject request) what makes users grouped (requested user's group and replaying user's group become connected)
 - show all users (groups and singles) from one kindergarten: name, surname, address, email, geoposition.
 
 To do:
 - possibility to move out the group
-- make correlation between free seats in car and creating groups. 

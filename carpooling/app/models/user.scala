@@ -138,6 +138,24 @@ object Users {
     (loggedUser, userToReplyEmail, f)
   }
 
+  def areEnoughtSeats(fstGroup: List[User], scdGroup: List[User]) = {
+    fstGroup.forall(user => user.seats >= scdGroup.length) && scdGroup.forall(user => user.seats >= fstGroup.length)
+  }
+
+  def usersFromGroup(loggedUserEmail: String) = {
+    val loggedUser = findUserByEmail(loggedUserEmail)
+    val kindergarten = Kindergartens.find(
+      loggedUser.kindergarten.name,
+      loggedUser.kindergarten.street,
+      loggedUser.kindergarten.num,
+      loggedUser.kindergarten.city)
+    val loggedUserGroup = kindergarten.usersEmails filter(group => group contains loggedUser.email)
+    val group = {
+      for(email <- loggedUserGroup.flatten) yield findUserByEmail(email)
+    }
+    group
+  }
+
   def addToCarpools(userToReplyEmail: String, loggedUserEmail: String) = {
     val loggedUser = findUserByEmail(loggedUserEmail)
     val userToReply = findUserByEmail(userToReplyEmail)
@@ -147,12 +165,14 @@ object Users {
       loggedUser.kindergarten.num,
       loggedUser.kindergarten.city)
 
-    val loggedUserGroup = kindergarten.usersEmails filter(group => group contains loggedUser.email)
-    val userToReplyGroup = kindergarten.usersEmails filter(group => group contains userToReply.email)
-    val commonGroup = if (loggedUserGroup != userToReplyGroup) loggedUserGroup.flatten ::: userToReplyGroup.flatten else loggedUserGroup
+    val loggedUserGroupEmailsList = kindergarten.usersEmails filter(group => group contains loggedUser.email)
+    val userToReplyGroupEmailsList = kindergarten.usersEmails filter(group => group contains userToReply.email)
+    val commonGroupEmailsList = if (loggedUserGroupEmailsList != userToReplyGroupEmailsList)
+      loggedUserGroupEmailsList.flatten ::: userToReplyGroupEmailsList.flatten
+    else loggedUserGroupEmailsList
     val usersEmailsWithout = kindergarten.usersEmails filter(group =>
       !(group contains loggedUser.email) && !(group contains userToReply.email))
-    val usersEmailsAfter = usersEmailsWithout ::: List(commonGroup)
+    val usersEmailsAfter = usersEmailsWithout ::: List(commonGroupEmailsList)
 
     val query = MongoDBObject(
       "name" -> kindergarten.name,
