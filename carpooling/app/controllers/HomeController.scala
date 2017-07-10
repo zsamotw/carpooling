@@ -3,8 +3,10 @@ package controllers
 import java.io.IOException
 import javax.inject.Inject
 import models._
-import play.api.mvc._
 import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.mvc._
+import scala.concurrent.Future
 
 
 class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller  with I18nSupport {
@@ -89,7 +91,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
       MongoFactory.deleteUser(dataToDB)
       Ok(views.html.index("You just delete yourself user: " + loggedUserEmail + " . We missing you like Facebook")).withNewSession
     } getOrElse {
-      Ok(views.html.index("Problem with delete your accout"))
+      Ok(views.html.index("You have to login first"))
     }
   }
 
@@ -101,9 +103,9 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
         MongoFactory.updateCarpools(dataToDB)
         for(user <- userGroup) MongoFactory.updateUserIntDataInDB(user, "seats", 1, (x:Int, y: Int) => x + y)
         Redirect(routes.HomeController.showUserPanel("You are alone....so what are you doing here?"))
-      } else Redirect(routes.HomeController.showUserPanel("You are single. How you can leave youself...? Let's try to find carpooler"))
+      } else Redirect(routes.HomeController.showUserPanel("You are single. How you can leave youself...? Let's try to find carpooler."))
     } getOrElse {
-      Ok(views.html.index("Problem with leaving your group"))
+      Ok(views.html.index("Problem with you login/email."))
     }
   }
 
