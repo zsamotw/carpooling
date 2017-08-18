@@ -16,7 +16,6 @@ case class Kindergarten(
 case class KindergartenFormData(name: String, street: String, num: Int, city: String)
 
 object KindergartenForm {
-
   val form = Form (
     mapping (
       "name" -> text,
@@ -28,7 +27,6 @@ object KindergartenForm {
 }
 
 object Kindergartens {
-
   def listAll = {
     val kindergartens = MongoFactory.kindergartens.find
     convertCursorToKindergartensList(kindergartens)
@@ -59,9 +57,9 @@ object Kindergartens {
     users
   }
 
-  def convertCursorToKindergartensList(MongoKindergatens: com.mongodb.casbah.MongoCursor) = {
+  def convertCursorToKindergartensList(mongoKindergatens: com.mongodb.casbah.MongoCursor) = {
     val res =
-      for { kgMongo <- MongoKindergatens
+      for { kgMongo <- mongoKindergatens
         name = kgMongo.getAs[String]("name").get
         street = kgMongo.getAs[String]("street").get
         num = kgMongo.getAs[Int]("num").get

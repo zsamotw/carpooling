@@ -1,6 +1,7 @@
 @(all: List[Kindergarten])
 
 Registered kindergartens:<br><br>
+<a href="/">homepage</a><br><br>
 @for(kg <- all) {
 	   @kg.name @kg.street @kg.num  @kg.city @kg.len @kg.lon<br>
 	   }

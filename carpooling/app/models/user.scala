@@ -33,7 +33,6 @@ case class UserFormData(
 case class Login(email: String, password: String)
 
 object userForm {
-
   val form = Form(
     mapping(
       "email" -> text,
@@ -50,7 +49,6 @@ object userForm {
 }
 
 object loginForm {
-
   val form = Form(
     mapping(
       "email" -> text,
@@ -58,7 +56,6 @@ object loginForm {
 }
 
 object Users {
-
   def validateLogin(login: Login): Boolean = {
     val userMongoOpt = MongoFactory.users.findOne(MongoDBObject("email" -> login.email))
     userMongoOpt match {

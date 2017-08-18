@@ -1,4 +1,4 @@
-@(user: User, msg: String)
+@(user: User, sysMessage: String, messageForm: Form[MessageFromForm])(implicit messages: play.api.i18n.Messages)
 
 
 @user.name  @user.surname<br>
@@ -9,7 +9,7 @@ Kindergaten:
 @user.kindergarten.name, @user.kindergarten.street no. @user.kindergarten.num in @user.kindergarten.city<br>
 email:
 @user.email<br><br>
-
+<a href="/">homepage</a><br><br>
 
 Reply for requests:<br>
 @for(email <- user.requests) {
@@ -17,9 +17,28 @@ Reply for requests:<br>
 	      }
 
 <br><a href="/leavegroup">be single => create your new net</a>  or <a href="/deleteuser">Delete myself and take me somewhere else!<a><br><br>
-	      
+
+    
+Follow with your message:
+
+    @helper.form(action=routes.HomeController.addMessage()) {
+    @helper.select(
+    messageForm("purpose"),
+    options = Seq("Looking for place" -> "Looking for place", "Have a free place" -> "Have a free place"),
+    '_default -> "Your purpose",
+    '_label -> "Purpose")
+    @helper.select(
+    messageForm("seats"),
+    options = for(i <- 1 to 10) yield (i.toString -> i.toString),
+      '_default -> "Number of free seats in your car",
+      '_label -> "Seats")
+    @helper.inputText(messageForm("data"))
+    @helper.inputText(messageForm("from"))
+    @helper.inputText(messageForm("to"))
+    <button type="send">Send message</button>
+    }
 	      
 <br><a href="/">homepage</a><br><br><br>
 
-<br><br>Current info: @msg
+<br><br>Current info: @sysMessage
 

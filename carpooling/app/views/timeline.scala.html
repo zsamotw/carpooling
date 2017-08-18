@@ -1,0 +1,14 @@
+@(messages: List[Message])
+This is your timeline: <br>
+Filter: by purpose, by kindergarten, your messages<br><br>
+<a href="/">homepage</a><br><br>
+@for(message <- messages) {
+		Purpose: @message.purpose<br>
+		Seats: @message.seats<br>
+		Data: @message.data<br>
+		From: @message.from<br>
+		To: @message.to<br>
+		Who: @message.userName @message.userSurname from @message.kindergartenName<br>
+		Contact: @message.userEmail<br><br>
+		}
+

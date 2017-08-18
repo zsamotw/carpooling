@@ -22,6 +22,8 @@ GET      /sendrequest/:email         controllers.HomeController.sendRequest(emai
 GET      /replyforrequest/:email     controllers.HomeController.replyForRequest(email)
 GET      /rejectrequest/:email       controllers.HomeController.rejectRequest(email)
 GET      /leavegroup                 controllers.HomeController.leaveGroup()
+GET      /addMessage                 controllers.HomeController.addMessage()
+GET      /timeline                   controllers.HomeController.showTimeline()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

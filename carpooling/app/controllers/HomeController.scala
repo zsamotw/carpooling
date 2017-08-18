@@ -182,7 +182,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   def showUserPanel(msg: String) = Action { implicit request =>
     request.session.get("connected").map { email =>
       val user = Users.findUserByEmail(email)
-      Ok(views.html.panel(user, msg))
+      Ok(views.html.panel(user, msg, MessageForm.form))
     }.getOrElse {
       Ok(views.html.index("You have to login first"))
     }
@@ -228,6 +228,39 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
       MongoFactory.updateUserRequests(dataToDB)
       Redirect(routes.HomeController.showUserPanel("Request rejected!!"))
     } getOrElse {
+      Ok(views.html.index("You have to login first"))
+    }
+  }
+
+  def addMessage = Action { implicit request =>
+    request.session.get("connected").map { email =>
+      val user = Users.findUserByEmail(email)
+      val messageFromForm = MessageForm.form.bindFromRequest.get
+      val message = Message(
+        messageFromForm.purpose,
+        messageFromForm.seats,
+        messageFromForm.data,
+        messageFromForm.from,
+        messageFromForm.to,
+        user.name,
+        user.surname,
+        user.street,
+        user.email,
+        user.kindergarten.name,
+        user.kindergarten.street
+      )
+      MongoFactory.add(message)
+      Ok(views.html.panel(user, "You message has been sent", MessageForm.form))
+    }.getOrElse {
+      Ok(views.html.index("You have to login first"))
+    }
+  }
+
+  def showTimeline = Action { implicit request =>
+    request.session.get("connected").map { email =>
+      val messages = Messages.listAll.sortWith(_.data > _.data)
+      Ok(views.html.timeline(messages))
+    }.getOrElse {
       Ok(views.html.index("You have to login first"))
     }
   }

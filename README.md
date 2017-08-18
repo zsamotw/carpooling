@@ -12,6 +12,9 @@ Current funcionality:
 - send request to other users from the same kindergarten for carpooling. It depends on if there are enought space in user's cars.
 - replay for request (and reject request) what makes users grouped (requested user's group and replaying user's group become connected)
 - show all users (groups and singles) from one kindergarten: name, surname, address, email, geoposition.
+- send message to timeline
+- check timeline with messages from other users
 
 To do:
-- possibility to move out the group
+- add joda date to class Message
+- add filtering messages

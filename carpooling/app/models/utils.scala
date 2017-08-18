@@ -7,7 +7,6 @@ import com.mongodb.casbah.MongoConnection
 import com.mongodb.casbah.Imports._
 
 object GeoUtils {
-
   def searchGeoPoint(user: UserFormData) = {
     val street = user.street split(" ") mkString("%20")
     val city = user.city split(" ") mkString("%20")
@@ -32,15 +31,16 @@ object GeoUtils {
 }
 
 object MongoFactory {
-
   private val Database = "carpooling"
   private val Users = "users"
   private val Kindergartens = "kindergartens"
+  private val Messages = "messages"
 
   val connection = MongoClient()
   val db = connection(Database)
   val users = db(Users)
   val kindergartens = db(Kindergartens)
+  val messages = db(Messages)
 
   def buildMongoDbUser(user: User): MongoDBObject = {
     val builder = MongoDBObject.newBuilder
@@ -70,6 +70,22 @@ object MongoFactory {
     builder += "len" -> kg.len
     builder += "lon" -> kg.lon
     builder += "usersemails" -> List[List[String]]()
+    builder.result
+  }
+
+  def buildMongoDbMessage(message: Message) = {
+    val builder = MongoDBObject.newBuilder
+    builder += "purpose" -> message.purpose
+    builder += "seats" -> message.seats
+    builder += "data" -> message.data
+    builder += "from" -> message.from
+    builder += "to" -> message.to
+    builder += "username" -> message.userName
+    builder += "usersurname" -> message.userSurname
+    builder += "useraddress" -> message.userAddress
+    builder += "useremail" -> message.userEmail
+    builder += "kindergartenname" -> message.kindergartenName
+    builder += "kindergartenaddress" -> message.kindergartenAddress
     builder.result
   }
 
@@ -129,6 +145,7 @@ object MongoFactory {
     kindergartens += buildMongoDbKindergarten(kindergarten)
   }
 
+  def add(message: Message) = {
+    messages += buildMongoDbMessage(message)
+  }
 }
-
-
