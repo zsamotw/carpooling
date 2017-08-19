@@ -82,10 +82,13 @@ object MongoFactory {
     builder += "to" -> message.to
     builder += "username" -> message.userName
     builder += "usersurname" -> message.userSurname
-    builder += "useraddress" -> message.userAddress
+    builder += "userstreet" -> message.userStreet
+    builder += "usercity" -> message.userCity
     builder += "useremail" -> message.userEmail
-    builder += "kindergartenname" -> message.kindergartenName
-    builder += "kindergartenaddress" -> message.kindergartenAddress
+    builder += "kindergartenname" -> message.kgName
+    builder += "kindergartenstreet" -> message.kgStreet
+    builder += "kindergartennum" -> message.kgNum
+    builder += "kindergartencity" -> message.kgCity
     builder.result
   }
 

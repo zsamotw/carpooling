@@ -14,10 +14,13 @@ case class Message(
   val to: String,
   val userName: String,
   val userSurname: String,
-  val userAddress: String,
+  val userStreet: String,
+  val userCity: String,
   val userEmail: String,
-  val kindergartenName: String,
-  val kindergartenAddress: String)
+  val kgName: String,
+  val kgStreet: String,
+  val kgNum: Int,
+  val kgCity: String)
 
 object MessageForm {
   val form = Form(
@@ -39,8 +42,11 @@ object Messages {
 
   type MessgFilter = Message => Boolean
 
-  //  def find(p: MessgFilter, messages: List[Message]) = messages.filter(p)
-  //  val kindergartenFilter = 
+  def timelineFilter(p: MessgFilter, messages: List[Message]) = messages.filter(p)
+
+  val purposeFilter: String => MessgFilter = purpose => message => message.purpose == purpose
+
+//  def kindergartenFilter(kindergarten: KindergartenFormData)(message: Message)
 
   def convertCursorToMessagesList(mongoMessages: com.mongodb.casbah.MongoCursor) = {
     val res =
@@ -52,11 +58,14 @@ object Messages {
         to = messMongo.getAs[String]("to").get
         userName = messMongo.getAs[String]("username").get
         userSurname = messMongo.getAs[String]("usersurname").get
-        userAddress = messMongo.getAs[String]("useraddress").get
+        userStreet = messMongo.getAs[String]("userstreet").get
+        userCity = messMongo.getAs[String]("usercity").get
         userEmail = messMongo.getAs[String]("useremail").get
         kgName = messMongo.getAs[String]("kindergartenname").get
-        kgAddress = messMongo.getAs[String]("kindergartenaddress").get
-      } yield Message(purpose, seats, data, from, to, userName, userSurname, userAddress, userEmail, kgName, kgAddress)
+        kgStreet = messMongo.getAs[String]("kindergartenstreet").get
+        kgNum = messMongo.getAs[Int]("kindergartennum").get
+        kgCity = messMongo.getAs[String]("kindergartencity").get
+      } yield Message(purpose, seats, data, from, to, userName, userSurname, userStreet, userCity, userEmail, kgName, kgStreet, kgNum, kgCity)
     res.toList
   }
 

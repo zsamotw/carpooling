@@ -245,9 +245,12 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
         user.name,
         user.surname,
         user.street,
+        user.city,
         user.email,
         user.kindergarten.name,
-        user.kindergarten.street
+        user.kindergarten.street,
+        user.kindergarten.num,
+        user.kindergarten.city
       )
       MongoFactory.add(message)
       Ok(views.html.panel(user, "You message has been sent", MessageForm.form))
@@ -262,6 +265,24 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
       Ok(views.html.timeline(messages))
     }.getOrElse {
       Ok(views.html.index("You have to login first"))
+    }
+  }
+
+  def filterMessages(filterCode: String) = Action { implicit request =>
+    val messages = Messages.listAll
+    filterCode match {
+      case "lookFor" =>
+        val fraze = "Looking for place"
+        val lookforFilter = Messages.purposeFilter(fraze)
+        val filteredMessages = Messages.timelineFilter(lookforFilter, messages)
+        Ok(views.html.timeline(filteredMessages))
+      case "haveFree" =>
+        val fraze = "Have a free place"
+        val havefreeFilter = Messages.purposeFilter(fraze)
+        val filteredMessages = Messages.timelineFilter(havefreeFilter, messages)
+        Ok(views.html.timeline(filteredMessages))
+      case _ =>
+        Ok(views.html.index("ooops something wrong with filter"))
     }
   }
 

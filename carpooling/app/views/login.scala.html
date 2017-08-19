@@ -3,7 +3,7 @@
 LOGIN HERE:
 @helper.form(action=routes.HomeController.validateLoginAndPassword()) {
 @helper.inputText(loginForm("email"))
-@helper.inputText(loginForm("password"))
+@helper.inputPassword(loginForm("password"))
 <button type="submit">Login</button>
 }
 

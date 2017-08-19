@@ -1,6 +1,6 @@
 @(messages: List[Message])
 This is your timeline: <br>
-Filter: by purpose, by kindergarten, your messages<br><br>
+Filter: <a href="/filterMessages/lookFor">looking for</a>,  <a href="/filterMessages/haveFree">have a free seat</a>, your kindergarten, your messages<br><br>
 <a href="/">homepage</a><br><br>
 @for(message <- messages) {
 		Purpose: @message.purpose<br>
@@ -8,7 +8,7 @@ Filter: by purpose, by kindergarten, your messages<br><br>
 		Data: @message.data<br>
 		From: @message.from<br>
 		To: @message.to<br>
-		Who: @message.userName @message.userSurname from @message.kindergartenName<br>
+		Who: @message.userName @message.userSurname from @message.kgName on @message.kgStreet in @message.kgCity<br>
 		Contact: @message.userEmail<br><br>
 		}
 
