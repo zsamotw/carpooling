@@ -4,14 +4,14 @@ Parents from @kindergarten.name on @kindergarten.street in @kindergarten.city: @
 List of users:<br><br>
 @for(groupOfUsers <- loggedUserGroup) {
 		     
-		     <b>logged user group:</b><br><br>
+		     <b>Your group:</b><br><br>
 		     @for(user <- groupOfUsers) {
 				  @user.name @user.surname lives on @user.street in @user.city @user.lon @user.len<br>
 				  free seats: @user.seats    email: @user.email<br><br><br>
 				  }
 				  }
 @for(groupOfUsers <- restGroups) {				  
-		     <b>other group:</b><br><br>
+		     <b>Group:</b><br><br>
 		     @for(user <- groupOfUsers) {
 				  @user.name @user.surname lives on @user.street in @user.city @user.lon @user.len<br>
 				  free seats: @user.seats    email: @user.email<br>

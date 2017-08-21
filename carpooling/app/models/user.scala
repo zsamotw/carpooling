@@ -30,6 +30,17 @@ case class UserFormData(
   kgNum: Int,
   kgCity: String)
 
+case class SimpleUser(
+  email: String,
+  name: String,
+  surname: String,
+  street: String,
+  city: String,
+  kgName: String,
+  kgStreet: String,
+  kgNum: Int,
+  kgCity: String)
+
 case class Login(email: String, password: String)
 
 object userForm {
@@ -269,4 +280,15 @@ object Users {
       len,
       lon)
   }
+
+  def convertToSimpleUser(user: User) = SimpleUser(
+    user.email,
+    user.name,
+    user.surname,
+    user.street,
+    user.city,
+    user.kindergarten.name,
+    user.kindergarten.street,
+    user.kindergarten.num,
+    user.kindergarten.city)
 }

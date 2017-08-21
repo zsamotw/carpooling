@@ -13,7 +13,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def index = Action { implicit request =>
     request.session.get("connected").map { email =>
-      Ok(views.html.index("User with login:" + email + " is connected"))
+      Ok(views.html.index("User with login: " + email + " is connected"))
     }.getOrElse {
       Ok(views.html.index("Nobody is connected"))
     }
@@ -233,25 +233,17 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   }
 
   def addMessage = Action { implicit request =>
-    request.session.get("connected").map { email =>
-      val user = Users.findUserByEmail(email)
+    request.session.get("connected").map { loggedUserEmail =>
+      val user = Users.findUserByEmail(loggedUserEmail)
+      val simpleUser = Users.convertToSimpleUser(user)
       val messageFromForm = MessageForm.form.bindFromRequest.get
       val message = Message(
-        messageFromForm.purpose,
+        Purpose(messageFromForm.purpose),
         messageFromForm.seats,
         messageFromForm.data,
         messageFromForm.from,
         messageFromForm.to,
-        user.name,
-        user.surname,
-        user.street,
-        user.city,
-        user.email,
-        user.kindergarten.name,
-        user.kindergarten.street,
-        user.kindergarten.num,
-        user.kindergarten.city
-      )
+        simpleUser)
       MongoFactory.add(message)
       Ok(views.html.panel(user, "You message has been sent", MessageForm.form))
     }.getOrElse {
@@ -260,8 +252,8 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   }
 
   def showTimeline = Action { implicit request =>
-    request.session.get("connected").map { email =>
-      val messages = Messages.listAll.sortWith(_.data > _.data)
+    request.session.get("connected").map { loggedUserEmail =>
+      val messages = Messages.listAll
       Ok(views.html.timeline(messages))
     }.getOrElse {
       Ok(views.html.index("You have to login first"))
@@ -271,18 +263,18 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   def filterMessages(filterCode: String) = Action { implicit request =>
     val messages = Messages.listAll
     filterCode match {
-      case "lookFor" =>
-        val fraze = "Looking for place"
-        val lookforFilter = Messages.purposeFilter(fraze)
-        val filteredMessages = Messages.timelineFilter(lookforFilter, messages)
+      case "look-for-free-seat" =>
+        val fraze = "Looking for free seat"
+        val lookforFilter = Messages.purposeFilter(Purpose(fraze))
+        val filteredMessages = Messages.timelineFilter(lookforFilter, messages).sortWith(_.data > _.data)
         Ok(views.html.timeline(filteredMessages))
-      case "haveFree" =>
-        val fraze = "Have a free place"
-        val havefreeFilter = Messages.purposeFilter(fraze)
-        val filteredMessages = Messages.timelineFilter(havefreeFilter, messages)
+      case "propose-free-seat" =>
+        val fraze = "Propose free seat"
+        val havefreeFilter = Messages.purposeFilter(Purpose(fraze))
+        val filteredMessages = Messages.timelineFilter(havefreeFilter, messages).sortWith(_.data > _.data)
         Ok(views.html.timeline(filteredMessages))
       case _ =>
-        Ok(views.html.index("ooops something wrong with filter"))
+        Ok(views.html.index("ooops something wrong with filter criteria"))
     }
   }
 

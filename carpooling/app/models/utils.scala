@@ -75,20 +75,20 @@ object MongoFactory {
 
   def buildMongoDbMessage(message: Message) = {
     val builder = MongoDBObject.newBuilder
-    builder += "purpose" -> message.purpose
+    builder += "purpose" -> message.purpose.statement
     builder += "seats" -> message.seats
     builder += "data" -> message.data
     builder += "from" -> message.from
     builder += "to" -> message.to
-    builder += "username" -> message.userName
-    builder += "usersurname" -> message.userSurname
-    builder += "userstreet" -> message.userStreet
-    builder += "usercity" -> message.userCity
-    builder += "useremail" -> message.userEmail
-    builder += "kindergartenname" -> message.kgName
-    builder += "kindergartenstreet" -> message.kgStreet
-    builder += "kindergartennum" -> message.kgNum
-    builder += "kindergartencity" -> message.kgCity
+    builder += "username" -> message.user.name
+    builder += "usersurname" -> message.user.surname
+    builder += "userstreet" -> message.user.street
+    builder += "usercity" -> message.user.city
+    builder += "useremail" -> message.user.email
+    builder += "kindergartenname" -> message.user.kgName
+    builder += "kindergartenstreet" -> message.user.kgStreet
+    builder += "kindergartennum" -> message.user.kgNum
+    builder += "kindergartencity" -> message.user.kgCity
     builder.result
   }
 

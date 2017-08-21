@@ -1,4 +1,4 @@
-@(user: User, sysMessage: String, messageForm: Form[MessageFromForm])(implicit messages: play.api.i18n.Messages)
+@(user: User, sysMessage: String, messageForm: Form[MessageFormData])(implicit messages: play.api.i18n.Messages)
 
 
 @user.name  @user.surname<br>
@@ -24,7 +24,7 @@ Follow with your message:
     @helper.form(action=routes.HomeController.addMessage()) {
     @helper.select(
     messageForm("purpose"),
-    options = Seq("Looking for place" -> "Looking for place", "Have a free place" -> "Have a free place"),
+    options = Seq("Looking for free seat" -> "Looking for free seat", "Propose free seat" -> "Propose free seat"),
     '_default -> "Your purpose",
     '_label -> "Purpose")
     @helper.select(

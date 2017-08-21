@@ -4,23 +4,35 @@ import com.mongodb.casbah.Imports._
 import play.api.data.Form
 import play.api.data.Forms._
 
-case class MessageFromForm(val purpose: String, val seats: Int, val data: Int, val from: String, val to: String)
+trait Purpose {
+  val statement: String
+}
+
+case class ProposeFreeSeat(override val statement: String) extends Purpose
+
+case class LookingForFreeSeat(override val statement: String) extends Purpose
+
+object Purpose {
+  val propose = "Propose free seat"
+  val lookfor = "Looking for free seat"
+
+  def apply(statement: String) = {
+    statement match {
+      case propose => ProposeFreeSeat(statement)
+      case lookfor => LookingForFreeSeat(statement)
+    }
+  }
+}
+
+case class MessageFormData(val purpose: String, val seats: Int, val data: Int, val from: String, val to: String)
 
 case class Message(
-  val purpose: String,
+  val purpose: Purpose,
   val seats: Int,
   val data: Int,
   val from: String,
   val to: String,
-  val userName: String,
-  val userSurname: String,
-  val userStreet: String,
-  val userCity: String,
-  val userEmail: String,
-  val kgName: String,
-  val kgStreet: String,
-  val kgNum: Int,
-  val kgCity: String)
+  val user: SimpleUser)
 
 object MessageForm {
   val form = Form(
@@ -30,21 +42,21 @@ object MessageForm {
       "data" -> number,
       "from" -> text,
       "to" -> text
-    )(MessageFromForm.apply)(MessageFromForm.unapply)
+    )(MessageFormData.apply)(MessageFormData.unapply)
   )
 }
 
 object Messages {
   def listAll = {
     val messages = MongoFactory.messages.find
-    convertCursorToMessagesList(messages)
+    convertCursorToMessagesList(messages).sortWith(_.data > _.data)
   }
 
   type MessgFilter = Message => Boolean
 
   def timelineFilter(p: MessgFilter, messages: List[Message]) = messages.filter(p)
 
-  val purposeFilter: String => MessgFilter = purpose => message => message.purpose == purpose
+  val purposeFilter: Purpose => MessgFilter = purpose => message => message.purpose == purpose
 
 //  def kindergartenFilter(kindergarten: KindergartenFormData)(message: Message)
 
@@ -56,16 +68,22 @@ object Messages {
         data = messMongo.getAs[Int]("data").get
         from = messMongo.getAs[String]("from").get
         to = messMongo.getAs[String]("to").get
+        userEmail = messMongo.getAs[String]("useremail").get
         userName = messMongo.getAs[String]("username").get
         userSurname = messMongo.getAs[String]("usersurname").get
         userStreet = messMongo.getAs[String]("userstreet").get
         userCity = messMongo.getAs[String]("usercity").get
-        userEmail = messMongo.getAs[String]("useremail").get
         kgName = messMongo.getAs[String]("kindergartenname").get
         kgStreet = messMongo.getAs[String]("kindergartenstreet").get
         kgNum = messMongo.getAs[Int]("kindergartennum").get
         kgCity = messMongo.getAs[String]("kindergartencity").get
-      } yield Message(purpose, seats, data, from, to, userName, userSurname, userStreet, userCity, userEmail, kgName, kgStreet, kgNum, kgCity)
+      } yield Message(
+        Purpose(purpose),
+        seats,
+        data,
+        from,
+        to,
+        SimpleUser(userEmail, userName, userSurname, userStreet, userCity, kgName, kgStreet, kgNum, kgCity))
     res.toList
   }
 
