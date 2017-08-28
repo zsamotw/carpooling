@@ -47,7 +47,7 @@ object MessageForm {
 }
 
 object Messages {
-  def listAll = {
+  def listAll: List[Message] = {
     val messages = MongoFactory.messages.find
     convertCursorToMessagesList(messages).sortWith(_.data > _.data)
   }
@@ -60,7 +60,7 @@ object Messages {
 
 //  def kindergartenFilter(kindergarten: KindergartenFormData)(message: Message)
 
-  def convertCursorToMessagesList(mongoMessages: com.mongodb.casbah.MongoCursor) = {
+  def convertCursorToMessagesList(mongoMessages: MongoCursor): List[Message] = {
     val res =
       for { messMongo <- mongoMessages
         purpose = messMongo.getAs[String]("purpose").get

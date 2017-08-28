@@ -75,7 +75,7 @@ object Users {
     }
   }
 
-  def isOnlyOne(user: User) = {
+  def isOnlyOne(user: User): Boolean = {
     val userMongo = MongoFactory.users.findOne(MongoDBObject("email" -> user.email))
     userMongo match {
       case None => true
@@ -83,7 +83,7 @@ object Users {
     }
   }
 
-  def add(user: User) = {
+  def add(user: User): (User, DBObject, DBObject) = {
     val kindergarten = Kindergartens.find(
       user.kindergarten.name,
       user.kindergarten.street,
@@ -99,7 +99,7 @@ object Users {
     (user, query, update)
   }
 
-  def delete(user: User) = {
+  def delete(user: User): (User, DBObject, DBObject) = {
     val kindergarten = Kindergartens.find(
       user.kindergarten.name,
       user.kindergarten.street,
@@ -120,12 +120,12 @@ object Users {
     (user, query, update)
   }
 
-  def listAll = {
+  def listAll: List[User] = {
     val allUsers = MongoFactory.users.find
     convertCursorToUsersList(allUsers)
   }
 
-  def findUserByEmail(email: String) = {
+  def findUserByEmail(email: String): User = {
     val userOpt = MongoFactory.users.findOne("email" $eq email)
     userOpt match {
       case Some(user) =>
@@ -134,23 +134,23 @@ object Users {
     }
   }
 
-  def addRequest(requestedUserEmail: String, loggedUserEmail: String) = {
+  def addRequest(requestedUserEmail: String, loggedUserEmail: String): (User, String, (Set[String], String) => Set[String]) = {
     val requestedUser = findUserByEmail(requestedUserEmail)
     val f = (xs: Set[String], y: String) => xs + y 
     (requestedUser, loggedUserEmail, f)
   }
 
-  def deleteRequest(userToReplyEmail: String, loggedUserEmail: String) = {
+  def deleteRequest(userToReplyEmail: String, loggedUserEmail: String): (User, String, (Set[String], String) => Set[String]) = {
     val loggedUser = findUserByEmail(loggedUserEmail)
     val f = (xs: Set[String], y: String) => xs - y
     (loggedUser, userToReplyEmail, f)
   }
 
-  def areEnoughtSeats(fstGroup: List[User], scdGroup: List[User]) = {
+  def areEnoughtSeats(fstGroup: List[User], scdGroup: List[User]): Boolean = {
     fstGroup.forall(user => user.seats >= scdGroup.length) && scdGroup.forall(user => user.seats >= fstGroup.length)
   }
 
-  def usersFromGroup(loggedUserEmail: String) = {
+  def usersFromGroup(loggedUserEmail: String): List[User] = {
     val loggedUser = findUserByEmail(loggedUserEmail)
     val kindergarten = Kindergartens.find(
       loggedUser.kindergarten.name,
@@ -164,7 +164,7 @@ object Users {
     group
   }
 
-  def addToCarpools(userToReplyEmail: String, loggedUserEmail: String) = {
+  def addToCarpools(userToReplyEmail: String, loggedUserEmail: String): (DBObject, DBObject) = {
     val loggedUser = findUserByEmail(loggedUserEmail)
     val kindergarten = Kindergartens.find(
       loggedUser.kindergarten.name,
@@ -190,7 +190,7 @@ object Users {
     (query, update)
   }
 
-  def removeFromCarpools(loggedUserEmail: String) = {
+  def removeFromCarpools(loggedUserEmail: String): (DBObject, DBObject) = {
     val loggedUser = findUserByEmail(loggedUserEmail)
     val kindergarten = Kindergartens.find(
       loggedUser.kindergarten.name,
@@ -212,7 +212,7 @@ object Users {
     (query, update)
   }
 
-  def convertCursorToUsersList(MongoUsers: com.mongodb.casbah.MongoCursor) = {
+  def convertCursorToUsersList(MongoUsers: com.mongodb.casbah.MongoCursor): List[User] = {
     val res =
       for { userMongo <- MongoUsers
         email = userMongo.getAs[String]("email").get
@@ -248,7 +248,7 @@ object Users {
     res.toList
   }
 
-  def convertDBObjectToUser(userMongo: MongoDBObject) = {
+  def convertDBObjectToUser(userMongo: MongoDBObject): User = {
     val email = userMongo.getAs[String]("email").get
     val password =  userMongo.getAs[String]("password").get
     val name = userMongo.getAs[String]("name").get

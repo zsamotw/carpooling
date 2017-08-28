@@ -7,21 +7,21 @@ import com.mongodb.casbah.MongoConnection
 import com.mongodb.casbah.Imports._
 
 object GeoUtils {
-  def searchGeoPoint(user: UserFormData) = {
+  def searchGeoPoint(user: UserFormData): (String, String) = {
     val street = user.street split(" ") mkString("%20")
     val city = user.city split(" ") mkString("%20")
     val query = "http://nominatim.openstreetmap.org/search/" + street + "," + city + ",Poland?format=json&polygon=1&addressdetails=1&limit=1"
     parseLatLonFromQuery(query)
   }
 
-  def searchGeoPoint(kg: KindergartenFormData) = {
+  def searchGeoPoint(kg: KindergartenFormData): (String, String) = {
      val street = kg.street split(" ") mkString("%20")
     val city = kg.city split(" ") mkString("%20")
     val query = "http://nominatim.openstreetmap.org/search/" + street + "," + city + ",Poland?format=json&polygon=1&addressdetails=1&limit=1"
     parseLatLonFromQuery(query)
   }
 
-  def parseLatLonFromQuery(query: String) = {
+  def parseLatLonFromQuery(query: String): (String, String) = {
     val res = Source.fromURL(query).mkString
     val jsonRes = Json.parse(res)
     val lat = (jsonRes \\ "lat").head.toString
@@ -61,7 +61,7 @@ object MongoFactory {
     builder.result
   }
 
-  def buildMongoDbKindergarten(kg: Kindergarten) = {
+  def buildMongoDbKindergarten(kg: Kindergarten): MongoDBObject = {
     val builder = MongoDBObject.newBuilder
     builder += "name" -> kg.name
     builder += "street" -> kg.street
@@ -73,7 +73,7 @@ object MongoFactory {
     builder.result
   }
 
-  def buildMongoDbMessage(message: Message) = {
+  def buildMongoDbMessage(message: Message): MongoDBObject = {
     val builder = MongoDBObject.newBuilder
     builder += "purpose" -> message.purpose.statement
     builder += "seats" -> message.seats
@@ -92,27 +92,27 @@ object MongoFactory {
     builder.result
   }
 
-  def addUser(data: (User, DBObject, DBObject)) = {
+  def addUser(data: (User, DBObject, DBObject)) {
     val(user, query, update) = data
     kindergartens.findAndModify(query, update)
     users += buildMongoDbUser(user)
   }
 
-  def deleteUser(data: (User, DBObject, DBObject)) = {
+  def deleteUser(data: (User, DBObject, DBObject)) {
     val(user, query, update) = data
     kindergartens.findAndModify(query, update)
     users.remove("email" $eq user.email)
   }
 
-  def findUserinDB(user: User) = {
+  def findUserinDB(user: User): DBObject = {
     val userMongo = users.findOne(MongoDBObject("email" -> user.email))
     userMongo match {
       case None => throw new NoSuchElementException
-      case Some(u) => u
+      case Some(user) => user
     }
   }
 
-  def updateUserRequests(data: (User, String, (Set[String], String) => Set[String])) = {
+  def updateUserRequests(data: (User, String, (Set[String], String) => Set[String])) {
     val(requestedUser, loggedUserEmail, f) = data
     val userRequestsAfter = f(requestedUser.requests, loggedUserEmail)
     val query = MongoDBObject("email" -> requestedUser.email)
@@ -120,18 +120,18 @@ object MongoFactory {
     users.findAndModify(query, update)
   }
 
-  def updateCarpools(data: (DBObject, DBObject)) = {
+  def updateCarpools(data: (DBObject, DBObject)) {
     val(query, update) = data
     kindergartens.findAndModify(query, update)
   }
 
-  def updateUserStringDatainDB(user: User, field: String, data: String) = {
+  def updateUserStringDatainDB(user: User, field: String, data: String) {
     val query = MongoDBObject("email" -> user.email)
     val upadate = MongoDBObject("$set" -> MongoDBObject(field -> data))
     MongoFactory.users.findAndModify(query, upadate)
   }
 
-  def updateUserIntDataInDB(user: User, field: String, data: Int, f: (Int, Int) => Int ) = {
+  def updateUserIntDataInDB(user: User, field: String, data: Int, f: (Int, Int) => Int ) {
     val userMongo = MongoFactory.findUserinDB(user)
     val dataBefore = userMongo.getAs[Int](field)
     dataBefore match {
@@ -144,11 +144,11 @@ object MongoFactory {
     }
   }
 
-  def add(kindergarten: Kindergarten) = {
+  def add(kindergarten: Kindergarten) {
     kindergartens += buildMongoDbKindergarten(kindergarten)
   }
 
-  def add(message: Message) = {
+  def add(message: Message) {
     messages += buildMongoDbMessage(message)
   }
 }

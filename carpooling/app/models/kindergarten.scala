@@ -27,12 +27,12 @@ object KindergartenForm {
 }
 
 object Kindergartens {
-  def listAll = {
+  def listAll: List[Kindergarten] = {
     val kindergartens = MongoFactory.kindergartens.find
     convertCursorToKindergartensList(kindergartens)
   }
 
-  def find(kgName: String, kgStreet: String, kgNum: Int, kgCity: String) = {
+  def find(kgName: String, kgStreet: String, kgNum: Int, kgCity: String): Kindergarten = {
     val query = MongoDBObject(
       "name" -> kgName,
       "street" -> kgStreet,
@@ -45,7 +45,7 @@ object Kindergartens {
     }
   }
 
-  def findUsersFromKindergarten(kindergarten: Kindergarten) = {
+  def findUsersFromKindergarten(kindergarten: Kindergarten): List[List[User]] = {
     val usersEmails = kindergarten.usersEmails
     val users = {
       for(groupEmails <- usersEmails) yield {
@@ -57,7 +57,7 @@ object Kindergartens {
     users
   }
 
-  def convertCursorToKindergartensList(mongoKindergatens: com.mongodb.casbah.MongoCursor) = {
+  def convertCursorToKindergartensList(mongoKindergatens: MongoCursor): List[Kindergarten] = {
     val res =
       for { kgMongo <- mongoKindergatens
         name = kgMongo.getAs[String]("name").get
@@ -71,7 +71,7 @@ object Kindergartens {
     res.toList
   }
 
-  def convertDBObjectToKindergarten(kgMongo: MongoDBObject) = {
+  def convertDBObjectToKindergarten(kgMongo: MongoDBObject): Kindergarten = {
     val name = kgMongo.getAs[String]("name").get
     val street = kgMongo.getAs[String]("street").get
     val num = kgMongo.getAs[Int]("num").get
