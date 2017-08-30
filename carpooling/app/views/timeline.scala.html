@@ -1,6 +1,6 @@
 @(messages: List[Message])
 This is your timeline: <br>
-Filter: <a href="/filterMessages/look-for-free-seat">looking for free seat</a>,  <a href="/filterMessages/propose-free-seat">propose free seat</a>, your kindergarten, your messages<br><br>
+Filter: <a href="/filterMessages/look-for-free-seat">looking for free seat</a>,  <a href="/filterMessages/propose-free-seat">propose free seat</a>, <a href="/filterMessages/my-kindergarten">your kindergarten</a>, your messages<br><br>
 <a href="/">homepage</a><br><br>
 @for(message <- messages) {
 		Purpose: @message.purpose.statement<br>

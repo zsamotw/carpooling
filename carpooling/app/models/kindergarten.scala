@@ -67,7 +67,7 @@ object Kindergartens {
         len = kgMongo.getAs[String]("len").get
         lon = kgMongo.getAs[String]("lon").get
         usersemails = kgMongo.getAs[List[List[String]]]("usersemails").get
-      } yield new Kindergarten(name, street, num, city, len, lon, usersemails)
+      } yield Kindergarten(name, street, num, city, len, lon, usersemails)
     res.toList
   }
 
@@ -96,7 +96,7 @@ object Kindergartens {
       }
       list.toList
     }
-    new Kindergarten(name, street, num, city, len, lon, usersEmails)
+    Kindergarten(name, street, num, city, len, lon, usersEmails)
   }
 }
 

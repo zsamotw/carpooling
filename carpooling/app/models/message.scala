@@ -14,25 +14,25 @@ case class LookingForFreeSeat(override val statement: String) extends Purpose
 
 object Purpose {
   val propose = "Propose free seat"
-  val lookfor = "Looking for free seat"
+  val lookFor = "Looking for free seat"
 
   def apply(statement: String) = {
     statement match {
-      case propose => ProposeFreeSeat(statement)
-      case lookfor => LookingForFreeSeat(statement)
+      case `propose` => ProposeFreeSeat(statement)
+      case `lookFor` => LookingForFreeSeat(statement)
     }
   }
 }
 
-case class MessageFormData(val purpose: String, val seats: Int, val data: Int, val from: String, val to: String)
+case class MessageFormData(purpose: String, seats: Int, data: Int, from: String, to: String)
 
 case class Message(
-  val purpose: Purpose,
-  val seats: Int,
-  val data: Int,
-  val from: String,
-  val to: String,
-  val user: SimpleUser)
+  purpose: Purpose,
+  seats: Int,
+  data: Int,
+  from: String,
+  to: String,
+  user: SimpleUser)
 
 object MessageForm {
   val form = Form(
@@ -54,11 +54,15 @@ object Messages {
 
   type MessgFilter = Message => Boolean
 
-  def timelineFilter(p: MessgFilter, messages: List[Message]) = messages.filter(p)
+  def timelineFilter(p: MessgFilter, messages: List[Message]): List[Message] = messages.filter(p)
 
   val purposeFilter: Purpose => MessgFilter = purpose => message => message.purpose == purpose
 
-//  def kindergartenFilter(kindergarten: KindergartenFormData)(message: Message)
+  val kindergartenFilter: KindergartenFormData => MessgFilter = kindergarten => message =>
+    message.user.kgCity == kindergarten.city &&
+      message.user.kgName == kindergarten.name &&
+      message.user.kgStreet == kindergarten.street &&
+      message.user.kgNum == kindergarten.num
 
   def convertCursorToMessagesList(mongoMessages: MongoCursor): List[Message] = {
     val res =

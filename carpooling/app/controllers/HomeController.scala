@@ -261,20 +261,29 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   }
 
   def filterMessages(filterCode: String) = Action { implicit request =>
-    val messages = Messages.listAll
-    filterCode match {
-      case "look-for-free-seat" =>
-        val fraze = "Looking for free seat"
-        val lookforFilter = Messages.purposeFilter(Purpose(fraze))
-        val filteredMessages = Messages.timelineFilter(lookforFilter, messages).sortWith(_.data > _.data)
-        Ok(views.html.timeline(filteredMessages))
-      case "propose-free-seat" =>
-        val fraze = "Propose free seat"
-        val havefreeFilter = Messages.purposeFilter(Purpose(fraze))
-        val filteredMessages = Messages.timelineFilter(havefreeFilter, messages).sortWith(_.data > _.data)
-        Ok(views.html.timeline(filteredMessages))
-      case _ =>
-        Ok(views.html.index("ooops something wrong with filter criteria"))
+    request.session.get("connected").map { loggedUserEmail =>
+      val messages = Messages.listAll
+      filterCode match {
+        case "look-for-free-seat" =>
+          val fraze = "Looking for free seat"
+          val lookForFilter = Messages.purposeFilter(Purpose(fraze))
+          val filteredMessages = Messages.timelineFilter(lookForFilter, messages).sortWith(_.data > _.data)
+          Ok(views.html.timeline(filteredMessages))
+        case "propose-free-seat" =>
+          val fraze = "Propose free seat"
+          val haveFreeFilter = Messages.purposeFilter(Purpose(fraze))
+          val filteredMessages = Messages.timelineFilter(haveFreeFilter, messages).sortWith(_.data > _.data)
+          Ok(views.html.timeline(filteredMessages))
+        case "my-kindergarten" =>
+          val loggedUserKindergarten = Users.findUserByEmail(loggedUserEmail).kindergarten
+          val kgFilter = Messages.kindergartenFilter(loggedUserKindergarten)
+          val filteredMessages = Messages.timelineFilter(kgFilter, messages)
+          Ok(views.html.timeline(filteredMessages))
+        case _ =>
+          Ok(views.html.index("ooops something wrong with filter criteria"))
+      }
+    } getOrElse {
+      Ok(views.html.index("You have to login first!"))
     }
   }
 

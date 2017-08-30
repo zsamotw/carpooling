@@ -83,6 +83,11 @@ object Users {
     }
   }
 
+  def listAll: List[User] = {
+    val allUsers = MongoFactory.users.find
+    convertCursorToUsersList(allUsers)
+  }
+
   def add(user: User): (User, DBObject, DBObject) = {
     val kindergarten = Kindergartens.find(
       user.kindergarten.name,
@@ -118,11 +123,6 @@ object Users {
       "city" -> kindergarten.city)
     val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
     (user, query, update)
-  }
-
-  def listAll: List[User] = {
-    val allUsers = MongoFactory.users.find
-    convertCursorToUsersList(allUsers)
   }
 
   def findUserByEmail(email: String): User = {
