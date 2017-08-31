@@ -1,5 +1,6 @@
 @(user: User, sysMessage: String, messageForm: Form[MessageFormData])(implicit messages: play.api.i18n.Messages)
 
+@main("Welcome to our Family of Familis") {
 
 @user.name  @user.surname<br>
 Address:
@@ -13,10 +14,10 @@ email:
 
 Reply for requests:<br>
 @for(email <- user.requests) {
-	      @email <a href="/replyforrequest/@email">reply</a> or <a href="/rejectrequest/@email">reject</a><br>
-	      }
+  @email <a href="/replyforrequest/@email">reply</a> or <a href="/rejectrequest/@email">reject</a><br>
+}
 
-<br><a href="/leavegroup">be single => create your new net</a>  or <a href="/deleteuser">Delete myself and take me somewhere else!<a><br><br>
+<br><a href="/leavegroup">be single => create your new net</a>  or <a href="/deleteuser">Delete myself and take me somewhere else!</a><br><br>
 
     
 Follow with your message:
@@ -42,3 +43,4 @@ Follow with your message:
 
 <br><br>Current info: @sysMessage
 
+}

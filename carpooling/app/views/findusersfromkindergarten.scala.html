@@ -1,19 +1,21 @@
 @(kindergartenForm: Form[KindergartenFormData], kindergartens: List[models.Kindergarten])(implicit messages: play.api.i18n.Messages)
 
-If you want to find parents from concrete kindergarten fill this form:<br>
+@main("Welcome to our Family of Familis") {
+    If you want to find parents from concrete kindergarten fill this form:<br>
 
-@helper.form(action=routes.HomeController.showUsersFromKindergarten()) {
-@helper.select(
-kindergartenForm("name"),
-options = for(kg <- kindergartens) yield (kg.name -> kg.name),
-'_default -> "choose yours",
-'_label -> "Kindergarten name"
+    @helper.form(action=routes.HomeController.showUsersFromKindergarten()) {
+    @helper.select(
+    kindergartenForm("name"),
+    options = for(kg <- kindergartens) yield (kg.name -> kg.name),
+    '_default -> "choose yours",
+    '_label -> "Kindergarten name"
 
-)
-@helper.inputText(kindergartenForm("street"))
-@helper.inputText(kindergartenForm("num"))
-@helper.inputText(kindergartenForm("city"))
-<button type="submit">Find</button>
+    )
+    @helper.inputText(kindergartenForm("street"))
+    @helper.inputText(kindergartenForm("num"))
+    @helper.inputText(kindergartenForm("city"))
+    <button type="submit">Find</button>
+    }
+
+    <br><a href="/">homepage</a>
 }
-
-<br><a href="/">homepage</a>

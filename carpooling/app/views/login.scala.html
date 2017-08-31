@@ -1,10 +1,12 @@
 @(loginForm: Form[Login])(implicit messages: play.api.i18n.Messages)
 
-LOGIN HERE:
-@helper.form(action=routes.HomeController.validateLoginAndPassword()) {
-@helper.inputText(loginForm("email"))
-@helper.inputPassword(loginForm("password"))
-<button type="submit">Login</button>
-}
+@main("Welcome to our Family of Familis") {
+    LOGIN HERE:
+    @helper.form(action=routes.HomeController.validateLoginAndPassword()) {
+    @helper.inputText(loginForm("email"))
+    @helper.inputPassword(loginForm("password"))
+    <button type="submit">Login</button>
+    }
 
-<a href="/">homepage</a>
+    <a href="/">homepage</a>
+}

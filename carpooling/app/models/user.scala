@@ -89,11 +89,8 @@ object Users {
   }
 
   def add(user: User): (User, DBObject, DBObject) = {
-    val kindergarten = Kindergartens.find(
-      user.kindergarten.name,
-      user.kindergarten.street,
-      user.kindergarten.num,
-      user.kindergarten.city)
+    val KindergartenFormData(name, street, num, city) = user.kindergarten
+    val kindergarten = Kindergartens.find(name, street, num, city)
     val usersEmailsAfter = (kindergarten.usersEmails ::: List(List(user.email)))
     val query = MongoDBObject(
       "name" -> kindergarten.name,
@@ -105,11 +102,8 @@ object Users {
   }
 
   def delete(user: User): (User, DBObject, DBObject) = {
-    val kindergarten = Kindergartens.find(
-      user.kindergarten.name,
-      user.kindergarten.street,
-      user.kindergarten.num,
-      user.kindergarten.city)
+    val KindergartenFormData(name, street, num, city) = user.kindergarten
+    val kindergarten = Kindergartens.find(name, street, num, city)
     val usersEmailsGroup = kindergarten.usersEmails filter(group => group contains user.email)
     val usersEmailsGroupAfter = usersEmailsGroup map(group => group filter(email => email != user.email))
     val usersEmailsAfter = {
@@ -150,13 +144,15 @@ object Users {
     fstGroup.forall(user => user.seats >= scdGroup.length) && scdGroup.forall(user => user.seats >= fstGroup.length)
   }
 
+  def findKindergartenAndUserByUserEmail(userEmail: String): (Kindergarten, User) = {
+    val user = findUserByEmail(userEmail)
+    val KindergartenFormData(name, street, num, city) = user.kindergarten
+    (Kindergartens.find(name, street, num, city), user)
+  }
+
   def usersFromGroup(loggedUserEmail: String): List[User] = {
-    val loggedUser = findUserByEmail(loggedUserEmail)
-    val kindergarten = Kindergartens.find(
-      loggedUser.kindergarten.name,
-      loggedUser.kindergarten.street,
-      loggedUser.kindergarten.num,
-      loggedUser.kindergarten.city)
+    val (kindergarten, loggedUser) = findKindergartenAndUserByUserEmail(loggedUserEmail)
+
     val loggedUserGroup = kindergarten.usersEmails filter(group => group contains loggedUser.email)
     val group = {
       for(email <- loggedUserGroup.flatten) yield findUserByEmail(email)
@@ -165,12 +161,7 @@ object Users {
   }
 
   def addToCarpools(userToReplyEmail: String, loggedUserEmail: String): (DBObject, DBObject) = {
-    val loggedUser = findUserByEmail(loggedUserEmail)
-    val kindergarten = Kindergartens.find(
-      loggedUser.kindergarten.name,
-      loggedUser.kindergarten.street,
-      loggedUser.kindergarten.num,
-      loggedUser.kindergarten.city)
+    val (kindergarten, loggedUser) = findKindergartenAndUserByUserEmail(loggedUserEmail)
 
     val loggedUserGroupEmailsList = kindergarten.usersEmails filter(group => group contains loggedUserEmail)
     val userToReplyGroupEmailsList = kindergarten.usersEmails filter(group => group contains userToReplyEmail)
@@ -191,12 +182,7 @@ object Users {
   }
 
   def removeFromCarpools(loggedUserEmail: String): (DBObject, DBObject) = {
-    val loggedUser = findUserByEmail(loggedUserEmail)
-    val kindergarten = Kindergartens.find(
-      loggedUser.kindergarten.name,
-      loggedUser.kindergarten.street,
-      loggedUser.kindergarten.num,
-      loggedUser.kindergarten.city)
+    val (kindergarten, loggedUser) = findKindergartenAndUserByUserEmail(loggedUserEmail)
 
     val loggedUserGroupEmailsList = kindergarten.usersEmails filter(group => group contains loggedUserEmail)
     val groupAfter = loggedUserGroupEmailsList.flatten filter (email => email != loggedUserEmail)
