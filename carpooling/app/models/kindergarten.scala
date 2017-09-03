@@ -99,5 +99,3 @@ object Kindergartens {
     Kindergarten(name, street, num, city, len, lon, usersEmails)
   }
 }
-
-
