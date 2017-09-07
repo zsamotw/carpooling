@@ -32,6 +32,12 @@ object Kindergartens {
     convertCursorToKindergartensList(kindergartens)
   }
 
+  def add(kindergarten: Kindergarten): (Kindergarten, GlobalMessage) = {
+    val content = s"New kindergarten has been added: ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city}"
+    val message = GlobalMessage(content)
+    (kindergarten, message)
+  }
+
   def find(kgName: String, kgStreet: String, kgNum: Int, kgCity: String): Kindergarten = {
     val query = MongoDBObject(
       "name" -> kgName,

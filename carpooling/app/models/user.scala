@@ -88,7 +88,7 @@ object Users {
     convertCursorToUsersList(allUsers)
   }
 
-  def add(user: User): (User, DBObject, DBObject) = {
+  def add(user: User): (User, DBObject, DBObject, GlobalMessage) = {
     val KindergartenFormData(name, street, num, city) = user.kindergarten
     val kindergarten = Kindergartens.find(name, street, num, city)
     val usersEmailsAfter = kindergarten.usersEmails ::: List(List(user.email))
@@ -99,7 +99,8 @@ object Users {
       "num" -> kindergarten.num,
       "city" -> kindergarten.city)
     val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
-    (user, query, update)
+    val message = GlobalMessage(s"Welcome new User: ${user.name} ${user.surname} in ${kindergarten.name}")
+    (user, query, update, message)
   }
 
   def delete(user: User): (User, DBObject, DBObject) = {
@@ -118,6 +119,12 @@ object Users {
       "city" -> kindergarten.city)
     val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
     (user, query, update)
+  }
+
+  def leaveGroup(loggedUserEmail: String): (List[User], (DBObject, DBObject, GlobalMessage)) = {
+    val userGroup = Users.usersFromGroup(loggedUserEmail)
+    val dataToDB = Users.removeFromCarpools(loggedUserEmail)
+    (userGroup, dataToDB)
   }
 
   def findUserByEmail(email: String): User = {
@@ -161,7 +168,7 @@ object Users {
     group
   }
 
-  def addToCarpools(userToReplyEmail: String, loggedUserEmail: String): (DBObject, DBObject) = {
+  def addToCarpools(userToReplyEmail: String, loggedUserEmail: String): (DBObject, DBObject, GlobalMessage) = {
     val (kindergarten, loggedUser) = findKindergartenAndUserByUserEmail(loggedUserEmail)
 
     val loggedUserGroupEmailsList = kindergarten.usersEmails filter(group => group contains loggedUserEmail)
@@ -172,6 +179,10 @@ object Users {
     val restUsersEmails = kindergarten.usersEmails filter(group =>
       !(group contains loggedUserEmail) && !(group contains userToReplyEmail))
     val usersEmailsAfter = restUsersEmails ::: List(commonGroupEmailsList)
+    val fstG = (loggedUserGroupEmailsList flatten) map(email => findUserByEmail(email))
+    val scdG = (userToReplyGroupEmailsList flatten) map(email => findUserByEmail(email))
+    val content = s"Two group from ${kindergarten.name} has joined: " + userGroupToString(fstG) + " | " + userGroupToString(scdG)
+    val message = GlobalMessage(content)
 
     val query = MongoDBObject(
       "name" -> kindergarten.name,
@@ -179,24 +190,24 @@ object Users {
       "num" -> kindergarten.num,
       "city" -> kindergarten.city)
     val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
-    (query, update)
+    (query, update, message)
   }
 
-  def removeFromCarpools(loggedUserEmail: String): (DBObject, DBObject) = {
+  def removeFromCarpools(loggedUserEmail: String): (DBObject, DBObject, GlobalMessage) = {
     val (kindergarten, loggedUser) = findKindergartenAndUserByUserEmail(loggedUserEmail)
-
     val loggedUserGroupEmailsList = kindergarten.usersEmails filter(group => group contains loggedUserEmail)
     val groupAfter = loggedUserGroupEmailsList.flatten filter (email => email != loggedUserEmail)
     val restUsersEmails = kindergarten.usersEmails filter(group => !(group contains loggedUserEmail))
     val usersEmailsAfter = List(List(loggedUserEmail)) ::: List(groupAfter) ::: restUsersEmails
-
+    val content = s"User: ${loggedUser.name} ${loggedUser.surname} from ${loggedUser.kindergarten.name} has just leaved his group"
+    val message = GlobalMessage(content)
     val query = MongoDBObject(
       "name" -> kindergarten.name,
       "street" -> kindergarten.street,
       "num" -> kindergarten.num,
       "city" -> kindergarten.city)
     val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
-    (query, update)
+    (query, update, message)
   }
 
   def convertCursorToUsersList(MongoUsers: com.mongodb.casbah.MongoCursor): List[User] = {
@@ -278,4 +289,8 @@ object Users {
     user.kindergarten.street,
     user.kindergarten.num,
     user.kindergarten.city)
+
+  def userGroupToString(group: List[User]): String = {
+    group map(user => s"${user.name} ${user.surname}") mkString(", ")
+  }
 }

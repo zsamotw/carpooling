@@ -39,8 +39,8 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   }
 
   def userMenu() = Action { implicit request =>
-    request.session.get("connected").map {email =>
-      Ok(views.html.index("Hallo user with login: " + email + " .You can't create more account"))
+    request.session.get("connected").map {loggedUserEmail =>
+      Ok(views.html.index(s"Hallo user with login: $loggedUserEmail .You can't create more account"))
     }.getOrElse {
       val kindergartens = Kindergartens.listAll
       Ok(views.html.adduser(userForm.form, kindergartens))
@@ -68,13 +68,13 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
           Set[String](),
           latLon._1,
           latLon._2)
-      Users.isOnlyOne(user) match {
-        case true => {
-          val dataToDB = Users.add(user)
-          MongoFactory.addUser(dataToDB)
-          Ok(views.html.index("User " + user.name + " was added. You are login")).withSession("connected" -> user.email)
-        }
-        case false => Ok(views.html.index("User with this login exists"))
+      if (Users.isOnlyOne(user)) {
+        val dataToDB = Users.add(user)
+        MongoFactory.addUser(dataToDB)
+        Ok(views.html.index(s"User ${user.name} was added. You are login")).withSession("connected" -> user.email)
+      }
+      else {
+        Ok(views.html.index("User with this login exists"))
       }
     } catch {
       case e: IOException => Ok(views.html.index("Oooops, something wrong with address or internet connection"))
@@ -89,7 +89,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
       for(user <- userGroup) MongoFactory.updateUserIntDataInDB(user, "seats", 1, (x:Int, y: Int) => x + y)
       MongoFactory.deleteUser(dataToDB)
-      Ok(views.html.index("You just delete yourself user: " + loggedUserEmail + " . We missing you like Facebook")).withNewSession
+      Ok(views.html.index(s"You just delete yourself user: ${loggedUserEmail}. We missing you like Facebook")).withNewSession
     } getOrElse {
       Ok(views.html.index("You have to login first"))
     }
@@ -97,18 +97,13 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def leaveGroup() = Action { implicit request =>
     request.session.get("connected").map { loggedUserEmail =>
-      val userGroup = Users.usersFromGroup(loggedUserEmail)
-      val dataToDB = Users.removeFromCarpools(loggedUserEmail)
-      if(userGroup.length > 1) {
-        MongoFactory.updateCarpools(dataToDB)
-        for(user <- userGroup) MongoFactory.updateUserIntDataInDB(user, "seats", 1, (x:Int, y: Int) => x + y)
-        Redirect(routes.HomeController.showUserPanel("You are alone....so what are you doing here?"))
-      } else Redirect(routes.HomeController.showUserPanel("You are single. How you can leave youself...? Let's try to find carpooler."))
+      val dataToDB = Users.leaveGroup(loggedUserEmail)
+      val message = MongoFactory.leaveGroup(dataToDB)
+      Redirect(routes.HomeController.showUserPanel(message))
     } getOrElse {
       Ok(views.html.index("Problem with you login/email."))
     }
   }
-
 
   def kindergartenMenu() = Action { implicit request =>
       Ok(views.html.addkindergarten(KindergartenForm.form))
@@ -127,8 +122,9 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
           latLon._1,
           latLon._2,
           List[List[String]]())
-      MongoFactory.add(kg)
-      Ok(views.html.index("Kindergarten " + kg.name + " was added"))
+      val dataToDB = Kindergartens.add(kg)
+      MongoFactory.add(dataToDB)
+      Ok(views.html.index(s"Kindergarten $kg.name was added"))
     } catch {
       case e: IOException => Ok(views.html.index("Oooops, something wrong with kindergarten address or internet connection"))
     }
@@ -197,7 +193,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
         MongoFactory.updateUserRequests(dataToDB)
         Redirect(routes.HomeController.showUsersFromMyKindergarten("Request was sent. Let's make peace and love"))
       }
-      else  Redirect(routes.HomeController.showUsersFromMyKindergarten("Not enought seats in users's cars. Find others users"))
+      else  Redirect(routes.HomeController.showUsersFromMyKindergarten("Not enough seats in users's cars. Find others users"))
       }.getOrElse {
         Ok(views.html.index("You have to login first"))
       }
@@ -216,7 +212,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
         MongoFactory.updateCarpools(dataToDBCarpools)
         MongoFactory.updateUserRequests(dataToDBRequests)
         Redirect(routes.HomeController.showUserPanel("You have just replied for request. Bravo!"))
-      } else Redirect(routes.HomeController.showUserPanel("Not enought seats in user's cars"))
+      } else Redirect(routes.HomeController.showUserPanel("Not enough seats in user's cars"))
     }.getOrElse {
       Ok(views.html.index("You have to login first"))
     }
@@ -232,19 +228,19 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     }
   }
 
-  def addMessage = Action { implicit request =>
+  def addUserMessage = Action { implicit request =>
     request.session.get("connected").map { loggedUserEmail =>
       val user = Users.findUserByEmail(loggedUserEmail)
       val simpleUser = Users.convertToSimpleUser(user)
       val messageFromForm = MessageForm.form.bindFromRequest.get
-      val message = Message(
+      val userMessage = UserMessage(
         Purpose(messageFromForm.purpose),
         messageFromForm.seats,
         messageFromForm.data,
         messageFromForm.from,
         messageFromForm.to,
         simpleUser)
-      MongoFactory.add(message)
+      MongoFactory.add(userMessage)
       Ok(views.html.panel(user, "You message has been sent", MessageForm.form))
     }.getOrElse {
       Ok(views.html.index("You have to login first"))
@@ -253,8 +249,9 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def showTimeline = Action { implicit request =>
     request.session.get("connected").map { loggedUserEmail =>
-      val messages = Messages.listAll
-      Ok(views.html.timeline(messages))
+      val userMessages = UserMessages.listAll
+      val globalMessages = GlobalMessages.listAll
+      Ok(views.html.timeline(userMessages, globalMessages))
     }.getOrElse {
       Ok(views.html.index("You have to login first"))
     }
@@ -262,23 +259,24 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def filterMessages(filterCode: String) = Action { implicit request =>
     request.session.get("connected").map { loggedUserEmail =>
-      val messages = Messages.listAll
+      val userMessages = UserMessages.listAll
+      val globalMessages = GlobalMessages.listAll
       filterCode match {
         case "look-for-free-seat" =>
           val fraze = "Looking for free seat"
-          val lookForFilter = Messages.purposeFilter(Purpose(fraze))
-          val filteredMessages = Messages.timelineFilter(lookForFilter, messages).sortWith(_.data > _.data)
-          Ok(views.html.timeline(filteredMessages))
+          val lookForFilter = UserMessages.purposeFilter(Purpose(fraze))
+          val filteredMessages = UserMessages.timelineFilter(lookForFilter, userMessages).sortWith(_.data > _.data)
+          Ok(views.html.timeline(filteredMessages, globalMessages))
         case "propose-free-seat" =>
           val fraze = "Propose free seat"
-          val haveFreeFilter = Messages.purposeFilter(Purpose(fraze))
-          val filteredMessages = Messages.timelineFilter(haveFreeFilter, messages).sortWith(_.data > _.data)
-          Ok(views.html.timeline(filteredMessages))
+          val haveFreeFilter = UserMessages.purposeFilter(Purpose(fraze))
+          val filteredMessages = UserMessages.timelineFilter(haveFreeFilter, userMessages).sortWith(_.data > _.data)
+          Ok(views.html.timeline(filteredMessages, globalMessages))
         case "my-kindergarten" =>
           val loggedUserKindergarten = Users.findUserByEmail(loggedUserEmail).kindergarten
-          val kgFilter = Messages.kindergartenFilter(loggedUserKindergarten)
-          val filteredMessages = Messages.timelineFilter(kgFilter, messages)
-          Ok(views.html.timeline(filteredMessages))
+          val kgFilter = UserMessages.kindergartenFilter(loggedUserKindergarten)
+          val filteredMessages = UserMessages.timelineFilter(kgFilter, userMessages)
+          Ok(views.html.timeline(filteredMessages, globalMessages))
         case _ =>
           Ok(views.html.index("ooops something wrong with filter criteria"))
       }

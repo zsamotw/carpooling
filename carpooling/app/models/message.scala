@@ -26,13 +26,28 @@ object Purpose {
 
 case class MessageFormData(purpose: String, seats: Int, data: Int, from: String, to: String)
 
-case class Message(
+trait Message
+
+case class GlobalMessage(content: String) extends Message
+
+case class UserMessage(
   purpose: Purpose,
   seats: Int,
   data: Int,
   from: String,
   to: String,
-  user: SimpleUser)
+  user: SimpleUser) extends Message {
+
+  override def toString =
+    s"""Purpose: ${purpose.statement}
+       | Seats: $seats
+       | Data: $data
+       | From: $from
+       | To: $to
+       | Who: ${user.name} ${user.surname} from kindergarten ${user.kgName} on ${user.kgStreet} in ${user.kgCity}
+       | Contact: ${user.email}
+     """
+}
 
 object MessageForm {
   val form = Form(
@@ -46,15 +61,15 @@ object MessageForm {
   )
 }
 
-object Messages {
-  def listAll: List[Message] = {
-    val messages = MongoFactory.messages.find
+object UserMessages {
+  def listAll: List[UserMessage] = {
+    val messages = MongoFactory.userMessages.find
     convertCursorToMessagesList(messages).sortWith(_.data > _.data)
   }
 
-  type MessgFilter = Message => Boolean
+  type MessgFilter = UserMessage => Boolean
 
-  def timelineFilter(p: MessgFilter, messages: List[Message]): List[Message] = messages.filter(p)
+  def timelineFilter(p: MessgFilter, messages: List[UserMessage]): List[UserMessage] = messages.filter(p)
 
   val purposeFilter: Purpose => MessgFilter = purpose => message => message.purpose == purpose
 
@@ -64,7 +79,7 @@ object Messages {
       message.user.kgStreet == kindergarten.street &&
       message.user.kgNum == kindergarten.num
 
-  def convertCursorToMessagesList(mongoMessages: MongoCursor): List[Message] = {
+  def convertCursorToMessagesList(mongoMessages: MongoCursor): List[UserMessage] = {
     val res =
       for { messMongo <- mongoMessages
         purpose = messMongo.getAs[String]("purpose").get
@@ -81,7 +96,7 @@ object Messages {
         kgStreet = messMongo.getAs[String]("kindergartenstreet").get
         kgNum = messMongo.getAs[Int]("kindergartennum").get
         kgCity = messMongo.getAs[String]("kindergartencity").get
-      } yield Message(
+      } yield UserMessage(
         Purpose(purpose),
         seats,
         data,
@@ -90,6 +105,20 @@ object Messages {
         SimpleUser(userEmail, userName, userSurname, userStreet, userCity, kgName, kgStreet, kgNum, kgCity))
     res.toList
   }
+}
 
+object GlobalMessages {
+  def listAll: List[GlobalMessage] = {
+    val messages = MongoFactory.globalMessages.find
+    convertCursorToMessagesList(messages)
+  }
+
+  def convertCursorToMessagesList(mongoMessages: MongoCursor): List[GlobalMessage] = {
+    val res =
+      for { messMongo <- mongoMessages
+            content = messMongo.getAs[String]("content").get
+      } yield GlobalMessage(content)
+    res.toList
+  }
 }
  

@@ -34,13 +34,15 @@ object MongoFactory {
   private val Database = "carpooling"
   private val Users = "users"
   private val Kindergartens = "kindergartens"
-  private val Messages = "messages"
+  private val UserMessages = "usermessages"
+  private val GlobalMessages = "globalmessages"
 
   val connection = MongoClient()
   val db = connection(Database)
   val users = db(Users)
   val kindergartens = db(Kindergartens)
-  val messages = db(Messages)
+  val userMessages = db(UserMessages)
+  val globalMessages = db(GlobalMessages)
 
   def buildMongoDbUser(user: User): MongoDBObject = {
     val builder = MongoDBObject.newBuilder
@@ -73,7 +75,7 @@ object MongoFactory {
     builder.result
   }
 
-  def buildMongoDbMessage(message: Message): MongoDBObject = {
+  def buildMongoDbUserMessage(message: UserMessage): MongoDBObject = {
     val builder = MongoDBObject.newBuilder
     builder += "purpose" -> message.purpose.statement
     builder += "seats" -> message.seats
@@ -92,10 +94,17 @@ object MongoFactory {
     builder.result
   }
 
-  def addUser(data: (User, DBObject, DBObject)) {
-    val(user, query, update) = data
+  def buildMongoDbGlobalMessage(message: GlobalMessage): MongoDBObject = {
+    val builder = MongoDBObject.newBuilder
+    builder += "content" -> message.content
+    builder.result
+  }
+
+  def addUser(data: (User, DBObject, DBObject, GlobalMessage)) {
+    val(user, query, update, message) = data
     kindergartens.findAndModify(query, update)
     users += buildMongoDbUser(user)
+    add(message)
   }
 
   def deleteUser(data: (User, DBObject, DBObject)) {
@@ -104,11 +113,21 @@ object MongoFactory {
     users.remove("email" $eq user.email)
   }
 
+  def leaveGroup(data: (List[User],(DBObject, DBObject, GlobalMessage))): String = {
+    val(userGroup, dataToDB) = data
+    if(userGroup.length > 1) {
+      updateCarpools(dataToDB)
+      for (user <- userGroup) MongoFactory.updateUserIntDataInDB(user, "seats", 1, (x: Int, y: Int) => x + y)
+      val(_,_,message) = dataToDB
+      message.content
+    } else "You are single. You can't leave youself. Let's try to find carpoolers"
+  }
+
   def findUserinDB(user: User): DBObject = {
     val userMongo = users.findOne(MongoDBObject("email" -> user.email))
     userMongo match {
       case None => throw new NoSuchElementException
-      case Some(user) => user
+      case Some(u) => u
     }
   }
 
@@ -120,9 +139,10 @@ object MongoFactory {
     users.findAndModify(query, update)
   }
 
-  def updateCarpools(data: (DBObject, DBObject)) {
-    val(query, update) = data
+  def updateCarpools(data: (DBObject, DBObject, GlobalMessage)) {
+    val(query, update, message) = data
     kindergartens.findAndModify(query, update)
+    add(message)
   }
 
   def updateUserStringDatainDB(user: User, field: String, data: String) {
@@ -135,8 +155,8 @@ object MongoFactory {
     val userMongo = MongoFactory.findUserinDB(user)
     val dataBefore = userMongo.getAs[Int](field)
     dataBefore match {
-      case Some(dataBefore) =>
-        val dataAfter = f(dataBefore, data)
+      case Some(dBefore) =>
+        val dataAfter = f(dBefore, data)
         val query = MongoDBObject("email" -> user.email)
         val upadate = MongoDBObject("$set" -> MongoDBObject(field -> dataAfter))
         MongoFactory.users.findAndModify(query, upadate)
@@ -144,11 +164,17 @@ object MongoFactory {
     }
   }
 
-  def add(kindergarten: Kindergarten) {
+  def add(data: (Kindergarten, GlobalMessage)) {
+    val(kindergarten, message) = data
     kindergartens += buildMongoDbKindergarten(kindergarten)
+    add(message)
   }
 
-  def add(message: Message) {
-    messages += buildMongoDbMessage(message)
+  def add(message: UserMessage) {
+    userMessages += buildMongoDbUserMessage(message)
+  }
+
+  def add(message: GlobalMessage): Unit = {
+    globalMessages += buildMongoDbGlobalMessage(message)
   }
 }

@@ -22,7 +22,7 @@ GET      /sendrequest/:email         controllers.HomeController.sendRequest(emai
 GET      /replyforrequest/:email     controllers.HomeController.replyForRequest(email)
 GET      /rejectrequest/:email       controllers.HomeController.rejectRequest(email)
 GET      /leavegroup                 controllers.HomeController.leaveGroup()
-POST     /addMessage                 controllers.HomeController.addMessage()
+POST     /addUserMessage             controllers.HomeController.addUserMessage()
 GET      /timeline                   controllers.HomeController.showTimeline()
 GET      /filterMessages/:filter     controllers.HomeController.filterMessages(filter) 
 
