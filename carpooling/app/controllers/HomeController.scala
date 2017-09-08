@@ -3,6 +3,7 @@ package controllers
 import java.io.IOException
 import javax.inject.Inject
 import models._
+import org.joda.time.DateTime
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc._
@@ -234,9 +235,10 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
       val simpleUser = Users.convertToSimpleUser(user)
       val messageFromForm = MessageForm.form.bindFromRequest.get
       val userMessage = UserMessage(
+        new DateTime,
         Purpose(messageFromForm.purpose),
         messageFromForm.seats,
-        messageFromForm.data,
+        messageFromForm.date,
         messageFromForm.from,
         messageFromForm.to,
         simpleUser)
@@ -251,6 +253,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     request.session.get("connected").map { loggedUserEmail =>
       val userMessages = UserMessages.listAll
       val globalMessages = GlobalMessages.listAll
+      val totalMessages = userMessages ::: globalMessages
       Ok(views.html.timeline(userMessages, globalMessages))
     }.getOrElse {
       Ok(views.html.index("You have to login first"))
@@ -265,12 +268,12 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
         case "look-for-free-seat" =>
           val fraze = "Looking for free seat"
           val lookForFilter = UserMessages.purposeFilter(Purpose(fraze))
-          val filteredMessages = UserMessages.timelineFilter(lookForFilter, userMessages).sortWith(_.data > _.data)
+          val filteredMessages = UserMessages.timelineFilter(lookForFilter, userMessages).sortWith(_.date > _.date)
           Ok(views.html.timeline(filteredMessages, globalMessages))
         case "propose-free-seat" =>
           val fraze = "Propose free seat"
           val haveFreeFilter = UserMessages.purposeFilter(Purpose(fraze))
-          val filteredMessages = UserMessages.timelineFilter(haveFreeFilter, userMessages).sortWith(_.data > _.data)
+          val filteredMessages = UserMessages.timelineFilter(haveFreeFilter, userMessages).sortWith(_.date > _.date)
           Ok(views.html.timeline(filteredMessages, globalMessages))
         case "my-kindergarten" =>
           val loggedUserKindergarten = Users.findUserByEmail(loggedUserEmail).kindergarten

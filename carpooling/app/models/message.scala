@@ -3,6 +3,7 @@ package models
 import com.mongodb.casbah.Imports._
 import play.api.data.Form
 import play.api.data.Forms._
+import org.joda.time.DateTime
 
 trait Purpose {
   val statement: String
@@ -24,28 +25,34 @@ object Purpose {
   }
 }
 
-case class MessageFormData(purpose: String, seats: Int, data: Int, from: String, to: String)
+case class MessageFormData(purpose: String, seats: Int, date: Int, from: String, to: String)
 
-trait Message
+trait Message {
+  val dateTime: DateTime
+}
 
-case class GlobalMessage(content: String) extends Message
+case class GlobalMessage(dateTime: DateTime = new DateTime, content: String) extends Message {
+  override def toString = s"${dateTime.toDate}: $content"
+}
 
 case class UserMessage(
-  purpose: Purpose,
-  seats: Int,
-  data: Int,
-  from: String,
-  to: String,
-  user: SimpleUser) extends Message {
+                        dateTime: DateTime = new DateTime,
+                        purpose: Purpose,
+                        seats: Int,
+                        date: Int,
+                        from: String,
+                        to: String,
+                        user: SimpleUser) extends Message {
 
   override def toString =
     s"""Purpose: ${purpose.statement}
        | Seats: $seats
-       | Data: $data
+       | Date: $date
        | From: $from
        | To: $to
        | Who: ${user.name} ${user.surname} from kindergarten ${user.kgName} on ${user.kgStreet} in ${user.kgCity}
        | Contact: ${user.email}
+       | Created: ${dateTime.toDate}
      """
 }
 
@@ -54,7 +61,7 @@ object MessageForm {
     mapping(
       "purpose" -> text,
       "seats" -> number,
-      "data" -> number,
+      "date" -> number,
       "from" -> text,
       "to" -> text
     )(MessageFormData.apply)(MessageFormData.unapply)
@@ -63,8 +70,10 @@ object MessageForm {
 
 object UserMessages {
   def listAll: List[UserMessage] = {
+    def sortDateTime(dt1: DateTime, dt2: DateTime): Boolean = dt1.isAfter(dt2)
+
     val messages = MongoFactory.userMessages.find
-    convertCursorToMessagesList(messages).sortWith(_.data > _.data)
+    convertCursorToMessagesList(messages).sortWith((mes1,mes2) => sortDateTime(mes1.dateTime, mes2.dateTime))
   }
 
   type MessgFilter = UserMessage => Boolean
@@ -81,10 +90,11 @@ object UserMessages {
 
   def convertCursorToMessagesList(mongoMessages: MongoCursor): List[UserMessage] = {
     val res =
-      for { messMongo <- mongoMessages
+      for {messMongo <- mongoMessages
+        dateTime = messMongo.getAs[DateTime]("datetime").get
         purpose = messMongo.getAs[String]("purpose").get
         seats = messMongo.getAs[Int]("seats").get
-        data = messMongo.getAs[Int]("data").get
+        date = messMongo.getAs[Int]("date").get
         from = messMongo.getAs[String]("from").get
         to = messMongo.getAs[String]("to").get
         userEmail = messMongo.getAs[String]("useremail").get
@@ -97,9 +107,10 @@ object UserMessages {
         kgNum = messMongo.getAs[Int]("kindergartennum").get
         kgCity = messMongo.getAs[String]("kindergartencity").get
       } yield UserMessage(
+        dateTime,
         Purpose(purpose),
         seats,
-        data,
+        date,
         from,
         to,
         SimpleUser(userEmail, userName, userSurname, userStreet, userCity, kgName, kgStreet, kgNum, kgCity))
@@ -109,16 +120,18 @@ object UserMessages {
 
 object GlobalMessages {
   def listAll: List[GlobalMessage] = {
+    def sortDateTime(dt1: DateTime, dt2: DateTime): Boolean = dt1.isAfter(dt2)
+
     val messages = MongoFactory.globalMessages.find
-    convertCursorToMessagesList(messages)
+    convertCursorToMessagesList(messages).sortWith((mes1, mes2) => sortDateTime(mes1.dateTime, mes2.dateTime))
   }
 
   def convertCursorToMessagesList(mongoMessages: MongoCursor): List[GlobalMessage] = {
     val res =
       for { messMongo <- mongoMessages
+            dateTime = messMongo.getAs[DateTime]("datetime").get
             content = messMongo.getAs[String]("content").get
-      } yield GlobalMessage(content)
+      } yield GlobalMessage(dateTime, content)
     res.toList
   }
 }
- 

@@ -1,45 +1,46 @@
 package models
 
 import com.mongodb.casbah.Imports._
+import org.joda.time.DateTime
 import play.api.data.Form
 import play.api.data.Forms._
 
 case class User(
-  email: String,
-  password: String,
-  name: String,
-  surname: String,
-  street: String,
-  city: String,
-  seats: Int,
-  kindergarten: KindergartenFormData,
-  requests: Set[String],
-  len: String,
-  lon: String)
+                 email: String,
+                 password: String,
+                 name: String,
+                 surname: String,
+                 street: String,
+                 city: String,
+                 seats: Int,
+                 kindergarten: KindergartenFormData,
+                 requests: Set[String],
+                 len: String,
+                 lon: String)
 
 case class UserFormData(
-  email: String,
-  password: String,
-  name: String,
-  surname: String,
-  street: String,
-  city: String,
-  seats: Int,
-  kgName: String,
-  kgStreet: String,
-  kgNum: Int,
-  kgCity: String)
+                         email: String,
+                         password: String,
+                         name: String,
+                         surname: String,
+                         street: String,
+                         city: String,
+                         seats: Int,
+                         kgName: String,
+                         kgStreet: String,
+                         kgNum: Int,
+                         kgCity: String)
 
 case class SimpleUser(
-  email: String,
-  name: String,
-  surname: String,
-  street: String,
-  city: String,
-  kgName: String,
-  kgStreet: String,
-  kgNum: Int,
-  kgCity: String)
+                       email: String,
+                       name: String,
+                       surname: String,
+                       street: String,
+                       city: String,
+                       kgName: String,
+                       kgStreet: String,
+                       kgNum: Int,
+                       kgCity: String)
 
 case class Login(email: String, password: String)
 
@@ -79,7 +80,7 @@ object Users {
     val userMongo = MongoFactory.users.findOne(MongoDBObject("email" -> user.email))
     userMongo match {
       case None => true
-      case Some(user) => false
+      case Some(u) => false
     }
   }
 
@@ -99,7 +100,8 @@ object Users {
       "num" -> kindergarten.num,
       "city" -> kindergarten.city)
     val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
-    val message = GlobalMessage(s"Welcome new User: ${user.name} ${user.surname} in ${kindergarten.name}")
+    val content = s"Welcome new User: ${user.name} ${user.surname} in ${kindergarten.name}"
+    val message = GlobalMessage(new DateTime,content)
     (user, query, update, message)
   }
 
@@ -182,7 +184,7 @@ object Users {
     val fstG = (loggedUserGroupEmailsList flatten) map(email => findUserByEmail(email))
     val scdG = (userToReplyGroupEmailsList flatten) map(email => findUserByEmail(email))
     val content = s"Two group from ${kindergarten.name} has joined: " + userGroupToString(fstG) + " | " + userGroupToString(scdG)
-    val message = GlobalMessage(content)
+    val message = GlobalMessage(new DateTime, content)
 
     val query = MongoDBObject(
       "name" -> kindergarten.name,
@@ -200,7 +202,7 @@ object Users {
     val restUsersEmails = kindergarten.usersEmails filter(group => !(group contains loggedUserEmail))
     val usersEmailsAfter = List(List(loggedUserEmail)) ::: List(groupAfter) ::: restUsersEmails
     val content = s"User: ${loggedUser.name} ${loggedUser.surname} from ${loggedUser.kindergarten.name} has just leaved his group"
-    val message = GlobalMessage(content)
+    val message = GlobalMessage(new DateTime, content)
     val query = MongoDBObject(
       "name" -> kindergarten.name,
       "street" -> kindergarten.street,

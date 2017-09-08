@@ -1,17 +1,18 @@
 package models
 
 import com.mongodb.casbah.Imports._
+import org.joda.time.DateTime
 import play.api.data.Form
 import play.api.data.Forms._
 
 case class Kindergarten(
-  name: String,
-  street: String,
-  num: Int,
-  city: String,
-  len: String,
-  lon: String,
-  usersEmails: List[List[String]])
+                         name: String,
+                         street: String,
+                         num: Int,
+                         city: String,
+                         len: String,
+                         lon: String,
+                         usersEmails: List[List[String]])
 
 case class KindergartenFormData(name: String, street: String, num: Int, city: String)
 
@@ -34,7 +35,7 @@ object Kindergartens {
 
   def add(kindergarten: Kindergarten): (Kindergarten, GlobalMessage) = {
     val content = s"New kindergarten has been added: ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city}"
-    val message = GlobalMessage(content)
+    val message = GlobalMessage(new DateTime, content)
     (kindergarten, message)
   }
 

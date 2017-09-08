@@ -12,9 +12,6 @@ Current funcionality:
 - send request to other users from the same kindergarten for carpooling. It depends on if there are enought space in user's cars.
 - replay for request (and reject request) what makes users grouped (requested user's group and replaying user's group become connected)
 - show all users (groups and singles) from one kindergarten: name, surname, address, email, geoposition.
-- send message to timeline
-- check timeline with messages from other users
+- two types of messages: UserMessages -> creating and sending by user when somebody looking for or wants to propose free seat in car and GlobalMessages -> creating by system when new user is created, users joined together in one group, somebody leaves his group etc.
+- check timeline with messages from other users nad system.
 
-To do:
-- add joda date to class Message
-- add filtering messages

@@ -5,6 +5,8 @@ import play.api.libs.json._
 import com.mongodb.casbah.MongoCollection
 import com.mongodb.casbah.MongoConnection
 import com.mongodb.casbah.Imports._
+import com.mongodb.casbah.commons.conversions.scala._
+
 
 object GeoUtils {
   def searchGeoPoint(user: UserFormData): (String, String) = {
@@ -31,6 +33,8 @@ object GeoUtils {
 }
 
 object MongoFactory {
+  RegisterJodaTimeConversionHelpers()
+
   private val Database = "carpooling"
   private val Users = "users"
   private val Kindergartens = "kindergartens"
@@ -77,9 +81,10 @@ object MongoFactory {
 
   def buildMongoDbUserMessage(message: UserMessage): MongoDBObject = {
     val builder = MongoDBObject.newBuilder
+    builder += "datetime" -> message.dateTime
     builder += "purpose" -> message.purpose.statement
     builder += "seats" -> message.seats
-    builder += "data" -> message.data
+    builder += "date" -> message.date
     builder += "from" -> message.from
     builder += "to" -> message.to
     builder += "username" -> message.user.name
@@ -96,6 +101,7 @@ object MongoFactory {
 
   def buildMongoDbGlobalMessage(message: GlobalMessage): MongoDBObject = {
     val builder = MongoDBObject.newBuilder
+    builder += "datetime" -> message.dateTime
     builder += "content" -> message.content
     builder.result
   }

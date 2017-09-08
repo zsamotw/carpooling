@@ -1,7 +1,41 @@
 import play.api.libs.json._
 import scala.io.Source
+import org.joda.time.DateTime
+
+trait general
+case class g1() extends general
+case class g2() extends general
+
+val xs = List(g1, g1, g1)
+val ys = List(g2, g2, g2)
+xs ::: ys
 
 
+
+
+
+val dt = new DateTime()
+dt.hourOfDay()
+dt.getDayOfMonth
+
+trait S {
+  val date = new DateTime()
+}
+
+case class B(s: String) extends S
+
+val x = B("akakaka")
+
+val e = x.date
+val ee = x.date.toDate
+val eee = x.date.toDate
+
+val y = B("")
+val f = y.date
+val ff = y.date.toDate
+
+f isAfter e
+ff.after(ee)
 
 val street = "Miechowity"
 val query = "http://nominatim.openstreetmap.org/search/" + street + ",Krakow,Poland?format=json&polygon=1&addressdetails=1&limit=1"
@@ -30,7 +64,3 @@ val lon = lonResult match {
 
 
 //http://nominatim.openstreetmap.org/search/Miechowity,Krakow,Poland?format=json&polygon=1&addressdetails=1&limit=1
-
-val xs = 
-
-for()
