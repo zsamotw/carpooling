@@ -253,8 +253,8 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     request.session.get("connected").map { loggedUserEmail =>
       val userMessages = UserMessages.listAll
       val globalMessages = GlobalMessages.listAll
-      val totalMessages = userMessages ::: globalMessages
-      Ok(views.html.timeline(userMessages, globalMessages))
+      val totalMessages = (userMessages ::: globalMessages).sortWith(_>_)
+      Ok(views.html.timeline(totalMessages))
     }.getOrElse {
       Ok(views.html.index("You have to login first"))
     }
@@ -269,17 +269,17 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
           val fraze = "Looking for free seat"
           val lookForFilter = UserMessages.purposeFilter(Purpose(fraze))
           val filteredMessages = UserMessages.timelineFilter(lookForFilter, userMessages).sortWith(_.date > _.date)
-          Ok(views.html.timeline(filteredMessages, globalMessages))
+          Ok(views.html.timeline(filteredMessages))
         case "propose-free-seat" =>
           val fraze = "Propose free seat"
           val haveFreeFilter = UserMessages.purposeFilter(Purpose(fraze))
           val filteredMessages = UserMessages.timelineFilter(haveFreeFilter, userMessages).sortWith(_.date > _.date)
-          Ok(views.html.timeline(filteredMessages, globalMessages))
+          Ok(views.html.timeline(filteredMessages))
         case "my-kindergarten" =>
           val loggedUserKindergarten = Users.findUserByEmail(loggedUserEmail).kindergarten
           val kgFilter = UserMessages.kindergartenFilter(loggedUserKindergarten)
           val filteredMessages = UserMessages.timelineFilter(kgFilter, userMessages)
-          Ok(views.html.timeline(filteredMessages, globalMessages))
+          Ok(views.html.timeline(filteredMessages))
         case _ =>
           Ok(views.html.index("ooops something wrong with filter criteria"))
       }

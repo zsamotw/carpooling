@@ -29,6 +29,10 @@ case class MessageFormData(purpose: String, seats: Int, date: Int, from: String,
 
 trait Message {
   val dateTime: DateTime
+
+  def >(other: Message): Boolean = this.dateTime.isAfter(other.dateTime)
+
+  def <(other: Message): Boolean = other.dateTime.isAfter(this.dateTime)
 }
 
 case class GlobalMessage(dateTime: DateTime = new DateTime, content: String) extends Message {
@@ -70,10 +74,8 @@ object MessageForm {
 
 object UserMessages {
   def listAll: List[UserMessage] = {
-    def sortDateTime(dt1: DateTime, dt2: DateTime): Boolean = dt1.isAfter(dt2)
-
     val messages = MongoFactory.userMessages.find
-    convertCursorToMessagesList(messages).sortWith((mes1,mes2) => sortDateTime(mes1.dateTime, mes2.dateTime))
+    convertCursorToMessagesList(messages)
   }
 
   type MessgFilter = UserMessage => Boolean
@@ -120,10 +122,8 @@ object UserMessages {
 
 object GlobalMessages {
   def listAll: List[GlobalMessage] = {
-    def sortDateTime(dt1: DateTime, dt2: DateTime): Boolean = dt1.isAfter(dt2)
-
     val messages = MongoFactory.globalMessages.find
-    convertCursorToMessagesList(messages).sortWith((mes1, mes2) => sortDateTime(mes1.dateTime, mes2.dateTime))
+    convertCursorToMessagesList(messages)
   }
 
   def convertCursorToMessagesList(mongoMessages: MongoCursor): List[GlobalMessage] = {

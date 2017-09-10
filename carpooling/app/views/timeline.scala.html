@@ -1,4 +1,4 @@
-@(userMessages: List[UserMessage], globalMessages: List[GlobalMessage])
+@(messages: List[Message])
 
 @main("Welcome to our Family of Familis") {
     This is your timeline: <br>
@@ -7,12 +7,7 @@
     <a href="/filterMessages/my-kindergarten">your kindergarten</a>
     <a href="/globalMessages">global messages</a><br><br>
     <a href="/">homepage</a><br><br>
-    @for(message <- userMessages) {
-      @message.toString<br>
-    }
-    <br><br>
-    There are global messages: <br>
-    @for(message <- globalMessages) {
-      @message.toString<br>
+    @for(message <- messages) {
+      @message.toString<br><br>
     }
 }
