@@ -105,7 +105,8 @@ object Users {
     (user, query, update, message)
   }
 
-  def delete(user: User): (User, DBObject, DBObject) = {
+  def delete(user: User): (User, List[User], DBObject, DBObject) = {
+    val userGroup = usersFromGroup(user.email)
     val KindergartenFormData(name, street, num, city) = user.kindergarten
     val kindergarten = Kindergartens.find(name, street, num, city)
     val usersEmailsGroup = kindergarten.usersEmails filter(group => group contains user.email)
@@ -120,13 +121,14 @@ object Users {
       "num" -> kindergarten.num,
       "city" -> kindergarten.city)
     val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
-    (user, query, update)
+    (user, userGroup, query, update)
   }
 
-  def leaveGroup(loggedUserEmail: String): (List[User], (DBObject, DBObject, GlobalMessage)) = {
+  def leaveGroup(loggedUserEmail: String): (User, List[User], (DBObject, DBObject, GlobalMessage)) = {
+    val user = findUserByEmail(loggedUserEmail)
     val userGroup = Users.usersFromGroup(loggedUserEmail)
     val dataToDB = Users.removeFromCarpools(loggedUserEmail)
-    (userGroup, dataToDB)
+    (user, userGroup, dataToDB)
   }
 
   def findUserByEmail(email: String): User = {

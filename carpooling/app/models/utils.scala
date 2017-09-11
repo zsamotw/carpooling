@@ -38,15 +38,13 @@ object MongoFactory {
   private val Database = "carpooling"
   private val Users = "users"
   private val Kindergartens = "kindergartens"
-  private val UserMessages = "usermessages"
-  private val GlobalMessages = "globalmessages"
+  private val Messages = "messages"
 
   val connection = MongoClient()
   val db = connection(Database)
   val users = db(Users)
   val kindergartens = db(Kindergartens)
-  val userMessages = db(UserMessages)
-  val globalMessages = db(GlobalMessages)
+  val messages = db(Messages)
 
   def buildMongoDbUser(user: User): MongoDBObject = {
     val builder = MongoDBObject.newBuilder
@@ -113,20 +111,23 @@ object MongoFactory {
     add(message)
   }
 
-  def deleteUser(data: (User, DBObject, DBObject)) {
-    val(user, query, update) = data
+  def deleteUser(data: (User, List[User], DBObject, DBObject)) {
+    val(user, userGroup, query, update) = data
+    for(user <- userGroup filter(_ != user)) MongoFactory.updateUserIntDataInDB(user, "seats", 1, (x:Int, y: Int) => x + y)
     kindergartens.findAndModify(query, update)
     users.remove("email" $eq user.email)
   }
 
-  def leaveGroup(data: (List[User],(DBObject, DBObject, GlobalMessage))): String = {
-    val(userGroup, dataToDB) = data
+  def leaveGroup(data: (User, List[User],(DBObject, DBObject, GlobalMessage))): String = {
+    val(user, userGroup, dataToDB) = data
     if(userGroup.length > 1) {
+      val numberOfOthersUsers = userGroup.length - 1
       updateCarpools(dataToDB)
-      for (user <- userGroup) MongoFactory.updateUserIntDataInDB(user, "seats", 1, (x: Int, y: Int) => x + y)
+      updateUserIntDataInDB(user, "seats", numberOfOthersUsers, (x: Int, y: Int) => x + y)
+      for (user <- userGroup filter(_ != user)) updateUserIntDataInDB(user, "seats", 1, (x: Int, y: Int) => x + y)
       val(_,_,message) = dataToDB
       message.content
-    } else "You are single. You can't leave youself. Let's try to find carpoolers"
+    } else "You are single. You can't leave yourself. Let's try to find carpoolers"
   }
 
   def findUserinDB(user: User): DBObject = {
@@ -177,10 +178,10 @@ object MongoFactory {
   }
 
   def add(message: UserMessage) {
-    userMessages += buildMongoDbUserMessage(message)
+    messages += buildMongoDbUserMessage(message)
   }
 
   def add(message: GlobalMessage): Unit = {
-    globalMessages += buildMongoDbGlobalMessage(message)
+    messages += buildMongoDbGlobalMessage(message)
   }
 }

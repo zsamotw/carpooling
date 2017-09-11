@@ -17,7 +17,7 @@ object Purpose {
   val propose = "Propose free seat"
   val lookFor = "Looking for free seat"
 
-  def apply(statement: String) = {
+  def apply(statement: String): Purpose = {
     statement match {
       case `propose` => ProposeFreeSeat(statement)
       case `lookFor` => LookingForFreeSeat(statement)
@@ -36,7 +36,7 @@ trait Message {
 }
 
 case class GlobalMessage(dateTime: DateTime = new DateTime, content: String) extends Message {
-  override def toString = s"${dateTime.toDate}: $content"
+  override def toString = s"$content | Created: ${dateTime.toDate}: "
 }
 
 case class UserMessage(
@@ -72,66 +72,75 @@ object MessageForm {
   )
 }
 
-object UserMessages {
-  def listAll: List[UserMessage] = {
-    val messages = MongoFactory.userMessages.find
-    convertCursorToMessagesList(messages)
+object Messages {
+  def listAll: List[Message] = {
+    val messages = MongoFactory.messages.find
+    val messagesList = convertCursorToMessagesList(messages)
+    messagesList.sortWith((m1,m2) => m1 > m2)
   }
 
-  type MessgFilter = UserMessage => Boolean
+  type MessagesFilter = Message => Boolean
 
-  def timelineFilter(p: MessgFilter, messages: List[UserMessage]): List[UserMessage] = messages.filter(p)
+  val getUserMessages: PartialFunction[Message, Message] = {
+    {case mess if mess.isInstanceOf[UserMessage] => mess}
+  }
 
-  val purposeFilter: Purpose => MessgFilter = purpose => message => message.purpose == purpose
+  val getGlobalMessages: PartialFunction[Message, Message] = {
+    {case mess if mess.isInstanceOf[GlobalMessage] => mess}
+  }
 
-  val kindergartenFilter: KindergartenFormData => MessgFilter = kindergarten => message =>
-    message.user.kgCity == kindergarten.city &&
-      message.user.kgName == kindergarten.name &&
-      message.user.kgStreet == kindergarten.street &&
-      message.user.kgNum == kindergarten.num
+  def filterTimeline(p: MessagesFilter, messages: List[Message]): List[Message] = messages filter p
 
-  def convertCursorToMessagesList(mongoMessages: MongoCursor): List[UserMessage] = {
+  val purposeFilter: Purpose => MessagesFilter = purpose => {
+    case message: UserMessage => message.purpose == purpose
+    case _ => false
+  }
+
+  val kindergartenFilter: KindergartenFormData => MessagesFilter = kindergarten => {
+    case message: UserMessage =>
+      message.user.kgCity == kindergarten.city &&
+        message.user.kgName == kindergarten.name &&
+        message.user.kgStreet == kindergarten.street &&
+        message.user.kgNum == kindergarten.num
+    case _ => false
+  }
+
+  def convertCursorToMessagesList(mongoMessages: MongoCursor): List[Message] = {
     val res =
       for {messMongo <- mongoMessages
-        dateTime = messMongo.getAs[DateTime]("datetime").get
-        purpose = messMongo.getAs[String]("purpose").get
-        seats = messMongo.getAs[Int]("seats").get
-        date = messMongo.getAs[Int]("date").get
-        from = messMongo.getAs[String]("from").get
-        to = messMongo.getAs[String]("to").get
-        userEmail = messMongo.getAs[String]("useremail").get
-        userName = messMongo.getAs[String]("username").get
-        userSurname = messMongo.getAs[String]("usersurname").get
-        userStreet = messMongo.getAs[String]("userstreet").get
-        userCity = messMongo.getAs[String]("usercity").get
-        kgName = messMongo.getAs[String]("kindergartenname").get
-        kgStreet = messMongo.getAs[String]("kindergartenstreet").get
-        kgNum = messMongo.getAs[Int]("kindergartennum").get
-        kgCity = messMongo.getAs[String]("kindergartencity").get
-      } yield UserMessage(
-        dateTime,
-        Purpose(purpose),
-        seats,
-        date,
-        from,
-        to,
-        SimpleUser(userEmail, userName, userSurname, userStreet, userCity, kgName, kgStreet, kgNum, kgCity))
-    res.toList
-  }
-}
-
-object GlobalMessages {
-  def listAll: List[GlobalMessage] = {
-    val messages = MongoFactory.globalMessages.find
-    convertCursorToMessagesList(messages)
-  }
-
-  def convertCursorToMessagesList(mongoMessages: MongoCursor): List[GlobalMessage] = {
-    val res =
-      for { messMongo <- mongoMessages
-            dateTime = messMongo.getAs[DateTime]("datetime").get
-            content = messMongo.getAs[String]("content").get
-      } yield GlobalMessage(dateTime, content)
+        purposeOpt = messMongo.getAs[String]("purpose")
+        mess =
+          purposeOpt match {
+            case Some(pupose) =>
+              val dateTime = messMongo.getAs[DateTime]("datetime").get
+              val purpose = messMongo.getAs[String]("purpose").get
+              val seats = messMongo.getAs[Int]("seats").get
+              val date = messMongo.getAs[Int]("date").get
+              val from = messMongo.getAs[String]("from").get
+              val to = messMongo.getAs[String]("to").get
+              val userEmail = messMongo.getAs[String]("useremail").get
+              val userName = messMongo.getAs[String]("username").get
+              val userSurname = messMongo.getAs[String]("usersurname").get
+              val userStreet = messMongo.getAs[String]("userstreet").get
+              val userCity = messMongo.getAs[String]("usercity").get
+              val kgName = messMongo.getAs[String]("kindergartenname").get
+              val kgStreet = messMongo.getAs[String]("kindergartenstreet").get
+              val kgNum = messMongo.getAs[Int]("kindergartennum").get
+              val kgCity = messMongo.getAs[String]("kindergartencity").get
+              UserMessage(
+                dateTime,
+                Purpose(purpose),
+                seats,
+                date,
+                from,
+                to,
+                SimpleUser(userEmail, userName, userSurname, userStreet, userCity, kgName, kgStreet, kgNum, kgCity))
+            case None =>
+              val dateTime = messMongo.getAs[DateTime]("datetime").get
+              val content = messMongo.getAs[String]("content").get
+              GlobalMessage(dateTime, content)
+          }
+      } yield mess
     res.toList
   }
 }

@@ -86,11 +86,9 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     request.session.get("connected").map { loggedUserEmail =>
       val user = Users.findUserByEmail(loggedUserEmail)
       val dataToDB = Users.delete(user)
-      val userGroup = Users.usersFromGroup(loggedUserEmail)
 
-      for(user <- userGroup) MongoFactory.updateUserIntDataInDB(user, "seats", 1, (x:Int, y: Int) => x + y)
       MongoFactory.deleteUser(dataToDB)
-      Ok(views.html.index(s"You just delete yourself user: ${loggedUserEmail}. We missing you like Facebook")).withNewSession
+      Ok(views.html.index(s"You just delete yourself user: $loggedUserEmail. We missing you like Facebook")).withNewSession
     } getOrElse {
       Ok(views.html.index("You have to login first"))
     }
@@ -98,7 +96,9 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def leaveGroup() = Action { implicit request =>
     request.session.get("connected").map { loggedUserEmail =>
+      val user = Users.findUserByEmail(loggedUserEmail)
       val dataToDB = Users.leaveGroup(loggedUserEmail)
+
       val message = MongoFactory.leaveGroup(dataToDB)
       Redirect(routes.HomeController.showUserPanel(message))
     } getOrElse {
@@ -251,10 +251,8 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def showTimeline = Action { implicit request =>
     request.session.get("connected").map { loggedUserEmail =>
-      val userMessages = UserMessages.listAll
-      val globalMessages = GlobalMessages.listAll
-      val totalMessages = (userMessages ::: globalMessages).sortWith(_>_)
-      Ok(views.html.timeline(totalMessages))
+      val messages = Messages.listAll
+      Ok(views.html.timeline(messages))
     }.getOrElse {
       Ok(views.html.index("You have to login first"))
     }
@@ -262,24 +260,26 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def filterMessages(filterCode: String) = Action { implicit request =>
     request.session.get("connected").map { loggedUserEmail =>
-      val userMessages = UserMessages.listAll
-      val globalMessages = GlobalMessages.listAll
+      val messages = Messages.listAll
       filterCode match {
         case "look-for-free-seat" =>
           val fraze = "Looking for free seat"
-          val lookForFilter = UserMessages.purposeFilter(Purpose(fraze))
-          val filteredMessages = UserMessages.timelineFilter(lookForFilter, userMessages).sortWith(_.date > _.date)
+          val lookForFilter = Messages.purposeFilter(Purpose(fraze))
+          val filteredMessages = Messages.filterTimeline(lookForFilter, messages) //.sortWith (_.date > _.date)
           Ok(views.html.timeline(filteredMessages))
         case "propose-free-seat" =>
           val fraze = "Propose free seat"
-          val haveFreeFilter = UserMessages.purposeFilter(Purpose(fraze))
-          val filteredMessages = UserMessages.timelineFilter(haveFreeFilter, userMessages).sortWith(_.date > _.date)
+          val haveFreeFilter = Messages.purposeFilter(Purpose(fraze))
+          val filteredMessages = Messages.filterTimeline(haveFreeFilter, messages) //.sortWith(_.date > _.date)
           Ok(views.html.timeline(filteredMessages))
         case "my-kindergarten" =>
           val loggedUserKindergarten = Users.findUserByEmail(loggedUserEmail).kindergarten
-          val kgFilter = UserMessages.kindergartenFilter(loggedUserKindergarten)
-          val filteredMessages = UserMessages.timelineFilter(kgFilter, userMessages)
+          val kgFilter = Messages.kindergartenFilter(loggedUserKindergarten)
+          val filteredMessages = Messages.filterTimeline(kgFilter, messages)
           Ok(views.html.timeline(filteredMessages))
+        case "global-messages" =>
+          val globalMessages = messages.collect(Messages.getGlobalMessages)
+          Ok(views.html.timeline(globalMessages))
         case _ =>
           Ok(views.html.index("ooops something wrong with filter criteria"))
       }
