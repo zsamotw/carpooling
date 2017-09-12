@@ -2,6 +2,20 @@ import play.api.libs.json._
 import scala.io.Source
 import org.joda.time.DateTime
 
+
+val yy = List(List(1,2,3), List(4,5,6), List(8,9,0))
+
+for {
+  group <- yy
+  if group contains(1)
+  n <- group
+  if n != 1
+} yield n
+
+yy partition(x => x contains(1))
+
+"hallo".toList
+
 trait general
 case class g1() extends general
 case class g2() extends general

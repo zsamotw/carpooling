@@ -52,6 +52,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     try {
       val userFromForm = userForm.form.bindFromRequest.get
       val latLon = GeoUtils.searchGeoPoint(userFromForm)
+      val kindergarten = Kindergartens.find(userFromForm.kgName, userFromForm.kgStreet, userFromForm.kgNum, userFromForm.kgCity)
       val user =
         User(
           userFromForm.email,
@@ -61,11 +62,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
           userFromForm.street,
           userFromForm.city,
           userFromForm.seats,
-          KindergartenFormData(
-            userFromForm.kgName,
-            userFromForm.kgStreet,
-            userFromForm.kgNum,
-            userFromForm.kgCity),
+          kindergarten,
           Set[String](),
           latLon._1,
           latLon._2)
@@ -187,7 +184,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     request.session.get("connected").map { loggedUserEmail =>
       val loggedUserGroup = Users.usersFromGroup(loggedUserEmail)
       val requestedUserGroup = Users.usersFromGroup(emailFromGet)
-      if(Users.areEnoughtSeats(loggedUserGroup, requestedUserGroup)) {
+      if(Users.areEnoughSeats(loggedUserGroup, requestedUserGroup)) {
         val dataToDB = Users.addRequest(emailFromGet, loggedUserEmail)
         MongoFactory.updateUserRequests(dataToDB)
         Redirect(routes.HomeController.showUsersFromMyKindergarten("Request was sent. Let's make peace and love"))
@@ -202,7 +199,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     request.session.get("connected").map { loggedUserEmail =>
       val userToReplyGroup = Users.usersFromGroup(emailFromGet)
       val loggedUserGroup = Users.usersFromGroup(loggedUserEmail)
-      if(Users.areEnoughtSeats(loggedUserGroup, userToReplyGroup)){
+      if(Users.areEnoughSeats(loggedUserGroup, userToReplyGroup)){
         val dataToDBCarpools = Users.addToCarpools(emailFromGet, loggedUserEmail)
         val dataToDBRequests = Users.deleteRequest(emailFromGet, loggedUserEmail)
 

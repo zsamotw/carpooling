@@ -13,10 +13,21 @@ case class User(
                  street: String,
                  city: String,
                  seats: Int,
-                 kindergarten: KindergartenFormData,
+                 kindergarten: Kindergarten,
                  requests: Set[String],
                  len: String,
                  lon: String)
+
+case class SimpleUser(
+                       email: String,
+                       name: String,
+                       surname: String,
+                       street: String,
+                       city: String,
+                       kgName: String,
+                       kgStreet: String,
+                       kgNum: Int,
+                       kgCity: String)
 
 case class UserFormData(
                          email: String,
@@ -30,17 +41,6 @@ case class UserFormData(
                          kgStreet: String,
                          kgNum: Int,
                          kgCity: String)
-
-case class SimpleUser(
-                       email: String,
-                       name: String,
-                       surname: String,
-                       street: String,
-                       city: String,
-                       kgName: String,
-                       kgStreet: String,
-                       kgNum: Int,
-                       kgCity: String)
 
 case class Login(email: String, password: String)
 
@@ -90,9 +90,8 @@ object Users {
   }
 
   def add(user: User): (User, DBObject, DBObject, GlobalMessage) = {
-    val KindergartenFormData(name, street, num, city) = user.kindergarten
-    val kindergarten = Kindergartens.find(name, street, num, city)
-    val usersEmailsAfter = kindergarten.usersEmails ::: List(List(user.email))
+    val kindergarten = user.kindergarten
+    val usersEmailsAfter = List(user.email) :: kindergarten.usersEmails
 
     val query = MongoDBObject(
       "name" -> kindergarten.name,
@@ -107,17 +106,22 @@ object Users {
 
   def delete(user: User): (User, List[User], DBObject, DBObject) = {
     val userGroup = usersFromGroup(user.email)
-    val KindergartenFormData(name, street, num, city) = user.kindergarten
-    val kindergarten = Kindergartens.find(name, street, num, city)
-    val usersEmailsGroup = for(group <- kindergarten.usersEmails; if group contains user.email; email <- group) yield email//kindergarten.usersEmails filter(_ contains user.email) //check
-    val usersEmailsGroupAfter = for(email <- usersEmailsGroup; if email != user.email) yield email //check
-      //usersEmailsGroup map(group => group filter(email => email != user.email))
-    //val userEmailsGroupsoutte = usersEmailsGroupAfter flatten
-    val usersEmailsAfter: List[List[String]] =
-      if (usersEmailsGroup isEmpty) for(group <- kindergarten.usersEmails; if group != usersEmailsGroup) yield group //check
-        //kindergarten.usersEmails filter (group => group != usersEmailsGroup.flatten)
+//    val KindergartenFormData(name, street, num, city) = user.kindergarten
+    val kindergarten = user.kindergarten //Kindergartens.find(name, street, num, city)
+
+    val usersEmailsGroup = for {
+      group <- kindergarten.usersEmails
+      if group contains user.email
+      email <- group} yield email
+
+    val usersEmailsGroupAfter = for {
+      email <- usersEmailsGroup
+      if email != user.email
+    } yield email
+
+    val usersEmailsAfter =
+      if (usersEmailsGroup isEmpty) for(group <- kindergarten.usersEmails; if group != usersEmailsGroup) yield group
       else usersEmailsGroupAfter :: (for(group <- kindergarten.usersEmails; if group != usersEmailsGroup) yield group)
-        //(kindergarten.usersEmails filter (group => group != usersEmailsGroup.flatten)) ::: usersEmailsGroupAfter
 
     val query = MongoDBObject(
       "name" -> kindergarten.name,
@@ -156,18 +160,12 @@ object Users {
     (loggedUser, userToReplyEmail, f)
   }
 
-  def areEnoughtSeats(fstGroup: List[User], scdGroup: List[User]): Boolean = {
+  def areEnoughSeats(fstGroup: List[User], scdGroup: List[User]): Boolean =
     fstGroup.forall(user => user.seats >= scdGroup.length) && scdGroup.forall(user => user.seats >= fstGroup.length)
-  }
-
-  def findKindergartenAndUserByUserEmail(userEmail: String): (Kindergarten, User) = {
-    val user = findUserByEmail(userEmail)
-    val KindergartenFormData(name, street, num, city) = user.kindergarten
-    (Kindergartens.find(name, street, num, city), user)
-  }
 
   def usersFromGroup(loggedUserEmail: String): List[User] = {
-    val (kindergarten, loggedUser) = findKindergartenAndUserByUserEmail(loggedUserEmail)
+    val loggedUser = Users.findUserByEmail(loggedUserEmail)
+    val kindergarten = loggedUser.kindergarten
 
     val loggedUserGroup = kindergarten.usersEmails filter(group => group contains loggedUser.email)
     val group = {
@@ -177,18 +175,32 @@ object Users {
   }
 
   def addToCarpools(userToReplyEmail: String, loggedUserEmail: String): (DBObject, DBObject, GlobalMessage) = {
-    val (kindergarten, loggedUser) = findKindergartenAndUserByUserEmail(loggedUserEmail)
+    val loggedUser = Users.findUserByEmail(loggedUserEmail)
+    val kindergarten = loggedUser.kindergarten
 
-    val loggedUserGroupEmailsList = kindergarten.usersEmails filter(group => group contains loggedUserEmail)
-    val userToReplyGroupEmailsList = kindergarten.usersEmails filter(group => group contains userToReplyEmail)
+    val loggedUserGroupEmailsList = for {
+      group <- kindergarten.usersEmails
+      if group contains loggedUserEmail
+      email <- group} yield email
+
+    val userToReplyGroupEmailsList = for {
+      group <- kindergarten.usersEmails
+      if group contains userToReplyEmail
+      email <- group} yield email
+
     val commonGroupEmailsList =
-      if (loggedUserGroupEmailsList != userToReplyGroupEmailsList) loggedUserGroupEmailsList.flatten ::: userToReplyGroupEmailsList.flatten
+      if (loggedUserGroupEmailsList != userToReplyGroupEmailsList) loggedUserGroupEmailsList ::: userToReplyGroupEmailsList
       else loggedUserGroupEmailsList
-    val restUsersEmails = kindergarten.usersEmails filter(group =>
-      !(group contains loggedUserEmail) && !(group contains userToReplyEmail))
-    val usersEmailsAfter = restUsersEmails ::: List(commonGroupEmailsList)
-    val fstG = (loggedUserGroupEmailsList flatten) map(email => findUserByEmail(email))
-    val scdG = (userToReplyGroupEmailsList flatten) map(email => findUserByEmail(email))
+
+    val restUsersEmails = for {
+      group <- kindergarten.usersEmails
+      if!(group contains loggedUserEmail) && !(group contains userToReplyEmail)
+    } yield group
+
+    val usersEmailsAfter =  commonGroupEmailsList :: restUsersEmails
+
+    val fstG = loggedUserGroupEmailsList map(email => findUserByEmail(email))
+    val scdG = userToReplyGroupEmailsList map(email => findUserByEmail(email))
     val content = s"Two group from ${kindergarten.name} has joined: " + userGroupToString(fstG) + " | " + userGroupToString(scdG)
     val message = GlobalMessage(new DateTime, content)
 
@@ -198,15 +210,31 @@ object Users {
       "num" -> kindergarten.num,
       "city" -> kindergarten.city)
     val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
+
     (query, update, message)
   }
 
   def removeFromCarpools(loggedUserEmail: String): (DBObject, DBObject, GlobalMessage) = {
-    val (kindergarten, loggedUser) = findKindergartenAndUserByUserEmail(loggedUserEmail)
-    val loggedUserGroupEmailsList = kindergarten.usersEmails filter(group => group contains loggedUserEmail)
-    val groupAfter = loggedUserGroupEmailsList.flatten filter (email => email != loggedUserEmail)
+    val loggedUser = Users.findUserByEmail(loggedUserEmail)
+    val kindergarten = loggedUser.kindergarten
+
+    val usersEmailsWithoutLoggedUser = for {
+      group <- kindergarten.usersEmails
+      if group contains loggedUserEmail
+      email <- group
+      if email != loggedUserEmail
+    } yield email
+    //kindergarten.usersEmails filter(group => group contains loggedUserEmail)
+
+//    val groupAfter = for {
+//      group <- loggedUserGroupEmailsList
+//      email <- group
+//      if email != loggedUserEmail
+//    } yield email
+    //loggedUserGroupEmailsList.flatten filter (email => email != loggedUserEmail)
     val restUsersEmails = kindergarten.usersEmails filter(group => !(group contains loggedUserEmail))
-    val usersEmailsAfter = List(List(loggedUserEmail)) ::: List(groupAfter) ::: restUsersEmails
+    val usersEmailsAfter = List(loggedUserEmail) :: usersEmailsWithoutLoggedUser :: restUsersEmails
+
     val content = s"User: ${loggedUser.name} ${loggedUser.surname} from ${loggedUser.kindergarten.name} has just leaved his group"
     val message = GlobalMessage(new DateTime, content)
     val query = MongoDBObject(
@@ -215,6 +243,7 @@ object Users {
       "num" -> kindergarten.num,
       "city" -> kindergarten.city)
     val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
+
     (query, update, message)
   }
 
@@ -235,6 +264,7 @@ object Users {
         requests = userMongo.getAs[List[String]]("requests").get.toSet
         len = userMongo.getAs[String]("len").get
         lon = userMongo.getAs[String]("lon").get
+            kindergarten = Kindergartens.find(kgName, kgStreet, kgNum,kgCity)
       } yield User(
         email,
         password,
@@ -243,11 +273,7 @@ object Users {
         street,
         city,
         seats,
-        KindergartenFormData(
-          kgName,
-          kgStreet,
-          kgNum.toInt,
-          kgCity),
+        kindergarten,
         requests,
         len,
         lon)
@@ -269,6 +295,9 @@ object Users {
     val requests = userMongo.getAs[List[String]]("requests").get.toSet
     val len =  userMongo.getAs[String]("len").get
     val lon =  userMongo.getAs[String]("lon").get
+
+    val kindergarten = Kindergartens.find(kgName, kgStreet, kgNum,kgCity)
+
     User(
       email,
       password,
@@ -277,11 +306,7 @@ object Users {
       street,
       city,
       seats,
-      KindergartenFormData(
-        kgName,
-        kgStreet,
-        kgNum.toInt,
-        kgCity),
+      kindergarten,
       requests,
       len,
       lon)

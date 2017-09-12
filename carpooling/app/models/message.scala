@@ -88,14 +88,14 @@ object Messages {
 
   type MessageOrder = (Message, Message) => Boolean
 
-  def filterTimeline(pred: MessagesFilter)(sortMethod: MessageOrder)( messages: List[Message]): List[Message] = messages filter pred sortWith(sortMethod)
+  def filterTimeline(pred: MessagesFilter)(sortMethod: MessageOrder)( messages: List[Message]): List[Message] = messages filter pred sortWith sortMethod
 
   val purposeFilter: Purpose => MessagesFilter = purpose => {
     case message: UserMessage => message.purpose == purpose
     case _ => false
   }
 
-  val kindergartenFilter: KindergartenFormData => MessagesFilter = kindergarten => {
+  val kindergartenFilter: Kindergarten => MessagesFilter = kindergarten => {
     case message: UserMessage =>
       message.user.kgCity == kindergarten.city &&
         message.user.kgName == kindergarten.name &&
