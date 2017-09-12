@@ -36,7 +36,9 @@ trait Message {
 }
 
 case class GlobalMessage(dateTime: DateTime = new DateTime, content: String) extends Message {
-  override def toString = s"$content | Created: ${dateTime.toDate}: "
+  override def toString: String =
+    s"""$content
+       | Created: ${dateTime.toDate}""".stripMargin
 }
 
 case class UserMessage(
@@ -73,23 +75,20 @@ object MessageForm {
 }
 
 object Messages {
-  def listAll: List[Message] = {
+  def listAll: Stream[Message] = {
     val messages = MongoFactory.messages.find
-    val messagesList = convertCursorToMessagesList(messages)
-    messagesList.sortWith((m1,m2) => m1 > m2)
+    convertCursorToMessagesList(messages)
   }
+
+  val getUserMessages: PartialFunction[Message, Message] = { case mess if mess.isInstanceOf[UserMessage] => mess }
+
+  val getGlobalMessages: PartialFunction[Message, Message] = { case mess if mess.isInstanceOf[GlobalMessage] => mess }
 
   type MessagesFilter = Message => Boolean
 
-  val getUserMessages: PartialFunction[Message, Message] = {
-    {case mess if mess.isInstanceOf[UserMessage] => mess}
-  }
+  type MessageOrder = (Message, Message) => Boolean
 
-  val getGlobalMessages: PartialFunction[Message, Message] = {
-    {case mess if mess.isInstanceOf[GlobalMessage] => mess}
-  }
-
-  def filterTimeline(p: MessagesFilter, messages: List[Message]): List[Message] = messages filter p
+  def filterTimeline(pred: MessagesFilter)(sortMethod: MessageOrder)( messages: List[Message]): List[Message] = messages filter pred sortWith(sortMethod)
 
   val purposeFilter: Purpose => MessagesFilter = purpose => {
     case message: UserMessage => message.purpose == purpose
@@ -105,7 +104,11 @@ object Messages {
     case _ => false
   }
 
-  def convertCursorToMessagesList(mongoMessages: MongoCursor): List[Message] = {
+  val dateTimeAscending: MessageOrder = _ > _
+
+  val dateTimeDescending: MessageOrder = _ < _
+
+  def convertCursorToMessagesList(mongoMessages: MongoCursor): Stream[Message] = {
     val res =
       for {messMongo <- mongoMessages
         purposeOpt = messMongo.getAs[String]("purpose")
@@ -141,6 +144,6 @@ object Messages {
               GlobalMessage(dateTime, content)
           }
       } yield mess
-    res.toList
+    res.toStream
   }
 }

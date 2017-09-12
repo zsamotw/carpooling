@@ -96,9 +96,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def leaveGroup() = Action { implicit request =>
     request.session.get("connected").map { loggedUserEmail =>
-      val user = Users.findUserByEmail(loggedUserEmail)
       val dataToDB = Users.leaveGroup(loggedUserEmail)
-
       val message = MongoFactory.leaveGroup(dataToDB)
       Redirect(routes.HomeController.showUserPanel(message))
     } getOrElse {
@@ -251,7 +249,8 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def showTimeline = Action { implicit request =>
     request.session.get("connected").map { loggedUserEmail =>
-      val messages = Messages.listAll
+      val messStream = Messages.listAll
+      val messages = messStream.take(100).toList
       Ok(views.html.timeline(messages))
     }.getOrElse {
       Ok(views.html.index("You have to login first"))
@@ -260,25 +259,25 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def filterMessages(filterCode: String) = Action { implicit request =>
     request.session.get("connected").map { loggedUserEmail =>
-      val messages = Messages.listAll
+      val messages = Messages.listAll.toList
       filterCode match {
         case "look-for-free-seat" =>
           val fraze = "Looking for free seat"
           val lookForFilter = Messages.purposeFilter(Purpose(fraze))
-          val filteredMessages = Messages.filterTimeline(lookForFilter, messages) //.sortWith (_.date > _.date)
+          val filteredMessages = Messages.filterTimeline(lookForFilter)(Messages.dateTimeAscending)(messages)
           Ok(views.html.timeline(filteredMessages))
         case "propose-free-seat" =>
           val fraze = "Propose free seat"
           val haveFreeFilter = Messages.purposeFilter(Purpose(fraze))
-          val filteredMessages = Messages.filterTimeline(haveFreeFilter, messages) //.sortWith(_.date > _.date)
+          val filteredMessages = Messages.filterTimeline(haveFreeFilter)(Messages.dateTimeDescending)(messages)
           Ok(views.html.timeline(filteredMessages))
         case "my-kindergarten" =>
           val loggedUserKindergarten = Users.findUserByEmail(loggedUserEmail).kindergarten
           val kgFilter = Messages.kindergartenFilter(loggedUserKindergarten)
-          val filteredMessages = Messages.filterTimeline(kgFilter, messages)
+          val filteredMessages = Messages.filterTimeline(kgFilter)(Messages.dateTimeAscending)(messages)
           Ok(views.html.timeline(filteredMessages))
         case "global-messages" =>
-          val globalMessages = messages.collect(Messages.getGlobalMessages)
+          val globalMessages = messages.collect(Messages.getGlobalMessages).sortWith(Messages.dateTimeAscending)
           Ok(views.html.timeline(globalMessages))
         case _ =>
           Ok(views.html.index("ooops something wrong with filter criteria"))

@@ -109,11 +109,15 @@ object Users {
     val userGroup = usersFromGroup(user.email)
     val KindergartenFormData(name, street, num, city) = user.kindergarten
     val kindergarten = Kindergartens.find(name, street, num, city)
-    val usersEmailsGroup = kindergarten.usersEmails filter(group => group contains user.email)
-    val usersEmailsGroupAfter = usersEmailsGroup map(group => group filter(email => email != user.email))
-    val usersEmailsAfter =
-      if (usersEmailsGroupAfter.flatten isEmpty) kindergarten.usersEmails filter (group => group != usersEmailsGroup.flatten)
-      else (kindergarten.usersEmails filter (group => group != usersEmailsGroup.flatten)) ::: usersEmailsGroupAfter
+    val usersEmailsGroup = for(group <- kindergarten.usersEmails; if group contains user.email; email <- group) yield email//kindergarten.usersEmails filter(_ contains user.email) //check
+    val usersEmailsGroupAfter = for(email <- usersEmailsGroup; if email != user.email) yield email //check
+      //usersEmailsGroup map(group => group filter(email => email != user.email))
+    //val userEmailsGroupsoutte = usersEmailsGroupAfter flatten
+    val usersEmailsAfter: List[List[String]] =
+      if (usersEmailsGroup isEmpty) for(group <- kindergarten.usersEmails; if group != usersEmailsGroup) yield group //check
+        //kindergarten.usersEmails filter (group => group != usersEmailsGroup.flatten)
+      else usersEmailsGroupAfter :: (for(group <- kindergarten.usersEmails; if group != usersEmailsGroup) yield group)
+        //(kindergarten.usersEmails filter (group => group != usersEmailsGroup.flatten)) ::: usersEmailsGroupAfter
 
     val query = MongoDBObject(
       "name" -> kindergarten.name,
