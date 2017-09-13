@@ -247,7 +247,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   def showTimeline = Action { implicit request =>
     request.session.get("connected").map { loggedUserEmail =>
       val messStream = Messages.listAll
-      val messages = messStream.take(100).toList
+      val messages = messStream.take(100).toList.reverse
       Ok(views.html.timeline(messages))
     }.getOrElse {
       Ok(views.html.index("You have to login first"))

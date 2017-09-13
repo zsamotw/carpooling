@@ -41,15 +41,14 @@ case class GlobalMessage(dateTime: DateTime = new DateTime, content: String) ext
        | Created: ${dateTime.toDate}""".stripMargin
 }
 
-case class UserMessage(
-                        dateTime: DateTime = new DateTime,
-                        purpose: Purpose,
-                        seats: Int,
-                        date: Int,
-                        from: String,
-                        to: String,
-                        user: SimpleUser) extends Message {
-
+case class UserMessage(dateTime: DateTime = new DateTime,
+                       purpose: Purpose,
+                       seats: Int,
+                       date: Int,
+                       from: String,
+                       to: String,
+                       user: SimpleUser) extends Message {
+  
   override def toString =
     s"""Purpose: ${purpose.statement}
        | Seats: $seats

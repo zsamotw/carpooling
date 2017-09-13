@@ -106,8 +106,7 @@ object Users {
 
   def delete(user: User): (User, List[User], DBObject, DBObject) = {
     val userGroup = usersFromGroup(user.email)
-//    val KindergartenFormData(name, street, num, city) = user.kindergarten
-    val kindergarten = user.kindergarten //Kindergartens.find(name, street, num, city)
+    val kindergarten = user.kindergarten
 
     val usersEmailsGroup = for {
       group <- kindergarten.usersEmails
@@ -224,14 +223,7 @@ object Users {
       email <- group
       if email != loggedUserEmail
     } yield email
-    //kindergarten.usersEmails filter(group => group contains loggedUserEmail)
 
-//    val groupAfter = for {
-//      group <- loggedUserGroupEmailsList
-//      email <- group
-//      if email != loggedUserEmail
-//    } yield email
-    //loggedUserGroupEmailsList.flatten filter (email => email != loggedUserEmail)
     val restUsersEmails = kindergarten.usersEmails filter(group => !(group contains loggedUserEmail))
     val usersEmailsAfter = List(loggedUserEmail) :: usersEmailsWithoutLoggedUser :: restUsersEmails
 
