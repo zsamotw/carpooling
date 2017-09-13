@@ -76,7 +76,7 @@ object MessageForm {
 object Messages {
   def listAll: Stream[Message] = {
     val messages = MongoFactory.messages.find
-    convertCursorToMessagesList(messages)
+    convertCursorToMessagesStream(messages)
   }
 
   val getUserMessages: PartialFunction[Message, Message] = { case mess if mess.isInstanceOf[UserMessage] => mess }
@@ -107,7 +107,7 @@ object Messages {
 
   val dateTimeDescending: MessageOrder = _ < _
 
-  def convertCursorToMessagesList(mongoMessages: MongoCursor): Stream[Message] = {
+  def convertCursorToMessagesStream(mongoMessages: MongoCursor): Stream[Message] = {
     val res =
       for {messMongo <- mongoMessages
         purposeOpt = messMongo.getAs[String]("purpose")
