@@ -48,7 +48,7 @@ case class UserMessage(dateTime: DateTime = new DateTime,
                        from: String,
                        to: String,
                        user: SimpleUser) extends Message {
-  
+
   override def toString =
     s"""Purpose: ${purpose.statement}
        | Seats: $seats
