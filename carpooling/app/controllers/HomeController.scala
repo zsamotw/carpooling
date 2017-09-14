@@ -25,9 +25,15 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   }
 
   def validateLoginAndPassword = Action { implicit request =>
-    val login = loginForm.form.bindFromRequest.get
-    if(Users.validateLogin(login)) Ok(views.html.index("You are logged with login: " + login.email)).withSession("connected" -> login.email)
-    else Ok(views.html.incorrectLogin())
+    loginForm.form.bindFromRequest.fold(
+      formWithError => {
+        BadRequest(views.html.login(formWithError))
+      },
+      login => {
+        if(Users.validateLogin(login)) Ok(views.html.index("You are logged with login: " + login.email)).withSession("connected" -> login.email)
+        else Ok(views.html.incorrectLogin())
+      }
+    )
   }
 
   def logout = Action { implicit request =>
@@ -228,18 +234,24 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     request.session.get("connected").map { loggedUserEmail =>
       val user = Users.findUserByEmail(loggedUserEmail)
       val simpleUser = Users.convertToSimpleUser(user)
-      val messageFromForm = MessageForm.form.bindFromRequest.get
-      val(year, month, day, hour, minutes) = messageFromForm
-      val userMessage = UserMessage(
-        new DateTime,
-        Purpose(messageFromForm.purpose),
-        messageFromForm.seats,
-        new DateTime(year, month, day, hour, minutes),
-        messageFromForm.from,
-        messageFromForm.to,
-        simpleUser)
-      MongoFactory.add(userMessage)
-      Ok(views.html.panel(user, "You message has been sent", MessageForm.form))
+      MessageForm.form.bindFromRequest.fold(
+        formWithErrors => {
+          BadRequest(views.html.panel(user, "Fill form correctly", formWithErrors))
+        },
+        data => {
+          val userMessage = UserMessage(
+            new DateTime,
+            Purpose(data.purpose),
+            data.seats,
+            new DateTime(data.year, data.month, data.day, data.hour, data.minutes),
+            data.from,
+            data.to,
+            simpleUser)
+          MongoFactory.add(userMessage)
+          Ok(views.html.panel(user, "You message has been sent", MessageForm.form))
+        }
+      )
+
     }.getOrElse {
       Ok(views.html.index("You have to login first"))
     }
