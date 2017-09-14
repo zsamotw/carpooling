@@ -3,7 +3,12 @@ import scala.io.Source
 import org.joda.time.DateTime
 
 
+val a = Array(1,2,3,4)
+a(0)
+
 val yy = List(List(1,2,3), List(4,5,6), List(8,9,0))
+
+yy.length
 
 for {
   group <- yy
@@ -27,7 +32,7 @@ xs ::: ys
 
 
 
-
+val dt1 = new DateTime(2016, 9,12,12,5)
 val dt = new DateTime()
 dt.hourOfDay()
 dt.getDayOfMonth

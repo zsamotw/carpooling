@@ -24,10 +24,10 @@ case class SimpleUser(
                        surname: String,
                        street: String,
                        city: String,
-                       kgName: String,
-                       kgStreet: String,
-                       kgNum: Int,
-                       kgCity: String)
+                       seats: Int,
+                       len: String,
+                       lon: String,
+                       kindergarten: Kindergarten)
 
 case class UserFormData(
                          email: String,
@@ -272,6 +272,23 @@ object Users {
     res.toList
   }
 
+
+  def convertToSimpleUser(user: User) = SimpleUser(
+    user.email,
+    user.name,
+    user.surname,
+    user.street,
+    user.city,
+    user.seats,
+    user.len,
+    user.lon,
+    user.kindergarten)
+
+
+  def userGroupToString(group: List[User]): String = {
+    group map(user => s"${user.name} ${user.surname}") mkString(", ")
+  }
+
   def convertDBObjectToUser(userMongo: MongoDBObject): User = {
     val email = userMongo.getAs[String]("email").get
     val password =  userMongo.getAs[String]("password").get
@@ -302,20 +319,5 @@ object Users {
       requests,
       len,
       lon)
-  }
-
-  def convertToSimpleUser(user: User) = SimpleUser(
-    user.email,
-    user.name,
-    user.surname,
-    user.street,
-    user.city,
-    user.kindergarten.name,
-    user.kindergarten.street,
-    user.kindergarten.num,
-    user.kindergarten.city)
-
-  def userGroupToString(group: List[User]): String = {
-    group map(user => s"${user.name} ${user.surname}") mkString(", ")
   }
 }

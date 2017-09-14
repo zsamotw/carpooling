@@ -25,29 +25,55 @@ object Purpose {
   }
 }
 
-case class MessageFormData(purpose: String, seats: Int, date: Int, from: String, to: String)
+case class MessageFormData(
+                            purpose: String,
+                            seats: Int,
+                            year: Int,
+                            month: Int,
+                            day: Int,
+                            hour: Int,
+                            minutes: Int,
+                            from: String,
+                            to: String)
+
+object MessageForm {
+  val form = Form(
+    mapping(
+      "purpose" -> text,
+      "seats" -> number,
+      "year" -> number,
+      "month" -> number,
+      "day" -> number,
+      "hour" -> number,
+      "minutes" -> number,
+      "from" -> text,
+      "to" -> text
+    )(MessageFormData.apply)(MessageFormData.unapply)
+  )
+}
 
 trait Message {
-  val dateTime: DateTime
+  val creationDateTime: DateTime
 
-  def >(other: Message): Boolean = this.dateTime.isAfter(other.dateTime)
+  def >(other: Message): Boolean = this.creationDateTime.isAfter(other.creationDateTime)
 
-  def <(other: Message): Boolean = other.dateTime.isAfter(this.dateTime)
+  def <(other: Message): Boolean = other.creationDateTime.isAfter(this.creationDateTime)
 }
 
-case class GlobalMessage(dateTime: DateTime = new DateTime, content: String) extends Message {
+case class GlobalMessage(creationDateTime: DateTime = new DateTime, content: String) extends Message {
   override def toString: String =
     s"""$content
-       | Created: ${dateTime.toDate}""".stripMargin
+       | Created: ${creationDateTime.toDate}""".stripMargin
 }
 
-case class UserMessage(dateTime: DateTime = new DateTime,
+case class UserMessage(creationDateTime: DateTime = new DateTime,
                        purpose: Purpose,
                        seats: Int,
-                       date: Int,
+                       date: DateTime,
                        from: String,
                        to: String,
-                       user: SimpleUser) extends Message {
+                       user: SimpleUser)
+  extends Message {
 
   override def toString =
     s"""Purpose: ${purpose.statement}
@@ -55,22 +81,10 @@ case class UserMessage(dateTime: DateTime = new DateTime,
        | Date: $date
        | From: $from
        | To: $to
-       | Who: ${user.name} ${user.surname} from kindergarten ${user.kgName} on ${user.kgStreet} in ${user.kgCity}
+       | Who: ${user.name} ${user.surname} from kindergarten ${user.kindergarten.name} on ${user.kindergarten.street} in ${user.kindergarten.city}
        | Contact: ${user.email}
-       | Created: ${dateTime.toDate}
+       | Created: ${creationDateTime.toDate}
      """
-}
-
-object MessageForm {
-  val form = Form(
-    mapping(
-      "purpose" -> text,
-      "seats" -> number,
-      "date" -> number,
-      "from" -> text,
-      "to" -> text
-    )(MessageFormData.apply)(MessageFormData.unapply)
-  )
 }
 
 object Messages {
@@ -96,10 +110,10 @@ object Messages {
 
   val kindergartenFilter: Kindergarten => MessagesFilter = kindergarten => {
     case message: UserMessage =>
-      message.user.kgCity == kindergarten.city &&
-        message.user.kgName == kindergarten.name &&
-        message.user.kgStreet == kindergarten.street &&
-        message.user.kgNum == kindergarten.num
+      message.user.kindergarten.city == kindergarten.city &&
+        message.user.kindergarten.name == kindergarten.name &&
+        message.user.kindergarten.street == kindergarten.street &&
+        message.user.kindergarten.num == kindergarten.num
     case _ => false
   }
 
@@ -117,7 +131,7 @@ object Messages {
               val dateTime = messMongo.getAs[DateTime]("datetime").get
               val purpose = messMongo.getAs[String]("purpose").get
               val seats = messMongo.getAs[Int]("seats").get
-              val date = messMongo.getAs[Int]("date").get
+              val date = messMongo.getAs[DateTime]("date").get
               val from = messMongo.getAs[String]("from").get
               val to = messMongo.getAs[String]("to").get
               val userEmail = messMongo.getAs[String]("useremail").get
@@ -125,10 +139,16 @@ object Messages {
               val userSurname = messMongo.getAs[String]("usersurname").get
               val userStreet = messMongo.getAs[String]("userstreet").get
               val userCity = messMongo.getAs[String]("usercity").get
+              val userSeats = messMongo.getAs[Int]("userseats").get
+              val userLen = messMongo.getAs[String]("userlen").get
+              val userLon = messMongo.getAs[String]("userlon").get
               val kgName = messMongo.getAs[String]("kindergartenname").get
               val kgStreet = messMongo.getAs[String]("kindergartenstreet").get
               val kgNum = messMongo.getAs[Int]("kindergartennum").get
               val kgCity = messMongo.getAs[String]("kindergartencity").get
+              val kgLen = messMongo.getAs[String]("kindergartenlen").get
+              val kgLon = messMongo.getAs[String]("kindergartenlon").get
+              val kgUserEmails = messMongo.getAs[List[List[String]]]("kindergartenusersemails").get
               UserMessage(
                 dateTime,
                 Purpose(purpose),
@@ -136,7 +156,16 @@ object Messages {
                 date,
                 from,
                 to,
-                SimpleUser(userEmail, userName, userSurname, userStreet, userCity, kgName, kgStreet, kgNum, kgCity))
+                SimpleUser(
+                  userEmail,
+                  userName,
+                  userSurname,
+                  userStreet,
+                  userCity,
+                  userSeats,
+                  userLen,
+                  userLon,
+                  Kindergarten(kgName, kgStreet, kgNum, kgCity, kgLen,kgLon, kgUserEmails)))
             case None =>
               val dateTime = messMongo.getAs[DateTime]("datetime").get
               val content = messMongo.getAs[String]("content").get

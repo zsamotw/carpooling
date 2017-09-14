@@ -88,12 +88,12 @@ object Kindergartens {
     val usersEmails = {
       val listMongo = kgMongo.get("usersemails").get
       val obj = MongoDBObject("list" -> listMongo)
-      val res = obj.as[BasicDBList]("list")
+      val res = obj.as[BasicDBList]("list").toList
       val list ={
         for(el <- res) yield {
           val elemList = {
             val obj = MongoDBObject("list" -> el)
-            val res2 = obj.as[BasicDBList]("list")
+            val res2 = obj.as[BasicDBList]("list").toList
             for(e <- res2) yield {
               e.toString
             }

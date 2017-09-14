@@ -120,7 +120,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
           List[List[String]]())
       val dataToDB = Kindergartens.add(kg)
       MongoFactory.add(dataToDB)
-      Ok(views.html.index(s"Kindergarten $kg.name was added"))
+      Ok(views.html.index(s"Kindergarten ${kg.name} was added"))
     } catch {
       case e: IOException => Ok(views.html.index("Oooops, something wrong with kindergarten address or internet connection"))
     }
@@ -229,11 +229,12 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
       val user = Users.findUserByEmail(loggedUserEmail)
       val simpleUser = Users.convertToSimpleUser(user)
       val messageFromForm = MessageForm.form.bindFromRequest.get
+      val(year, month, day, hour, minutes) = messageFromForm
       val userMessage = UserMessage(
         new DateTime,
         Purpose(messageFromForm.purpose),
         messageFromForm.seats,
-        messageFromForm.date,
+        new DateTime(year, month, day, hour, minutes),
         messageFromForm.from,
         messageFromForm.to,
         simpleUser)

@@ -79,27 +79,33 @@ object MongoFactory {
 
   def buildMongoDbUserMessage(message: UserMessage): MongoDBObject = {
     val builder = MongoDBObject.newBuilder
-    builder += "datetime" -> message.dateTime
+    builder += "datetime" -> message.creationDateTime
     builder += "purpose" -> message.purpose.statement
     builder += "seats" -> message.seats
     builder += "date" -> message.date
     builder += "from" -> message.from
     builder += "to" -> message.to
+    builder += "useremail" -> message.user.email
     builder += "username" -> message.user.name
     builder += "usersurname" -> message.user.surname
     builder += "userstreet" -> message.user.street
     builder += "usercity" -> message.user.city
-    builder += "useremail" -> message.user.email
-    builder += "kindergartenname" -> message.user.kgName
-    builder += "kindergartenstreet" -> message.user.kgStreet
-    builder += "kindergartennum" -> message.user.kgNum
-    builder += "kindergartencity" -> message.user.kgCity
+    builder += "userseats" -> message.user.seats
+    builder += "userlen" -> message.user.len
+    builder += "userlon" -> message.user.lon
+    builder += "kindergartenname" -> message.user.kindergarten.name
+    builder += "kindergartenstreet" -> message.user.kindergarten.street
+    builder += "kindergartennum" -> message.user.kindergarten.num
+    builder += "kindergartencity" -> message.user.kindergarten.city
+    builder += "kindergartenlen" -> message.user.kindergarten.len
+    builder += "kindergartenlon" -> message.user.kindergarten.lon
+    builder += "kindergartenusersemails" -> message.user.kindergarten.usersEmails
     builder.result
   }
 
   def buildMongoDbGlobalMessage(message: GlobalMessage): MongoDBObject = {
     val builder = MongoDBObject.newBuilder
-    builder += "datetime" -> message.dateTime
+    builder += "datetime" -> message.creationDateTime
     builder += "content" -> message.content
     builder.result
   }
