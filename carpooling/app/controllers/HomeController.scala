@@ -16,7 +16,8 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def index = Action { implicit request =>
     request.session.get("connected").map { loggedUserEmail =>
-      val sysMessage = s"User with login: $loggedUserEmail is connected"
+      val user = Users.findUserByEmail(loggedUserEmail)
+      val sysMessage = s"${user.name} ${user.surname} is connected"
       Ok(views.html.index(sysMessage))
     }.getOrElse {
       Ok(views.html.index(loginMessage))
@@ -34,7 +35,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
       },
       login => {
         val user = Users.findUserByEmail(login.email)
-        val sysMessage = s"Hello today. How are you ${user.name}"
+        val sysMessage = s"Hello today. How are you ${user.name}?"
         if(Users.validateLogin(login)) Ok(views.html.index(sysMessage)).withSession("connected" -> login.email)
         else Ok(views.html.incorrectLogin())
       }
