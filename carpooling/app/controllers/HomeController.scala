@@ -14,7 +14,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   lazy val loginMessage = "You can't do anything without login"
 
-  def index = Action { implicit request =>
+  def index() = Action { implicit request =>
     request.session.get("connected").map { loggedUserEmail =>
       val user = Users.findUserByEmail(loggedUserEmail)
       val sysMessage = s"${user.name} ${user.surname} is connected"
@@ -24,11 +24,11 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     }
   }
 
-  def login = Action { implicit request =>
+  def login() = Action { implicit request =>
     Ok(views.html.login(loginForm.form))
   }
 
-  def validateLoginAndPassword = Action { implicit request =>
+  def validateLoginAndPassword() = Action { implicit request =>
     loginForm.form.bindFromRequest.fold(
       formWithError => {
         BadRequest(views.html.login(formWithError))
@@ -45,7 +45,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     )
   }
 
-  def logout = Action { implicit request =>
+  def logout() = Action { implicit request =>
     val sysMessage = "Your session is finished. You are logout"
     Ok(views.html.index(sysMessage)).withNewSession
   }
