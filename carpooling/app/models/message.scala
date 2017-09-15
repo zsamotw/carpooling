@@ -66,15 +66,15 @@ case class GlobalMessage(creationDateTime: DateTime = new DateTime, content: Str
        | Created: ${creationDateTime.toDate}""".stripMargin
 }
 
-case class UserMessage(creationDateTime: DateTime = new DateTime,
-                       purpose: Purpose,
-                       seats: Int,
-                       date: DateTime,
-                       from: String,
-                       to: String,
-                       user: SimpleUser)
+case class UserMessage(
+                        creationDateTime: DateTime = new DateTime,
+                        purpose: Purpose,
+                        seats: Int,
+                        date: DateTime,
+                        from: String,
+                        to: String,
+                        user: SimpleUser)
   extends Message {
-
   override def toString =
     s"""Purpose: ${purpose.statement}
        | Seats: $seats
@@ -117,9 +117,20 @@ object Messages {
     case _ => false
   }
 
-  val dateTimeAscending: MessageOrder = _ > _
 
-  val dateTimeDescending: MessageOrder = _ < _
+  val creationDateTimeAscending: MessageOrder = _ > _
+
+  val creationDateTimeDescending: MessageOrder = _ < _
+
+  val dateAscending: MessageOrder = {
+    case (mess1: UserMessage, mess2: UserMessage) => mess1.date.isAfter(mess2.date)
+    case _ => false
+  }
+
+  val dateDescending: MessageOrder = {
+    case (mess1: UserMessage, mess2: UserMessage) => mess2.date.isAfter(mess1.date)
+    case _ => false
+  }
 
   def convertCursorToMessagesStream(mongoMessages: MongoCursor): Stream[Message] = {
     val res =

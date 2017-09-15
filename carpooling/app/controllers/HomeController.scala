@@ -56,30 +56,37 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def addUser() = Action { implicit  request =>
     try {
-      val userFromForm = userForm.form.bindFromRequest.get
-      val latLon = GeoUtils.searchGeoPoint(userFromForm)
-      val kindergarten = Kindergartens.find(userFromForm.kgName, userFromForm.kgStreet, userFromForm.kgNum, userFromForm.kgCity)
-      val user =
-        User(
-          userFromForm.email,
-          userFromForm.password,
-          userFromForm.name,
-          userFromForm.surname,
-          userFromForm.street,
-          userFromForm.city,
-          userFromForm.seats,
-          kindergarten,
-          Set[String](),
-          latLon._1,
-          latLon._2)
-      if (Users.isOnlyOne(user)) {
-        val dataToDB = Users.add(user)
-        MongoFactory.addUser(dataToDB)
-        Ok(views.html.index(s"User ${user.name} was added. You are login")).withSession("connected" -> user.email)
-      }
-      else {
-        Ok(views.html.index("User with this login exists"))
-      }
+      userForm.form.bindFromRequest.fold(
+        formWithError => {
+          val kindergartens = Kindergartens.listAll
+          BadRequest(views.html.adduser(formWithError, kindergartens))
+        },
+        userData => {
+          val latLon = GeoUtils.searchGeoPoint(userData)
+          val kindergarten = Kindergartens.find(userData.kgName, userData.kgStreet, userData.kgNum, userData.kgCity)
+          val user =
+            User(
+              userData.email,
+              userData.password,
+              userData.name,
+              userData.surname,
+              userData.street,
+              userData.city,
+              userData.seats,
+              kindergarten,
+              Set[String](),
+              latLon._1,
+              latLon._2)
+          if (Users.isOnlyOne(user)) {
+            val dataToDB = Users.add(user)
+            MongoFactory.addUser(dataToDB)
+            Ok(views.html.index(s"User ${user.name} was added. You are login")).withSession("connected" -> user.email)
+          }
+          else {
+            Ok(views.html.index("User with this login exists"))
+          }
+        }
+      )
     } catch {
       case e: IOException => Ok(views.html.index("Oooops, something wrong with address or internet connection"))
     }
@@ -113,20 +120,26 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def addKindergarten() = Action{ implicit request =>
     try {
-      val kgFromForm = KindergartenForm.form.bindFromRequest.get
-      val latLon = GeoUtils.searchGeoPoint(kgFromForm)
-      val kg =
-        Kindergarten(
-          kgFromForm.name,
-          kgFromForm.street,
-          kgFromForm.num,
-          kgFromForm.city,
-          latLon._1,
-          latLon._2,
-          List[List[String]]())
-      val dataToDB = Kindergartens.add(kg)
-      MongoFactory.add(dataToDB)
-      Ok(views.html.index(s"Kindergarten ${kg.name} was added"))
+      KindergartenForm.form.bindFromRequest.fold(
+        formWithError => {
+          Ok(views.html.addkindergarten(formWithError))
+        },
+        kindergartenData => {
+          val latLon = GeoUtils.searchGeoPoint(kindergartenData)
+          val kindergarten =
+            Kindergarten(
+              kindergartenData.name,
+              kindergartenData.street,
+              kindergartenData.num,
+              kindergartenData.city,
+              latLon._1,
+              latLon._2,
+              List[List[String]]())
+          val dataToDB = Kindergartens.add(kindergarten)
+          MongoFactory.add(dataToDB)
+          Ok(views.html.index(s"Kindergarten ${kindergarten.name} was added"))
+        }
+      )
     } catch {
       case e: IOException => Ok(views.html.index("Oooops, something wrong with kindergarten address or internet connection"))
     }
@@ -274,20 +287,20 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
         case "look-for-free-seat" =>
           val fraze = "Looking for free seat"
           val lookForFilter = Messages.purposeFilter(Purpose(fraze))
-          val filteredMessages = Messages.filterTimeline(lookForFilter)(Messages.dateTimeAscending)(messages)
+          val filteredMessages = Messages.filterTimeline(lookForFilter)(Messages.dateAscending)(messages)
           Ok(views.html.timeline(filteredMessages))
         case "propose-free-seat" =>
           val fraze = "Propose free seat"
           val haveFreeFilter = Messages.purposeFilter(Purpose(fraze))
-          val filteredMessages = Messages.filterTimeline(haveFreeFilter)(Messages.dateTimeDescending)(messages)
+          val filteredMessages = Messages.filterTimeline(haveFreeFilter)(Messages.dateAscending)(messages)
           Ok(views.html.timeline(filteredMessages))
         case "my-kindergarten" =>
           val loggedUserKindergarten = Users.findUserByEmail(loggedUserEmail).kindergarten
           val kgFilter = Messages.kindergartenFilter(loggedUserKindergarten)
-          val filteredMessages = Messages.filterTimeline(kgFilter)(Messages.dateTimeAscending)(messages)
+          val filteredMessages = Messages.filterTimeline(kgFilter)(Messages.creationDateTimeAscending)(messages)
           Ok(views.html.timeline(filteredMessages))
         case "global-messages" =>
-          val globalMessages = messages.collect(Messages.getGlobalMessages).sortWith(Messages.dateTimeAscending)
+          val globalMessages = messages.collect(Messages.getGlobalMessages).sortWith(Messages.creationDateTimeAscending)
           Ok(views.html.timeline(globalMessages))
         case _ =>
           Ok(views.html.index("ooops something wrong with filter criteria"))
