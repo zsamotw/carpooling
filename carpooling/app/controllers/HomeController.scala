@@ -235,8 +235,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
         MongoFactory.updateUserRequests(dataToDB)
         val sysMessage = "Request has been sent with success. Let's make peace and love"
         Redirect(routes.HomeController.showUsersFromMyKindergarten(sysMessage))
-      }
-      else {
+      } else {
         val sysMessage = "You or some users from the group don't have enough seats in cars. Find other group to join"
         Redirect(routes.HomeController.showUsersFromMyKindergarten(sysMessage))
       }
