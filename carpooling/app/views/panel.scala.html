@@ -1,7 +1,7 @@
 @(user: User, sysMessage: String, messageForm: Form[MessageFormData])(implicit messages: play.api.i18n.Messages)
 
-@main("Welcome to our Family of Familis") {
-
+@main("Panel") {
+<a href="logout">logout</a><br><br>
 @user.name  @user.surname<br>
 Address:
 @user.street  @user.city<br>
@@ -45,6 +45,6 @@ Follow with your message:
 	      
 <br><a href="/">homepage</a><br><br><br>
 
-<br><br>Current info: @sysMessage
+<br><br><b>Current info: @sysMessage</b>
 
 }

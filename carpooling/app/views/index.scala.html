@@ -1,23 +1,16 @@
 @(sysMessage: String)
 
-@main("Welcome to our Family of Familis") {
-    /*<br>
-     *Connection to Mongo DB is needed<br>
-     */<br><br>
+@main("Welcome to our carpooling family") {
+<a href="user">sign up</a>   <->   <a href="login">log in</a>  <->  <a href="logout">logout</a><br><br>
+Welcome to carpooling app for parents! Don't afraid about design. App is in progress.<br>
+There are plethora possibilities for you!!!<br><br>
+<b>Short menu:</b><br><br>
+    <a href="allkindergartens">registered kindergartens</a><br>
+    <a href="kindergarten">create kindergarten</a><br>
+    <a href="findKindergarten">find users from kindergaten</a><br>
+    <a href="findmyparents">jump to your kindergarten</a><br>
+    <a href="panel">personal panel</a><br>
+    <a href="timeline">timeline</a><br><br><br><br><br>
 
-    Welcome to carpooling app for parents! Don't afraid about design. App is in progress.<br>
-    There are plethora possibilites for you.<br><br>
-    First, you should check <a href="allkindergartens">here</a> if your kindergarten is added to database.<br><br>
-    If not, <a href="kindergarten">create kindergarten</a> and add it to database. Then...<br><br>
-    <a href="user">Create your accout</a>   or   <a href="login">login</a> if you did it previously.<br><br>
-You can check your personal data, reply for requests and send messages: <a href="panel">here</a><br><br><br>
-
-        If you are looking for parents from kindergarten <a href="findKindergarten">click here</a> or  <a href="findmyparents">jump to your kindergarten</a><br><br>
-    You can also check timeline with messages: <a href="timeline">click here</a>
-        <br><br>
-
-
-    After all <a href="logout">logout</a> please<br><br><br>
-
-    <b>current info: @sysMessage</b>
+<b>current info: @sysMessage</b>
 }

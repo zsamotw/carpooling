@@ -1,6 +1,7 @@
 @(kindergartenForm: Form[KindergartenFormData])(implicit messages: play.api.i18n.Messages)
 
 @main("Welcome to our Family of Familis") {
+<a href="logout">logout</a><br><br>
     Add kindergarten to database:
 
     @helper.form(action=routes.HomeController.addKindergarten()) {

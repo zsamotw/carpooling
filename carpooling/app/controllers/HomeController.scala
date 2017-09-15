@@ -12,7 +12,7 @@ import scala.concurrent.Future
 
 class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller  with I18nSupport {
 
-  val loginMessage = "You can't do anything without login"
+  lazy val loginMessage = "You can't do anything without login"
 
   def index = Action { implicit request =>
     request.session.get("connected").map { loggedUserEmail =>
@@ -37,7 +37,10 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
         val user = Users.findUserByEmail(login.email)
         val sysMessage = s"Hello today. How are you ${user.name}?"
         if(Users.validateLogin(login)) Ok(views.html.index(sysMessage)).withSession("connected" -> login.email)
-        else Ok(views.html.incorrectLogin())
+        else {
+          val sysMessage = "Incorrect login or password"
+          Ok(views.html.index(sysMessage))
+        }
       }
     )
   }
