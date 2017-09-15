@@ -98,10 +98,10 @@ object Kindergartens {
               e.toString
             }
           }
-          elemList.toList
+          elemList
         }
       }
-      list.toList
+      list
     }
     Kindergarten(name, street, num, city, len, lon, usersEmails)
   }
