@@ -313,42 +313,45 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     request.session.get("connected").map { loggedUserEmail =>
       val messStream = Messages.listAll
       val messages = messStream.take(100).toList.reverse
-      Ok(views.html.timeline(messages))
+      Ok(views.html.timeline(messages, MessageSearchForm.form))
     }.getOrElse {
       Ok(views.html.index(loginMessage))
     }
   }
 
-  def filterMessages(filterCode: String) = Action { implicit request =>
+  def filterMessages() = Action { implicit request =>
     request.session.get("connected").map { loggedUserEmail =>
       val messages = Messages.listAll.toList
-      filterCode match {
-        case "look-for-free-seat" =>
-          val fraze = "Looking for free seat"
-          val lookForFilter = Messages.purposeFilter(Purpose(fraze))
-          val filteredMessages = Messages.filterTimeline(lookForFilter)(Messages.dateAscending)(messages)
-          Ok(views.html.timeline(filteredMessages))
-        case "propose-free-seat" =>
-          val fraze = "Propose free seat"
-          val haveFreeFilter = Messages.purposeFilter(Purpose(fraze))
-          val filteredMessages = Messages.filterTimeline(haveFreeFilter)(Messages.dateAscending)(messages)
-          Ok(views.html.timeline(filteredMessages))
-        case "my-kindergarten" =>
-          val loggedUserKindergarten = Users.findUserByEmail(loggedUserEmail).kindergarten
-          val kgFilter = Messages.kindergartenFilter(loggedUserKindergarten)
-          val filteredMessages = Messages.filterTimeline(kgFilter)(Messages.creationDateTimeAscending)(messages)
-          Ok(views.html.timeline(filteredMessages))
-        case "global-messages" =>
-          val globalMessages = messages.collect(Messages.getGlobalMessages).sortWith(Messages.creationDateTimeAscending)
-          Ok(views.html.timeline(globalMessages))
-        case _ =>
-          val sysMessage = "ooops something wrong with filter criteria!!!"
-          Ok(views.html.index(sysMessage))
-      }
+      MessageSearchForm.form.bindFromRequest.fold(
+        formWithErrors => {
+          val sysMessage = "Fill form correctly!"
+          BadRequest(views.html.timeline(messages, formWithErrors))
+        },
+        data => {
+          val loggedUser = Users.findUserByEmail(loggedUserEmail)
+
+
+          val messagesSearchData = MessageSearchFormData(data.kind, data.area)
+          val kindResult = {
+            messagesSearchData.kind match {
+              case "look-for-free-seats" => Messages.purposeFilter(LookingForFreeSeat)
+              case "propose-free-seat" => Messages.purposeFilter(ProposeFreeSeat)
+            }
+          }
+          val areaResult = {
+            messagesSearchData.area match {
+              case "kindergarten" => Messages.kindergartenFilter(loggedUser.kindergarten)
+            }
+          }
+
+          val first = Messages.filterTimeline(kindResult)(Messages.dateAscending)(messages)
+          val second = Messages.filterTimeline(areaResult)(Messages.dateAscending)(first)
+
+          Ok(views.html.timeline(second, MessageSearchForm.form))
+        })
     } getOrElse {
       Ok(views.html.index(loginMessage))
     }
   }
-
 }
 

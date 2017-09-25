@@ -6,41 +6,41 @@ import play.api.data.Form
 import play.api.data.Forms._
 
 case class User(
-                 email: String,
-                 password: String,
-                 name: String,
-                 surname: String,
-                 street: String,
-                 city: String,
-                 seats: Int,
-                 kindergarten: Kindergarten,
-                 requests: Set[String],
-                 len: String,
-                 lon: String)
+  email: String,
+  password: String,
+  name: String,
+  surname: String,
+  street: String,
+  city: String,
+  seats: Int,
+  kindergarten: Kindergarten,
+  requests: Set[String],
+  len: String,
+  lon: String)
 
 case class SimpleUser(
-                       email: String,
-                       name: String,
-                       surname: String,
-                       street: String,
-                       city: String,
-                       seats: Int,
-                       len: String,
-                       lon: String,
-                       kindergarten: Kindergarten)
+  email: String,
+  name: String,
+  surname: String,
+  street: String,
+  city: String,
+  seats: Int,
+  len: String,
+  lon: String,
+  kindergarten: Kindergarten)
 
 case class UserFormData(
-                         email: String,
-                         password: String,
-                         name: String,
-                         surname: String,
-                         street: String,
-                         city: String,
-                         seats: Int,
-                         kgName: String,
-                         kgStreet: String,
-                         kgNum: Int,
-                         kgCity: String)
+  email: String,
+  password: String,
+  name: String,
+  surname: String,
+  street: String,
+  city: String,
+  seats: Int,
+  kgName: String,
+  kgStreet: String,
+  kgNum: Int,
+  kgCity: String)
 
 case class Login(email: String, password: String)
 

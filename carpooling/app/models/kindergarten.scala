@@ -6,13 +6,13 @@ import play.api.data.Form
 import play.api.data.Forms._
 
 case class Kindergarten(
-                         name: String,
-                         street: String,
-                         num: Int,
-                         city: String,
-                         len: String,
-                         lon: String,
-                         usersEmails: List[List[String]])
+  name: String,
+  street: String,
+  num: Int,
+  city: String,
+  len: String,
+  lon: String,
+  usersEmails: List[List[String]])
 
 case class KindergartenFormData(name: String, street: String, num: Int, city: String)
 

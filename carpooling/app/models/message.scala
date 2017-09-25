@@ -26,15 +26,15 @@ object Purpose {
 }
 
 case class MessageFormData(
-                            purpose: String,
-                            seats: Int,
-                            year: Int,
-                            month: Int,
-                            day: Int,
-                            hour: Int,
-                            minutes: Int,
-                            from: String,
-                            to: String)
+  purpose: String,
+  seats: Int,
+  year: Int,
+  month: Int,
+  day: Int,
+  hour: Int,
+  minutes: Int,
+  from: String,
+  to: String)
 
 object MessageForm {
   val form = Form(
@@ -49,6 +49,17 @@ object MessageForm {
       "from" -> text,
       "to" -> text
     )(MessageFormData.apply)(MessageFormData.unapply)
+  )
+}
+
+case class MessageSearchFormData(kind: String, area: String)
+
+object MessageSearchForm {
+  val form = Form(
+    mapping(
+      "kind" -> text,
+      "area" -> text
+    )(MessageSearchFormData.apply)(MessageSearchFormData.unapply)
   )
 }
 
@@ -67,14 +78,13 @@ case class GlobalMessage(creationDateTime: DateTime = new DateTime, content: Str
 }
 
 case class UserMessage(
-                        creationDateTime: DateTime = new DateTime,
-                        purpose: Purpose,
-                        seats: Int,
-                        date: DateTime,
-                        from: String,
-                        to: String,
-                        user: SimpleUser)
-  extends Message {
+  creationDateTime: DateTime = new DateTime,
+  purpose: Purpose,
+  seats: Int,
+  date: DateTime,
+  from: String,
+  to: String,
+  user: SimpleUser) extends Message {
   override def toString =
     s"""Purpose: ${purpose.statement}
        | Seats: $seats
@@ -84,7 +94,7 @@ case class UserMessage(
        | Who: ${user.name} ${user.surname} from kindergarten ${user.kindergarten.name} on ${user.kindergarten.street} in ${user.kindergarten.city}
        | Contact: ${user.email}
        | Created: ${creationDateTime.toDate}
-     """
+     """.stripMargin
 }
 
 object Messages {
