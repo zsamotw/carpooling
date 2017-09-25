@@ -334,8 +334,8 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
           val messagesSearchData = MessageSearchFormData(data.kind, data.area)
           val kindResult = {
             messagesSearchData.kind match {
-              case "look-for-free-seats" => Messages.purposeFilter(LookingForFreeSeat)
-              case "propose-free-seat" => Messages.purposeFilter(ProposeFreeSeat)
+              case "look-for-free-seats" => Messages.purposeFilter(Purpose("Looking for free seat"))
+              case "propose-free-seat" => Messages.purposeFilter(Purpose("Propose free seat"))
             }
           }
           val areaResult = {
