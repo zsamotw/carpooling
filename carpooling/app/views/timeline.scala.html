@@ -1,23 +1,26 @@
-@(appMessages: List[Message], messageSearchForm: Form[MessageSearchFormData])(implicit messages: play.api.i18n.Messages)
+@(appMessages: List[Message],  sysMessage: String, messageSearchForm: Form[MessageSearchFormData])(implicit messages: play.api.i18n.Messages)
 
 @main("Timeline") {
-<a href="logout">logout</a><br><br>
-    This is your timeline: <br>
-Filter: <a href="/timeline"> All</a> <->
+<a href="logout">logout</a> <-> <a href="/">homepage</a><br><br>
+
+This is your timeline!!! <br>
+Filter it:<br><br>
   @helper.form(action=routes.HomeController.filterMessages()) {
   @helper.select(
   messageSearchForm("kind"),
   options = Seq("all" -> "all","look-for-free-seats" -> "look-for-free-seats", "propose-free-seats" -> "propose-free-seats", "global-messages" -> "global-messages"),
-    '_default -> "Kind of messages",
-  '_label -> "Why you are here")
+  '_default -> "filters:",
+  '_label -> "Choose kind of messages")
     @helper.select(
   messageSearchForm("area"),
   options = Seq("all" -> "all", "your kindergarten" -> "your-kindergarten"),
-    '_default -> "Propose or look for",
-  '_label -> "What you are interested in")
+    '_default -> "areas:",
+  '_label -> "Area of messages")
   <button type="submit">Search</button>
   }
 
+  Current info: @sysMessage<br><br>
+  
   @for(message <- appMessages) {
 		  @message.toString<br><br>
 		  }

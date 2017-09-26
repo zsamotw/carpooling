@@ -29,6 +29,11 @@ case class SimpleUser(
   lon: String,
   kindergarten: Kindergarten)
 
+/**
+  * Classes and objects for creating user and login from form
+  */
+
+
 case class UserFormData(
   email: String,
   password: String,
@@ -67,6 +72,11 @@ object loginForm {
       "password" -> text)(Login.apply)(Login.unapply))
 }
 
+/*
+ * Methods for Users
+ */
+
+
 object Users {
   def validateLogin(login: Login): Boolean = {
     val userMongoOpt = MongoFactory.users.findOne(MongoDBObject("email" -> login.email))
@@ -100,7 +110,7 @@ object Users {
       "city" -> kindergarten.city)
     val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
     val content = s"Welcome new User: ${user.name} ${user.surname} in ${kindergarten.name}"
-    val message = GlobalMessage(new DateTime,content)
+    val message = GlobalMessage(new DateTime, user.kindergarten, content)
     (user, query, update, message)
   }
 
@@ -201,7 +211,7 @@ object Users {
     val fstG = loggedUserGroupEmailsList map(email => findUserByEmail(email))
     val scdG = userToReplyGroupEmailsList map(email => findUserByEmail(email))
     val content = s"Two group from ${kindergarten.name} has joined: " + userGroupToString(fstG) + " | " + userGroupToString(scdG)
-    val message = GlobalMessage(new DateTime, content)
+    val message = GlobalMessage(new DateTime, kindergarten, content)
 
     val query = MongoDBObject(
       "name" -> kindergarten.name,
@@ -228,7 +238,7 @@ object Users {
     val usersEmailsAfter = List(loggedUserEmail) :: usersEmailsWithoutLoggedUser :: restUsersEmails
 
     val content = s"User: ${loggedUser.name} ${loggedUser.surname} from ${loggedUser.kindergarten.name} has just leaved his group"
-    val message = GlobalMessage(new DateTime, content)
+    val message = GlobalMessage(new DateTime, loggedUser.kindergarten, content)
     val query = MongoDBObject(
       "name" -> kindergarten.name,
       "street" -> kindergarten.street,

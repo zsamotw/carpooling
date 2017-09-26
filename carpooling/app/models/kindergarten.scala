@@ -14,6 +14,10 @@ case class Kindergarten(
   lon: String,
   usersEmails: List[List[String]])
 
+/*
+ * Case class and object for creating kindergartn from form
+ */
+
 case class KindergartenFormData(name: String, street: String, num: Int, city: String)
 
 object KindergartenForm {
@@ -27,6 +31,10 @@ object KindergartenForm {
   )
 }
 
+/*
+ * Methods for kindergartens
+ */
+
 object Kindergartens {
   def listAll: List[Kindergarten] = {
     val kindergartens = MongoFactory.kindergartens.find
@@ -35,7 +43,7 @@ object Kindergartens {
 
   def add(kindergarten: Kindergarten): (Kindergarten, GlobalMessage) = {
     val content = s"New kindergarten has been added: ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city}"
-    val message = GlobalMessage(new DateTime, content)
+    val message = GlobalMessage(new DateTime, kindergarten, content)
     (kindergarten, message)
   }
 

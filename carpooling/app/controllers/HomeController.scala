@@ -313,7 +313,8 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     request.session.get("connected").map { loggedUserEmail =>
       val messStream = Messages.listAll
       val messages = messStream.take(100).toList.reverse
-      Ok(views.html.timeline(messages, MessageSearchForm.form))
+      val sysMessage = "Showing all messages"
+      Ok(views.html.timeline(messages, sysMessage, MessageSearchForm.form))
     }.getOrElse {
       Ok(views.html.index(loginMessage))
     }
@@ -321,34 +322,56 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def filterMessages() = Action { implicit request =>
     request.session.get("connected").map { loggedUserEmail =>
-      val messages = Messages.listAll.toList
+      val messages = Messages.listAll.toList.reverse
       MessageSearchForm.form.bindFromRequest.fold(
         formWithErrors => {
           val sysMessage = "Fill form correctly!"
-          BadRequest(views.html.timeline(messages, formWithErrors))
+          BadRequest(views.html.timeline(messages, sysMessage, formWithErrors))
         },
         data => {
           val loggedUser = Users.findUserByEmail(loggedUserEmail)
-
-
           val messagesSearchData = MessageSearchFormData(data.kind, data.area)
-          val kindResult = {
-            messagesSearchData.kind match {
-              case "look-for-free-seats" => Messages.purposeFilter(Purpose("Looking for free seat"))
-              case "propose-free-seat" => Messages.purposeFilter(Purpose("Propose free seat"))
-            }
-          }
+
           val areaResult = {
-            messagesSearchData.area match {
-              case "kindergarten" => Messages.kindergartenFilter(loggedUser.kindergarten)
+              messagesSearchData.area match {
+                case "your kindergarten" =>
+                  val filter = Messages.kindergartenFilter(loggedUser.kindergarten)
+                  val filteredMessages = Messages.filterTimeline(filter)(Messages.creationDateTimeAscending)(messages)
+                  val sysMessage1 = "Messages from your kindergarten in category: "
+                  (filteredMessages, sysMessage1)
+                case all => (messages, "Messages from all kindergartens. ")
+                case _ => (messages, "Wrong area!!!")
+              }
             }
+
+          val(messagesWithAreaFilter, sysMessage1) = areaResult
+
+          val finalResult = {
+            messagesSearchData.kind match {
+              case "look-for-free-seats" =>
+                val filter = Messages.purposeFilter(Purpose("Looking for free seat"))
+                val finalMessages = Messages.filterTimeline(filter)(Messages.dateAscending)(messagesWithAreaFilter)
+                val sysMessage2 = "Look for free setas "
+                (finalMessages, sysMessage2)
+              case "propose-free-seat" =>
+                val filter = Messages.purposeFilter(Purpose("Propose free seat"))
+                val finalMessages = Messages.filterTimeline(filter)(Messages.dateAscending)(messagesWithAreaFilter)
+                val sysMessage2 = "Propose free seats"
+                (finalMessages, sysMessage2)
+              case "global-messages" =>
+                val finalMessages = messages.collect(Messages.getGlobalMessages).sortWith(Messages.creationDateTimeAscending)
+                val sysMessage2 = "Global messages"
+                (finalMessages, sysMessage2)
+              case "all" => (messages, "All kinds of messages.")
+              case _ => (messages, "Oppps wrong filter criterium ")
+              }
+            }
+          val(finalMessages, sysMessage2) = finalResult
+
+          val finalMessage = sysMessage1 + sysMessage2
+          Ok(views.html.timeline(finalMessages, finalMessage, MessageSearchForm.form))
           }
-
-          val first = Messages.filterTimeline(kindResult)(Messages.dateAscending)(messages)
-          val second = Messages.filterTimeline(areaResult)(Messages.dateAscending)(first)
-
-          Ok(views.html.timeline(second, MessageSearchForm.form))
-        })
+      )
     } getOrElse {
       Ok(views.html.index(loginMessage))
     }

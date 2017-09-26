@@ -7,6 +7,9 @@ import com.mongodb.casbah.MongoConnection
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.conversions.scala._
 
+/*
+ * Object for searching geopoint of user and kindergarten
+ */
 
 object GeoUtils {
   def searchGeoPoint(user: UserFormData): (String, String) = {
@@ -31,6 +34,10 @@ object GeoUtils {
     (lat, lon)
   }
 }
+
+/*
+ * Object for working with Mongo Database
+ */
 
 object MongoFactory {
   RegisterJodaTimeConversionHelpers()
@@ -106,6 +113,13 @@ object MongoFactory {
   def buildMongoDbGlobalMessage(message: GlobalMessage): MongoDBObject = {
     val builder = MongoDBObject.newBuilder
     builder += "datetime" -> message.creationDateTime
+    builder += "kindergartenname" -> message.kindergarten.name
+    builder += "kindergartenstreet" -> message.kindergarten.street
+    builder += "kindergartennum" -> message.kindergarten.num
+    builder += "kindergartencity" -> message.kindergarten.city
+    builder += "kindergartenlen" -> message.kindergarten.len
+    builder += "kindergartenlon" -> message.kindergarten.lon
+    builder += "kindergartenusersemails" -> message.kindergarten.usersEmails
     builder += "content" -> message.content
     builder.result
   }

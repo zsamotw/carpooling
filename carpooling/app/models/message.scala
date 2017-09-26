@@ -25,6 +25,11 @@ object Purpose {
   }
 }
 
+/**
+  * Classes for forms -> 1) form for creating message
+  *                      2) form for searching messages
+  */
+
 case class MessageFormData(
   purpose: String,
   seats: Int,
@@ -63,7 +68,12 @@ object MessageSearchForm {
   )
 }
 
+/**
+  * Trait Message and two subclasses: GlobalMessage and UserMessage
+  */
+
 trait Message {
+
   val creationDateTime: DateTime
 
   def >(other: Message): Boolean = this.creationDateTime.isAfter(other.creationDateTime)
@@ -71,7 +81,7 @@ trait Message {
   def <(other: Message): Boolean = other.creationDateTime.isAfter(this.creationDateTime)
 }
 
-case class GlobalMessage(creationDateTime: DateTime = new DateTime, content: String) extends Message {
+case class GlobalMessage(creationDateTime: DateTime = new DateTime, kindergarten: Kindergarten, content: String) extends Message {
   override def toString: String =
     s"""$content
        | Created: ${creationDateTime.toDate}""".stripMargin
@@ -103,6 +113,10 @@ object Messages {
     convertCursorToMessagesStream(messages)
   }
 
+  /*
+   * Filters for messages
+   */
+
   val getUserMessages: PartialFunction[Message, Message] = { case mess if mess.isInstanceOf[UserMessage] => mess }
 
   val getGlobalMessages: PartialFunction[Message, Message] = { case mess if mess.isInstanceOf[GlobalMessage] => mess }
@@ -110,8 +124,6 @@ object Messages {
   type MessagesFilter = Message => Boolean
 
   type MessageOrder = (Message, Message) => Boolean
-
-  def filterTimeline(pred: MessagesFilter)(sortMethod: MessageOrder)( messages: List[Message]): List[Message] = messages filter pred sortWith sortMethod
 
   val purposeFilter: Purpose => MessagesFilter = purpose => {
     case message: UserMessage => message.purpose == purpose
@@ -127,7 +139,6 @@ object Messages {
     case _ => false
   }
 
-
   val creationDateTimeAscending: MessageOrder = _ > _
 
   val creationDateTimeDescending: MessageOrder = _ < _
@@ -141,6 +152,8 @@ object Messages {
     case (mess1: UserMessage, mess2: UserMessage) => mess2.date.isAfter(mess1.date)
     case _ => false
   }
+
+  def filterTimeline(pred: MessagesFilter)(sortMethod: MessageOrder)( messages: List[Message]): List[Message] = messages filter pred sortWith sortMethod
 
   def convertCursorToMessagesStream(mongoMessages: MongoCursor): Stream[Message] = {
     val res =
@@ -189,8 +202,15 @@ object Messages {
                   Kindergarten(kgName, kgStreet, kgNum, kgCity, kgLen,kgLon, kgUserEmails)))
             case None =>
               val dateTime = messMongo.getAs[DateTime]("datetime").get
+              val kgName = messMongo.getAs[String]("kindergartenname").get
+              val kgStreet = messMongo.getAs[String]("kindergartenstreet").get
+              val kgNum = messMongo.getAs[Int]("kindergartennum").get
+              val kgCity = messMongo.getAs[String]("kindergartencity").get
+              val kgLen = messMongo.getAs[String]("kindergartenlen").get
+              val kgLon = messMongo.getAs[String]("kindergartenlon").get
+              val kgUserEmails = messMongo.getAs[List[List[String]]]("kindergartenusersemails").get
               val content = messMongo.getAs[String]("content").get
-              GlobalMessage(dateTime, content)
+              GlobalMessage(dateTime, Kindergarten(kgName, kgStreet, kgNum, kgCity, kgLen, kgLon, kgUserEmails), content)
           }
       } yield mess
     res.toStream
