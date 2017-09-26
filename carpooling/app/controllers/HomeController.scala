@@ -339,7 +339,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
                   val filteredMessages = Messages.filterTimeline(filter)(Messages.creationDateTimeAscending)(messages)
                   val sysMessage1 = "Messages from your kindergarten in category: "
                   (filteredMessages, sysMessage1)
-                case all => (messages, "Messages from all kindergartens. ")
+                case all => (messages, "Messages from all kindergartens in category: ")
                 case _ => (messages, "Wrong area!!!")
               }
             }
@@ -351,16 +351,16 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
               case "look-for-free-seats" =>
                 val filter = Messages.purposeFilter(Purpose("Looking for free seat"))
                 val finalMessages = Messages.filterTimeline(filter)(Messages.dateAscending)(messagesWithAreaFilter)
-                val sysMessage2 = "Look for free setas "
+                val sysMessage2 = "Look for free setas."
                 (finalMessages, sysMessage2)
               case "propose-free-seat" =>
                 val filter = Messages.purposeFilter(Purpose("Propose free seat"))
                 val finalMessages = Messages.filterTimeline(filter)(Messages.dateAscending)(messagesWithAreaFilter)
-                val sysMessage2 = "Propose free seats"
+                val sysMessage2 = "Propose free seats."
                 (finalMessages, sysMessage2)
               case "global-messages" =>
                 val finalMessages = messages.collect(Messages.getGlobalMessages).sortWith(Messages.creationDateTimeAscending)
-                val sysMessage2 = "Global messages"
+                val sysMessage2 = "Global messages."
                 (finalMessages, sysMessage2)
               case "all" => (messages, "All kinds of messages.")
               case _ => (messages, "Oppps wrong filter criterium ")
