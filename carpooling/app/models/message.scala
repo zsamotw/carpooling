@@ -131,13 +131,28 @@ object Messages {
   }
 
   val kindergartenFilter: Kindergarten => MessagesFilter = kindergarten => {
-    case message: UserMessage =>
+    case message: UserMessage => {
       message.user.kindergarten.city == kindergarten.city &&
-        message.user.kindergarten.name == kindergarten.name &&
-        message.user.kindergarten.street == kindergarten.street &&
-        message.user.kindergarten.num == kindergarten.num
-    case _ => false
+      message.user.kindergarten.name == kindergarten.name &&
+      message.user.kindergarten.street == kindergarten.street &&
+      message.user.kindergarten.num == kindergarten.num
+    }
+    case message: GlobalMessage => {
+      message.kindergarten.city == kindergarten.city &&
+      message.kindergarten.name == kindergarten.name &&
+      message.kindergarten.street == kindergarten.street &&
+      message.kindergarten.num == kindergarten.num
+    }
   }
+
+  val globalMessagesFilter: MessagesFilter = mess => {
+    mess match {
+      case m: GlobalMessage => true
+      case _ => false
+    }
+  }
+
+  val notFiltered: MessagesFilter = mess => true
 
   val creationDateTimeAscending: MessageOrder = _ > _
 
@@ -152,6 +167,8 @@ object Messages {
     case (mess1: UserMessage, mess2: UserMessage) => mess2.date.isAfter(mess1.date)
     case _ => false
   }
+
+  def everyFilters(filters: MessagesFilter*): MessagesFilter = message => filters forall(filter => filter(message))
 
   def filterTimeline(pred: MessagesFilter)(sortMethod: MessageOrder)( messages: List[Message]): List[Message] = messages filter pred sortWith sortMethod
 

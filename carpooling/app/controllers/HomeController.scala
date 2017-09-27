@@ -5,9 +5,7 @@ import javax.inject.Inject
 import models._
 import org.joda.time.DateTime
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc._
-import scala.concurrent.Future
 
 
 class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller  with I18nSupport {
@@ -25,7 +23,13 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   }
 
   def login() = Action { implicit request =>
-    Ok(views.html.login(loginForm.form))
+    request.session.get("connected").map {loggedUserEmail =>
+      val user = Users.findUserByEmail(loggedUserEmail)
+      val sysMessage = s"${user.name} you have just logged in. If you are not ${user.name} logout in the second!!!!"
+      Ok(views.html.index(sysMessage))
+    }.getOrElse {
+      Ok(views.html.login(loginForm.form))
+    }
   }
 
   def validateLoginAndPassword() = Action { implicit request =>
@@ -328,49 +332,49 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
           val sysMessage = "Fill form correctly!"
           BadRequest(views.html.timeline(messages, sysMessage, formWithErrors))
         },
-        data => {
+        messagesSearchData => {
           val loggedUser = Users.findUserByEmail(loggedUserEmail)
-          val messagesSearchData = MessageSearchFormData(data.kind, data.area)
 
-          val areaResult = {
-              messagesSearchData.area match {
-                case "your kindergarten" =>
-                  val filter = Messages.kindergartenFilter(loggedUser.kindergarten)
-                  val filteredMessages = Messages.filterTimeline(filter)(Messages.creationDateTimeAscending)(messages)
-                  val sysMessage1 = "Messages from your kindergarten in category: "
-                  (filteredMessages, sysMessage1)
-                case all => (messages, "Messages from all kindergartens in category: ")
-                case _ => (messages, "Wrong area!!!")
-              }
-            }
-
-          val(messagesWithAreaFilter, sysMessage1) = areaResult
-
-          val finalResult = {
+          val kindFieldResult = {
             messagesSearchData.kind match {
               case "look-for-free-seats" =>
                 val filter = Messages.purposeFilter(Purpose("Looking for free seat"))
-                val finalMessages = Messages.filterTimeline(filter)(Messages.dateAscending)(messagesWithAreaFilter)
-                val sysMessage2 = "Look for free setas."
-                (finalMessages, sysMessage2)
-              case "propose-free-seat" =>
+                val sortingCriteria = Messages.dateAscending
+                val sysMessage = "Look for free setas."
+                (filter, sortingCriteria, sysMessage)
+              case "propose-free-seats" =>
                 val filter = Messages.purposeFilter(Purpose("Propose free seat"))
-                val finalMessages = Messages.filterTimeline(filter)(Messages.dateAscending)(messagesWithAreaFilter)
-                val sysMessage2 = "Propose free seats."
-                (finalMessages, sysMessage2)
+                val sortingCriteria = Messages.dateAscending
+                val sysMessage = "Propose free seats."
+                (filter, sortingCriteria, sysMessage)
               case "global-messages" =>
-                val finalMessages = messages.collect(Messages.getGlobalMessages).sortWith(Messages.creationDateTimeAscending)
-                val sysMessage2 = "Global messages."
-                (finalMessages, sysMessage2)
-              case "all" => (messages, "All kinds of messages.")
-              case _ => (messages, "Oppps wrong filter criterium ")
-              }
+                val filter = Messages.globalMessagesFilter
+                val sortingCriteria = Messages.creationDateTimeAscending
+                val sysMessage = "Global messages."
+                (filter, sortingCriteria, sysMessage)
+              case "all" => (Messages.notFiltered, Messages.dateAscending, "All kinds of messages.")
+              case _ => (Messages.notFiltered, Messages.dateAscending, "Oppps wrong filter criterium ")
             }
-          val(finalMessages, sysMessage2) = finalResult
-
-          val finalMessage = sysMessage1 + sysMessage2
-          Ok(views.html.timeline(finalMessages, finalMessage, MessageSearchForm.form))
           }
+
+          val areaFieldResult = {
+            messagesSearchData.area match {
+              case "your kindergarten" =>
+                val filter = Messages.kindergartenFilter(loggedUser.kindergarten)
+                val sysMessage = "Messages from your kindergarten in category: "
+                (filter, sysMessage)
+              case "all" => (Messages.notFiltered, "Messages from all kindergartens in category: ")
+              case _ => (Messages.notFiltered, "Wrong area!!!")
+            }
+          }
+
+          val(messagesFilter1, sysMessage1) = areaFieldResult
+          val(messagesFilter2, sortingCriteria, sysMessage2) = kindFieldResult
+          val finalFilter = Messages.everyFilters(messagesFilter2, messagesFilter1)
+          val finalSysMessage = sysMessage1 + sysMessage2
+          val finalMessages = Messages.filterTimeline(finalFilter)(sortingCriteria)(messages)
+          Ok(views.html.timeline(finalMessages, finalSysMessage, MessageSearchForm.form))
+        }
       )
     } getOrElse {
       Ok(views.html.index(loginMessage))
