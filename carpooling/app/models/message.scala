@@ -117,9 +117,9 @@ object Messages {
    * Filters for messages
    */
 
-  val getUserMessages: PartialFunction[Message, Message] = { case mess if mess.isInstanceOf[UserMessage] => mess }
+  val getUserMessages: PartialFunction[Message, Message] = { case message if message.isInstanceOf[UserMessage] => message }
 
-  val getGlobalMessages: PartialFunction[Message, Message] = { case mess if mess.isInstanceOf[GlobalMessage] => mess }
+  val getGlobalMessages: PartialFunction[Message, Message] = { case message if message.isInstanceOf[GlobalMessage] => message }
 
   type MessagesFilter = Message => Boolean
 
@@ -147,12 +147,12 @@ object Messages {
 
   val globalMessagesFilter: MessagesFilter = mess => {
     mess match {
-      case m: GlobalMessage => true
+      case message: GlobalMessage => true
       case _ => false
     }
   }
 
-  val notFiltered: MessagesFilter = mess => true
+  val notFiltered: MessagesFilter = message => true
 
   val creationDateTimeAscending: MessageOrder = _ > _
 
@@ -164,7 +164,7 @@ object Messages {
   }
 
   val dateDescending: MessageOrder = {
-    case (mess1: UserMessage, mess2: UserMessage) => mess2.date.isAfter(mess1.date)
+    case (message1: UserMessage, message2: UserMessage) => message2.date.isAfter(message1.date)
     case _ => false
   }
 
