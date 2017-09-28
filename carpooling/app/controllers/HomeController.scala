@@ -363,6 +363,10 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
                 val filter = Messages.kindergartenFilter(loggedUser.kindergarten)
                 val sysMessage = "Messages from your kindergarten in category: "
                 (filter, sysMessage)
+              case "your-city" =>
+                val filter = Messages.cityFilter(loggedUser.city)
+                val sysMessage = s"Messages from ${loggedUser.city} in category: "
+                (filter, sysMessage)
               case "all" => (Messages.notFiltered, "Messages from all kindergartens in category: ")
               case _ => (Messages.notFiltered, "Wrong area!!!")
             }

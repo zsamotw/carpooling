@@ -145,6 +145,11 @@ object Messages {
     }
   }
 
+    val cityFilter: String => MessagesFilter = city => {
+      case message: UserMessage => message.user.kindergarten.city == city
+      case message: GlobalMessage => message.kindergarten.city == city
+  }
+
   val globalMessagesFilter: MessagesFilter = mess => {
     mess match {
       case message: GlobalMessage => true

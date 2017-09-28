@@ -2,7 +2,7 @@
 @(userForm: Form[UserFormData], kindergartens: List[models.Kindergarten])(implicit messages: play.api.i18n.Messages)
 
 @main("Add user") {
-<a href="logout">logout</a><br><br>
+<a href="/">homepage</a> <-> <a href="logout">logout</a><br><br>
 
   You can add yourself to our database -> name, contact and location. Fill this form:<br>
 
@@ -29,5 +29,5 @@
       <button type="submit">Add user</button>
       }
 
-      <br><a href="/">homepage</a>
+<br><a href="/">homepage</a>
 }
