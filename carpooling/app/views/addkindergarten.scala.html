@@ -2,15 +2,15 @@
 
 @main("Welcome to our Family of Familis") {
 <a href="/">homepage</a> <-> <a href="logout">logout</a><br><br>
-    Add kindergarten to database:
-
-    @helper.form(action=routes.HomeController.addKindergarten()) {
-    @helper.inputText(kindergartenForm("name"))
-    @helper.inputText(kindergartenForm("street"))
-    @helper.inputText(kindergartenForm("num"))
-    @helper.inputText(kindergartenForm("city"))
-    <button type="submit">Add kindergarten</button>
-    }
-
-<br><a href="/">homepage</a>
-}
+  Add kindergarten to database:
+  
+  @helper.form(action=routes.HomeController.addKindergarten()) {
+  @helper.inputText(kindergartenForm("name"))
+  @helper.inputText(kindergartenForm("street"))
+  @helper.inputText(kindergartenForm("num"))
+  @helper.inputText(kindergartenForm("city"))
+  <button type="submit">Add kindergarten</button>
+  }
+  
+  <br><a href="/">homepage</a>
+  }

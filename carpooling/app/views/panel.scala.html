@@ -2,6 +2,7 @@
 
 @main("Panel") {
 <a href="/">homepage</a> <-> <a href="logout">logout</a><br><br>
+<br><b>Current info: @sysMessage</b><br><br>
 @user.name  @user.surname<br>
 Address:
 @user.street  @user.city<br>
@@ -10,7 +11,6 @@ Kindergaten:
 @user.kindergarten.name, @user.kindergarten.street no. @user.kindergarten.num in @user.kindergarten.city<br>
 email:
 @user.email<br><br>
-<a href="/">homepage</a><br><br>
 
 Reply for requests:<br>
 @for(email <- user.requests) {
@@ -44,7 +44,5 @@ Follow with your message:
     }
 	      
 <br><a href="/">homepage</a><br><br><br>
-
-<br><br><b>Current info: @sysMessage</b>
 
 }

@@ -359,7 +359,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
           val areaFieldResult = {
             messagesSearchData.area match {
-              case "your kindergarten" =>
+              case "your-kindergarten" =>
                 val filter = Messages.kindergartenFilter(loggedUser.kindergarten)
                 val sysMessage = "Messages from your kindergarten in category: "
                 (filter, sysMessage)
