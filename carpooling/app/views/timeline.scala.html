@@ -5,16 +5,16 @@
 
 This is your timeline!!! <br>
 Filter it:<br><br>
+
   @helper.form(action=routes.HomeController.filterMessages()) {
   @helper.select(
   messageSearchForm("kind"),
   options = Seq("all" -> "all","look-for-free-seats" -> "look for free seats", "propose-free-seats" -> "propose free seats", "global-messages" -> "global messages"),
-  '_default -> "filters:",
   '_label -> "Choose kind of messages")
-    @helper.select(
+
+  @helper.select(
   messageSearchForm("area"),
   options = Seq("all" -> "all", "your-city" -> "your city", "your-kindergarten" -> "your kindergarten"),
-    '_default -> "areas:",
   '_label -> "Area of messages")
   <button type="submit">Search</button>
   }
