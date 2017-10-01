@@ -99,7 +99,7 @@ object Users {
     convertCursorToUsersList(allUsers)
   }
 
-  def add(user: User): (User, DBObject, DBObject, GlobalMessage) = {
+  def add(user: User): (User, DBObject, DBObject, CommunityMessage) = {
     val kindergarten = user.kindergarten
     val usersEmailsAfter = List(user.email) :: kindergarten.usersEmails
 
@@ -110,7 +110,7 @@ object Users {
       "city" -> kindergarten.city)
     val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
     val content = s"Welcome new User: ${user.name} ${user.surname} in ${kindergarten.name}"
-    val message = GlobalMessage(new DateTime, user.kindergarten, content)
+    val message = CommunityMessage(new DateTime, user.kindergarten, content)
     (user, query, update, message)
   }
 
@@ -141,7 +141,7 @@ object Users {
     (user, userGroup, query, update)
   }
 
-  def leaveGroup(loggedUserEmail: String): (User, List[User], (DBObject, DBObject, GlobalMessage)) = {
+  def leaveGroup(loggedUserEmail: String): (User, List[User], (DBObject, DBObject, CommunityMessage)) = {
     val user = findUserByEmail(loggedUserEmail)
     val userGroup = Users.usersFromGroup(loggedUserEmail)
     val dataToDB = Users.removeFromCarpools(loggedUserEmail)
@@ -183,7 +183,7 @@ object Users {
     group
   }
 
-  def addToCarpools(userToReplyEmail: String, loggedUserEmail: String): (DBObject, DBObject, GlobalMessage) = {
+  def addToCarpools(userToReplyEmail: String, loggedUserEmail: String): (DBObject, DBObject, CommunityMessage) = {
     val loggedUser = Users.findUserByEmail(loggedUserEmail)
     val kindergarten = loggedUser.kindergarten
 
@@ -211,7 +211,7 @@ object Users {
     val fstG = loggedUserGroupEmailsList map(email => findUserByEmail(email))
     val scdG = userToReplyGroupEmailsList map(email => findUserByEmail(email))
     val content = s"Two group from ${kindergarten.name} has joined: " + userGroupToString(fstG) + " | " + userGroupToString(scdG)
-    val message = GlobalMessage(new DateTime, kindergarten, content)
+    val message = CommunityMessage(new DateTime, kindergarten, content)
 
     val query = MongoDBObject(
       "name" -> kindergarten.name,
@@ -223,7 +223,7 @@ object Users {
     (query, update, message)
   }
 
-  def removeFromCarpools(loggedUserEmail: String): (DBObject, DBObject, GlobalMessage) = {
+  def removeFromCarpools(loggedUserEmail: String): (DBObject, DBObject, CommunityMessage) = {
     val loggedUser = Users.findUserByEmail(loggedUserEmail)
     val kindergarten = loggedUser.kindergarten
 
@@ -238,7 +238,7 @@ object Users {
     val usersEmailsAfter = List(loggedUserEmail) :: usersEmailsWithoutLoggedUser :: restUsersEmails
 
     val content = s"User: ${loggedUser.name} ${loggedUser.surname} from ${loggedUser.kindergarten.name} has just leaved his group"
-    val message = GlobalMessage(new DateTime, loggedUser.kindergarten, content)
+    val message = CommunityMessage(new DateTime, loggedUser.kindergarten, content)
     val query = MongoDBObject(
       "name" -> kindergarten.name,
       "street" -> kindergarten.street,

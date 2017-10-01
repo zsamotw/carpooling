@@ -41,9 +41,9 @@ object Kindergartens {
     convertCursorToKindergartensList(kindergartens)
   }
 
-  def add(kindergarten: Kindergarten): (Kindergarten, GlobalMessage) = {
+  def add(kindergarten: Kindergarten): (Kindergarten, CommunityMessage) = {
     val content = s"New kindergarten has been added: ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city}"
-    val message = GlobalMessage(new DateTime, kindergarten, content)
+    val message = CommunityMessage(new DateTime, kindergarten, content)
     (kindergarten, message)
   }
 

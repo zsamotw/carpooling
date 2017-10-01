@@ -9,7 +9,7 @@ Filter it:<br><br>
   @helper.form(action=routes.HomeController.filterMessages()) {
   @helper.select(
   messageSearchForm("kind"),
-  options = Seq("all" -> "all","look-for-free-seats" -> "look for free seats", "propose-free-seats" -> "propose free seats", "global-messages" -> "global messages"),
+  options = Seq("all" -> "all","look-for-free-seats" -> "look for free seats", "propose-free-seats" -> "propose free seats", "community-messages" -> "community messages"),
   '_label -> "Choose kind of messages")
 
   @helper.select(

@@ -81,7 +81,7 @@ trait Message {
   def <(other: Message): Boolean = other.creationDateTime.isAfter(this.creationDateTime)
 }
 
-case class GlobalMessage(creationDateTime: DateTime = new DateTime, kindergarten: Kindergarten, content: String) extends Message {
+case class CommunityMessage(creationDateTime: DateTime = new DateTime, kindergarten: Kindergarten, content: String) extends Message {
   override def toString: String =
     s"""$content
        | Created: ${creationDateTime.toDate}""".stripMargin
@@ -108,9 +108,15 @@ case class UserMessage(
 }
 
 object Messages {
-  def listAll: Stream[Message] = {
+  def listAlltoStream: Stream[Message] = {
     val messages = MongoFactory.messages.find
     convertCursorToMessagesStream(messages)
+  }
+
+  def getAllWithTimeFilter: List[Message] = {
+    val timeNow = new DateTime
+    val messStream = Messages.listAlltoStream
+    messStream.filter(Messages.timeFilter(timeNow)).toList.reverse
   }
 
   /*
@@ -119,11 +125,17 @@ object Messages {
 
   val getUserMessages: PartialFunction[Message, Message] = { case message if message.isInstanceOf[UserMessage] => message }
 
-  val getGlobalMessages: PartialFunction[Message, Message] = { case message if message.isInstanceOf[GlobalMessage] => message }
+  val getCommunityMessages: PartialFunction[Message, Message] = { case message if message.isInstanceOf[CommunityMessage] => message }
 
   type MessagesFilter = Message => Boolean
 
   type MessageOrder = (Message, Message) => Boolean
+
+  val timeFilter: DateTime => MessagesFilter = dateTime => {
+    case message: UserMessage => message.date isAfter dateTime
+    case message: CommunityMessage => true
+  }
+
 
   val purposeFilter: Purpose => MessagesFilter = purpose => {
     case message: UserMessage => message.purpose == purpose
@@ -137,7 +149,7 @@ object Messages {
       message.user.kindergarten.street == kindergarten.street &&
       message.user.kindergarten.num == kindergarten.num
     }
-    case message: GlobalMessage => {
+    case message: CommunityMessage => {
       message.kindergarten.city == kindergarten.city &&
       message.kindergarten.name == kindergarten.name &&
       message.kindergarten.street == kindergarten.street &&
@@ -147,12 +159,12 @@ object Messages {
 
     val cityFilter: String => MessagesFilter = city => {
       case message: UserMessage => message.user.kindergarten.city == city
-      case message: GlobalMessage => message.kindergarten.city == city
+      case message: CommunityMessage => message.kindergarten.city == city
   }
 
-  val globalMessagesFilter: MessagesFilter = mess => {
+  val communityMessagesFilter: MessagesFilter = mess => {
     mess match {
-      case message: GlobalMessage => true
+      case message: CommunityMessage => true
       case _ => false
     }
   }
@@ -232,7 +244,7 @@ object Messages {
               val kgLon = messMongo.getAs[String]("kindergartenlon").get
               val kgUserEmails = messMongo.getAs[List[List[String]]]("kindergartenusersemails").get
               val content = messMongo.getAs[String]("content").get
-              GlobalMessage(dateTime, Kindergarten(kgName, kgStreet, kgNum, kgCity, kgLen, kgLon, kgUserEmails), content)
+              CommunityMessage(dateTime, Kindergarten(kgName, kgStreet, kgNum, kgCity, kgLen, kgLon, kgUserEmails), content)
           }
       } yield mess
     res.toStream

@@ -110,7 +110,7 @@ object MongoFactory {
     builder.result
   }
 
-  def buildMongoDbGlobalMessage(message: GlobalMessage): MongoDBObject = {
+  def buildMongoDbCommunityMessage(message: CommunityMessage): MongoDBObject = {
     val builder = MongoDBObject.newBuilder
     builder += "datetime" -> message.creationDateTime
     builder += "kindergartenname" -> message.kindergarten.name
@@ -124,7 +124,7 @@ object MongoFactory {
     builder.result
   }
 
-  def addUser(data: (User, DBObject, DBObject, GlobalMessage)) {
+  def addUser(data: (User, DBObject, DBObject, CommunityMessage)) {
     val(user, query, update, message) = data
     kindergartens.findAndModify(query, update)
     users += buildMongoDbUser(user)
@@ -138,7 +138,7 @@ object MongoFactory {
     users.remove("email" $eq user.email)
   }
 
-  def leaveGroup(data: (User, List[User],(DBObject, DBObject, GlobalMessage))): String = {
+  def leaveGroup(data: (User, List[User],(DBObject, DBObject, CommunityMessage))): String = {
     val(user, userGroup, dataToDB) = data
     if(userGroup.length > 1) {
       val numberOfOthersUsers = userGroup.length - 1
@@ -166,7 +166,7 @@ object MongoFactory {
     users.findAndModify(query, update)
   }
 
-  def updateCarpools(data: (DBObject, DBObject, GlobalMessage)) {
+  def updateCarpools(data: (DBObject, DBObject, CommunityMessage)) {
     val(query, update, message) = data
     kindergartens.findAndModify(query, update)
     add(message)
@@ -191,7 +191,7 @@ object MongoFactory {
     }
   }
 
-  def add(data: (Kindergarten, GlobalMessage)) {
+  def add(data: (Kindergarten, CommunityMessage)) {
     val(kindergarten, message) = data
     kindergartens += buildMongoDbKindergarten(kindergarten)
     add(message)
@@ -201,7 +201,7 @@ object MongoFactory {
     messages += buildMongoDbUserMessage(message)
   }
 
-  def add(message: GlobalMessage): Unit = {
-    messages += buildMongoDbGlobalMessage(message)
+  def add(message: CommunityMessage): Unit = {
+    messages += buildMongoDbCommunityMessage(message)
   }
 }

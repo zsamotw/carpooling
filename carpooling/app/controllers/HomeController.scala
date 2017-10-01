@@ -315,8 +315,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def showTimeline = Action { implicit request =>
     request.session.get("connected").map { loggedUserEmail =>
-      val messStream = Messages.listAll
-      val messages = messStream.take(100).toList.reverse
+      val messages = Messages.getAllWithTimeFilter
       val sysMessage = "Showing all messages"
       Ok(views.html.timeline(messages, sysMessage, MessageSearchForm.form))
     }.getOrElse {
@@ -326,7 +325,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def filterMessages() = Action { implicit request =>
     request.session.get("connected").map { loggedUserEmail =>
-      val messages = Messages.listAll.toList.reverse
+      val messages = Messages.getAllWithTimeFilter
       MessageSearchForm.form.bindFromRequest.fold(
         formWithErrors => {
           val sysMessage = "Fill form correctly!"
@@ -347,10 +346,10 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
                 val sortingCriteria = Messages.dateAscending
                 val sysMessage = "Propose free seats."
                 (filter, sortingCriteria, sysMessage)
-              case "global-messages" =>
-                val filter = Messages.globalMessagesFilter
+              case "community-messages" =>
+                val filter = Messages.communityMessagesFilter
                 val sortingCriteria = Messages.creationDateTimeAscending
-                val sysMessage = "Global messages."
+                val sysMessage = "Community messages."
                 (filter, sortingCriteria, sysMessage)
               case "all" => (Messages.notFiltered, Messages.dateAscending, "All kinds of messages.")
               case _ => (Messages.notFiltered, Messages.dateAscending, "Oppps wrong filter criterium ")
