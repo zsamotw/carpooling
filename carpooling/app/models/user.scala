@@ -149,12 +149,12 @@ object Users {
   }
 
   def findUserByEmail(email: String): User = {
-    val userOpt = MongoFactory.users.findOne("email" $eq email)
-    userOpt match {
-      case Some(user) =>
-        convertDBObjectToUser(user)
-      case None => throw new NoSuchElementException
-    }
+      val userOpt = MongoFactory.users.findOne("email" $eq email)
+      userOpt match {
+        case Some(user) =>
+          convertDBObjectToUser(user)
+        case None => throw new NoSuchElementException
+      }
   }
 
   def addRequest(requestedUserEmail: String, loggedUserEmail: String): (User, String, (Set[String], String) => Set[String]) = {

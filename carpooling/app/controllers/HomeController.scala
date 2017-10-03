@@ -2,10 +2,13 @@ package controllers
 
 import java.io.IOException
 import javax.inject.Inject
+
 import models._
 import org.joda.time.DateTime
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
+
+import scala.util.Try
 
 
 class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller  with I18nSupport {
@@ -23,10 +26,11 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   }
 
   def login() = Action { implicit request =>
-    request.session.get("connected").map {loggedUserEmail =>
+    request.session.get("connected").map { loggedUserEmail =>
       val user = Users.findUserByEmail(loggedUserEmail)
       val sysMessage = s"${user.name} you have just logged in. If you are not ${user.name} logout in the second!!!!"
       Ok(views.html.index(sysMessage))
+
     }.getOrElse {
       Ok(views.html.login(loginForm.form))
     }
@@ -37,7 +41,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
       formWithError => {
         BadRequest(views.html.login(formWithError))
       },
-      login => {
+      login => try {
         val user = Users.findUserByEmail(login.email)
         val sysMessage = s"Hello today. How are you ${user.name}?"
         if(Users.validateLogin(login)) Ok(views.html.index(sysMessage)).withSession("connected" -> login.email)
@@ -45,7 +49,10 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
           val sysMessage = "Incorrect login or password"
           Ok(views.html.index(sysMessage))
         }
-      }
+      } catch {
+        case e: NoSuchElementException =>
+          val sysMessage = "Incorrect user name. There isn't this user in our database"
+          Ok(views.html.index(sysMessage))}
     )
   }
 
