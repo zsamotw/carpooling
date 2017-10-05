@@ -4,6 +4,7 @@ import com.mongodb.casbah.Imports._
 import org.joda.time.DateTime
 import play.api.data.Form
 import play.api.data.Forms._
+import scala.util.Try
 
 case class User(
   email: String,
