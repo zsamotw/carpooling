@@ -93,20 +93,6 @@ object MongoFactory {
     builder += "from" -> message.from
     builder += "to" -> message.to
     builder += "useremail" -> message.user.email
-    builder += "username" -> message.user.name
-    builder += "usersurname" -> message.user.surname
-    builder += "userstreet" -> message.user.street
-    builder += "usercity" -> message.user.city
-    builder += "userseats" -> message.user.seats
-    builder += "userlen" -> message.user.len
-    builder += "userlon" -> message.user.lon
-    builder += "kindergartenname" -> message.user.kindergarten.name
-    builder += "kindergartenstreet" -> message.user.kindergarten.street
-    builder += "kindergartennum" -> message.user.kindergarten.num
-    builder += "kindergartencity" -> message.user.kindergarten.city
-    builder += "kindergartenlen" -> message.user.kindergarten.len
-    builder += "kindergartenlon" -> message.user.kindergarten.lon
-    builder += "kindergartenusersemails" -> message.user.kindergarten.usersEmails
     builder.result
   }
 
@@ -117,9 +103,6 @@ object MongoFactory {
     builder += "kindergartenstreet" -> message.kindergarten.street
     builder += "kindergartennum" -> message.kindergarten.num
     builder += "kindergartencity" -> message.kindergarten.city
-    builder += "kindergartenlen" -> message.kindergarten.len
-    builder += "kindergartenlon" -> message.kindergarten.lon
-    builder += "kindergartenusersemails" -> message.kindergarten.usersEmails
     builder += "content" -> message.content
     builder.result
   }

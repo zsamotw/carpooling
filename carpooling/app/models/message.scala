@@ -95,6 +95,7 @@ case class UserMessage(
   from: String,
   to: String,
   user: SimpleUser) extends Message {
+
   override def toString =
     s"""Purpose: ${purpose.statement}
        | Seats: $seats
@@ -195,7 +196,7 @@ object Messages {
         purposeOpt = messMongo.getAs[String]("purpose")
         mess =
           purposeOpt match {
-            case Some(pupose) =>
+            case Some(p) =>
               val dateTime = messMongo.getAs[DateTime]("datetime").get
               val purpose = messMongo.getAs[String]("purpose").get
               val seats = messMongo.getAs[Int]("seats").get
@@ -203,20 +204,8 @@ object Messages {
               val from = messMongo.getAs[String]("from").get
               val to = messMongo.getAs[String]("to").get
               val userEmail = messMongo.getAs[String]("useremail").get
-              val userName = messMongo.getAs[String]("username").get
-              val userSurname = messMongo.getAs[String]("usersurname").get
-              val userStreet = messMongo.getAs[String]("userstreet").get
-              val userCity = messMongo.getAs[String]("usercity").get
-              val userSeats = messMongo.getAs[Int]("userseats").get
-              val userLen = messMongo.getAs[String]("userlen").get
-              val userLon = messMongo.getAs[String]("userlon").get
-              val kgName = messMongo.getAs[String]("kindergartenname").get
-              val kgStreet = messMongo.getAs[String]("kindergartenstreet").get
-              val kgNum = messMongo.getAs[Int]("kindergartennum").get
-              val kgCity = messMongo.getAs[String]("kindergartencity").get
-              val kgLen = messMongo.getAs[String]("kindergartenlen").get
-              val kgLon = messMongo.getAs[String]("kindergartenlon").get
-              val kgUserEmails = messMongo.getAs[List[List[String]]]("kindergartenusersemails").get
+              val user = Users.findUserByEmail(userEmail)
+              val simpleUser = Users.convertToSimpleUser(user)
               UserMessage(
                 dateTime,
                 Purpose(purpose),
@@ -224,27 +213,16 @@ object Messages {
                 date,
                 from,
                 to,
-                SimpleUser(
-                  userEmail,
-                  userName,
-                  userSurname,
-                  userStreet,
-                  userCity,
-                  userSeats,
-                  userLen,
-                  userLon,
-                  Kindergarten(kgName, kgStreet, kgNum, kgCity, kgLen,kgLon, kgUserEmails)))
+                simpleUser)
             case None =>
               val dateTime = messMongo.getAs[DateTime]("datetime").get
               val kgName = messMongo.getAs[String]("kindergartenname").get
               val kgStreet = messMongo.getAs[String]("kindergartenstreet").get
               val kgNum = messMongo.getAs[Int]("kindergartennum").get
               val kgCity = messMongo.getAs[String]("kindergartencity").get
-              val kgLen = messMongo.getAs[String]("kindergartenlen").get
-              val kgLon = messMongo.getAs[String]("kindergartenlon").get
-              val kgUserEmails = messMongo.getAs[List[List[String]]]("kindergartenusersemails").get
               val content = messMongo.getAs[String]("content").get
-              CommunityMessage(dateTime, Kindergarten(kgName, kgStreet, kgNum, kgCity, kgLen, kgLon, kgUserEmails), content)
+              val kindergarten = Kindergartens.find(kgName, kgStreet, kgNum, kgCity)
+              CommunityMessage(dateTime, kindergarten, content)
           }
       } yield mess
     res.toStream
