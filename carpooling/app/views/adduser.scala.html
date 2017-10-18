@@ -18,14 +18,7 @@
   options = for(i <- 1 to 10) yield (i.toString -> i.toString),
     '_default -> "Number of free seats in your car",
     '_label -> "Seats")
-    @helper.select(
-    userForm("kgName"),
-    options = for(kg <- kindergartens) yield (kg.name  -> kg.name),
-      '_default -> "choose your kindergarten",
-      '_label -> "Kindergarten name")
-      @helper.inputText(userForm("kgStreet"))
-      @helper.inputText(userForm("kgNum"))
-      @helper.inputText(userForm("kgCity"))
+
       <button type="submit">Add user</button>
       }
 

@@ -101,7 +101,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
         },
         userData => {
           val latLon = GeoUtils.searchGeoPoint(userData)
-          val kindergarten = Kindergartens.find(userData.kgName, userData.kgStreet, userData.kgNum, userData.kgCity)
+          val kindergarten = Kindergartens.emptyKindergarten
           val user =
             User(
               userData.email,
@@ -114,7 +114,8 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
               kindergarten,
               Set[String](),
               latLon._1,
-              latLon._2)
+              latLon._2,
+              false)
           if (Users.isOnlyOne(user)) {
             val dataToDB = Users.add(user)
             MongoFactory.addUser(dataToDB)
@@ -178,27 +179,44 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def addKindergarten() = Action{ implicit request =>
     try {
-      KindergartenForm.form.bindFromRequest.fold(
-        formWithError => {
-          Ok(views.html.addkindergarten(formWithError))
-        },
-        kindergartenData => {
-          val latLon = GeoUtils.searchGeoPoint(kindergartenData)
-          val kindergarten =
-            Kindergarten(
-              kindergartenData.name,
-              kindergartenData.street,
-              kindergartenData.num,
-              kindergartenData.city,
-              latLon._1,
-              latLon._2,
-              List[List[String]]())
-          val dataToDB = Kindergartens.add(kindergarten)
-          MongoFactory.add(dataToDB)
-          val sysMessage = s"Kindergarten ${kindergarten.name} on ${kindergarten.street} was added"
-          Ok(views.html.index(sysMessage))
-        }
-      )
+      request.session.get("connected").map { loggedUserEmail =>
+        KindergartenForm.form.bindFromRequest.fold(
+          formWithError => {
+            Ok(views.html.addkindergarten(formWithError))
+          },
+          kindergartenData => {
+            val user = Users.findUserByEmail(loggedUserEmail)
+            user match {
+              case u: User if(u.admin == false && (u.kindergarten.usersEmails filter(group => group contains loggedUserEmail )).length < 2) =>
+                val latLon = GeoUtils.searchGeoPoint(kindergartenData)
+                val usersList = List[String](loggedUserEmail) :: List[List[String]]()
+                val hashCode = (kindergartenData.name + kindergartenData.street + kindergartenData.num.toString + kindergartenData.city).hashCode.toString
+                val kindergarten =
+                  Kindergarten(
+                    kindergartenData.name,
+                    kindergartenData.street,
+                    kindergartenData.num,
+                    kindergartenData.city,
+                    latLon._1,
+                    latLon._2,
+                    usersList,
+                    loggedUserEmail,
+                    hashCode)
+                val dataToDB = Kindergartens.add(kindergarten, user)
+                MongoFactory.add(dataToDB)
+                val sysMessage = s"Kindergarten ${kindergarten.name} on ${kindergarten.street} was added by $loggedUserEmail"
+                Ok(views.html.index(sysMessage))
+              case _ =>
+                val sysMessage = {
+                  if(user.admin == true) "You are admin.You can't add more kindergartens."
+                  else "You are linked with some people. First you have to leave your group in personal panel"
+                }
+                Ok(views.html.index(sysMessage))
+            }
+            })
+      } getOrElse {
+        Ok(views.html.index(loginMessage))
+      }
     } catch {
       case e: IOException =>
         val sysMessage = "Oooops, something wrong with kindergarten address or internet connection"
@@ -206,6 +224,28 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
       case e: NoSuchElementException =>
         val sysMessage = "Ooops! Problem with finding element. Check you connection with database"
         Ok(views.html.index(sysMessage))
+    }
+  }
+
+  def addUserToKindergarten(kgHashCode: String) = Action { implicit request =>
+    request.session.get("connected").map { loggedUserEmail =>
+      val kindergarten = Kindergartens.find(kgHashCode)
+      val user = Users.findUserByEmail(loggedUserEmail)
+      user match {
+        case u: User if(u.admin == false && (u.kindergarten.usersEmails filter(group => group contains loggedUserEmail )).length < 2) =>
+          val dataToDB = Kindergartens.addUserToKindergarten(user, kindergarten)
+          MongoFactory.addUserToKindergarten(dataToDB)
+          val sysMessage = s"Success. You have change kindergarten to ${kindergarten.name}"
+          Redirect(routes.HomeController.showUserPanel(sysMessage))
+        case _ =>
+          val sysMessage = {
+            if(user.admin == true) "You are admin.You can't add more kindergartens."
+            else "You are linked with some people. First you have to leave your group in personal panel"
+          }
+          Redirect(routes.HomeController.showUserPanel(sysMessage))
+      }
+    }.getOrElse {
+      Ok(views.html.index(loginMessage))
     }
   }
 
@@ -277,18 +317,18 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   }
 
   def showUserPanel(sysMessage: String) = Action { implicit request =>
-    try {
+//    try {
       request.session.get("connected").map { email =>
         val user = Users.findUserByEmail(email)
         Ok(views.html.panel(user, sysMessage, MessageForm.form))
       }.getOrElse {
         Ok(views.html.index(loginMessage))
       }
-    } catch {
-      case e: NoSuchElementException =>
-        val sysMessage = "Ooops! Problem with finding element. Check you connection with database"
-        Ok(views.html.index(sysMessage))
-    }
+    // } catch {
+    //   case e: NoSuchElementException =>
+    //     val sysMessage = "Ooops! Problem with finding element. Check you connection with database"
+    //     Ok(views.html.index(sysMessage))
+    // }
   }
 
   def sendRequest(emailFromGet: String) = Action { implicit request =>

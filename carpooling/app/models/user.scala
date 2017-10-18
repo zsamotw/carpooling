@@ -17,7 +17,8 @@ case class User(
   kindergarten: Kindergarten,
   requests: Set[String],
   len: String,
-  lon: String)
+  lon: String,
+  admin: Boolean)
 
 case class SimpleUser(
   email: String,
@@ -28,7 +29,8 @@ case class SimpleUser(
   seats: Int,
   len: String,
   lon: String,
-  kindergarten: Kindergarten)
+  kindergarten: Kindergarten,
+  admin: Boolean)
 
 /**
   * Classes and objects for creating user and login from form
@@ -42,11 +44,11 @@ case class UserFormData(
   surname: String,
   street: String,
   city: String,
-  seats: Int,
-  kgName: String,
-  kgStreet: String,
-  kgNum: Int,
-  kgCity: String)
+  seats: Int)
+//  kgName: String,
+//  kgStreet: String,
+//  kgNum: Int,
+//  kgCity: String)
 
 case class Login(email: String, password: String)
 
@@ -59,11 +61,11 @@ object userForm {
       "surname" -> text,
       "street" -> text,
       "city" -> text,
-      "seats" -> number,
-      "kgName" -> text,
-      "kgStreet" -> text,
-      "kgNum" -> number,
-      "kgCity" -> text)(UserFormData.apply)(UserFormData.unapply))
+      "seats" -> number)(UserFormData.apply)(UserFormData.unapply))
+//      "kgName" -> text,
+//      "kgStreet" -> text,
+//      "kgNum" -> number,
+//      "kgCity" -> text)
 }
 
 object loginForm {
@@ -100,19 +102,19 @@ object Users {
     convertCursorToUsersList(allUsers)
   }
 
-  def add(user: User): (User, DBObject, DBObject, CommunityMessage) = {
-    val kindergarten = user.kindergarten
-    val usersEmailsAfter = List(user.email) :: kindergarten.usersEmails
+  def add(user: User): (User, CommunityMessage) = { // DBObject, DBObject,
+   // val kindergarten = user.kindergarten
+   // val usersEmailsAfter = List(user.email) :: kindergarten.usersEmails
 
-    val query = MongoDBObject(
-      "name" -> kindergarten.name,
-      "street" -> kindergarten.street,
-      "num" -> kindergarten.num,
-      "city" -> kindergarten.city)
-    val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
-    val content = s"Welcome new User: ${user.name} ${user.surname} in ${kindergarten.name}"
+    // val query = MongoDBObject(
+    //   "name" -> kindergarten.name,
+    //   "street" -> kindergarten.street,
+    //   "num" -> kindergarten.num,
+    //   "city" -> kindergarten.city)
+    // val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
+    val content = s"Welcome new User: ${user.name} ${user.surname}"
     val message = CommunityMessage(new DateTime, user.kindergarten, content)
-    (user, query, update, message)
+    (user, message)//query, update, message)
   }
 
   def delete(user: User): (User, List[User], DBObject, DBObject) = {
@@ -267,7 +269,8 @@ object Users {
         requests = userMongo.getAs[List[String]]("requests").get.toSet
         len = userMongo.getAs[String]("len").get
         lon = userMongo.getAs[String]("lon").get
-            kindergarten = Kindergartens.find(kgName, kgStreet, kgNum,kgCity)
+        kindergarten = Kindergartens.find(kgName, kgStreet, kgNum,kgCity)
+        admin = userMongo.getAs[Boolean]("admin").get
       } yield User(
         email,
         password,
@@ -279,7 +282,8 @@ object Users {
         kindergarten,
         requests,
         len,
-        lon)
+        lon,
+        admin)
     res.toList
   }
 
@@ -293,7 +297,8 @@ object Users {
     user.seats,
     user.len,
     user.lon,
-    user.kindergarten)
+    user.kindergarten,
+    user.admin)
 
 
   def userGroupToString(group: List[User]): String = {
@@ -315,9 +320,8 @@ object Users {
     val requests = userMongo.getAs[List[String]]("requests").get.toSet
     val len =  userMongo.getAs[String]("len").get
     val lon =  userMongo.getAs[String]("lon").get
-
     val kindergarten = Kindergartens.find(kgName, kgStreet, kgNum,kgCity)
-
+    val admin =  userMongo.getAs[Boolean]("admin").get
     User(
       email,
       password,
@@ -329,6 +333,7 @@ object Users {
       kindergarten,
       requests,
       len,
-      lon)
+      lon,
+      admin)
   }
 }

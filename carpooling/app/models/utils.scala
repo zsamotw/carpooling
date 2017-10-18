@@ -69,6 +69,7 @@ object MongoFactory {
     builder += "requests" -> user.requests
     builder += "len" -> user.len
     builder += "lon" -> user.lon
+    builder += "admin"-> user.admin
     builder.result
   }
 
@@ -80,7 +81,9 @@ object MongoFactory {
     builder += "city" -> kg.city
     builder += "len" -> kg.len
     builder += "lon" -> kg.lon
-    builder += "usersemails" -> List[List[String]]()
+    builder += "usersemails" -> kg.usersEmails
+    builder += "admin" -> kg.admin
+    builder += "hashcode" -> kg.kgHashCode
     builder.result
   }
 
@@ -107,9 +110,8 @@ object MongoFactory {
     builder.result
   }
 
-  def addUser(data: (User, DBObject, DBObject, CommunityMessage)) {
-    val(user, query, update, message) = data
-    kindergartens.findAndModify(query, update)
+  def addUser(data: (User, CommunityMessage)) {
+    val(user, message) = data
     users += buildMongoDbUser(user)
     add(message)
   }
@@ -119,6 +121,11 @@ object MongoFactory {
     for(user <- userGroup filter(_ != user)) MongoFactory.updateUserIntDataInDB(user, "seats", 1, (x:Int, y: Int) => x + y)
     kindergartens.findAndModify(query, update)
     users.remove("email" $eq user.email)
+  }
+
+  def deleteUserFromKindergarten(data: (DBObject, DBObject)) {
+    val(query, update) = data
+    kindergartens.findAndModify(query, update)
   }
 
   def leaveGroup(data: (User, List[User],(DBObject, DBObject, CommunityMessage))): String = {
@@ -174,9 +181,17 @@ object MongoFactory {
     }
   }
 
-  def add(data: (Kindergarten, CommunityMessage)) {
-    val(kindergarten, message) = data
+  def addUserToKindergarten(data: (DBObject, DBObject, DBObject, DBObject, CommunityMessage)) {
+    val(queryKg, updateKg, queryU, updateU, message) = data
+    MongoFactory.kindergartens.findAndModify(queryKg, updateKg)
+    MongoFactory.users.findAndModify(queryU, updateU)
+    add(message)
+  }
+
+  def add(data: (Kindergarten, User, DBObject, DBObject, CommunityMessage)) {
+    val(kindergarten, user, query, update, message) = data
     kindergartens += buildMongoDbKindergarten(kindergarten)
+    MongoFactory.users.findAndModify(query, update)
     add(message)
   }
 

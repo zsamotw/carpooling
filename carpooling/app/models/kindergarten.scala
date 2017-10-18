@@ -12,7 +12,9 @@ case class Kindergarten(
   city: String,
   len: String,
   lon: String,
-  usersEmails: List[List[String]])
+  usersEmails: List[List[String]],
+  admin: String,
+  kgHashCode: String)
 
 /*
  * Case class and object for creating kindergartn from form
@@ -36,15 +38,99 @@ object KindergartenForm {
  */
 
 object Kindergartens {
+  val emptyKindergarten = Kindergarten(
+    "You are not linked to any kindergarten yet. You cane create new one or add yourself to existing kindergarten","", 0, "", "", "", List[List[String]](), "", "0")
+
   def listAll: List[Kindergarten] = {
     val kindergartens = MongoFactory.kindergartens.find
     convertCursorToKindergartensList(kindergartens)
   }
 
-  def add(kindergarten: Kindergarten): (Kindergarten, CommunityMessage) = {
-    val content = s"New kindergarten has been added: ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city}"
+  def add(kindergarten: Kindergarten, user: User): (Kindergarten, User, DBObject, DBObject, CommunityMessage) = {
+    /*
+     * Delete user from emails list in kindergarten
+     */
+
+    val dataToDB = deleteUserFromKindergarten(user, kindergarten)
+    MongoFactory.deleteUserFromKindergarten(dataToDB)
+
+    /*
+     * Change kindergarten data in user
+     */
+    
+    val query = MongoDBObject(
+      "email" -> user.email)
+    val update = MongoDBObject("$set" -> MongoDBObject(
+      "admin" -> true,
+      "kgname" -> kindergarten.name,
+      "kgstreet" -> kindergarten.street,
+      "kgnum" -> kindergarten.num,
+      "kgcity" -> kindergarten.city))
+
+    val content = s"New kindergarten has been added: ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city} by ${user.name} ${user.surname}"
     val message = CommunityMessage(new DateTime, kindergarten, content)
-    (kindergarten, message)
+    (kindergarten, user, query, update, message)
+  }
+
+  def deleteUserFromKindergarten(user: User, kindergarten: Kindergarten): (DBObject, DBObject) = {
+    val userGroup = Users.usersFromGroup(user.email)
+    val kindergarten = user.kindergarten
+
+    val usersEmailsGroup = for {
+      group <- kindergarten.usersEmails
+      if group contains user.email
+      email <- group} yield email
+
+    val usersEmailsGroupAfter = for {
+      email <- usersEmailsGroup
+      if email != user.email
+    } yield email
+
+    val usersEmailsAfter =
+      if (usersEmailsGroup isEmpty) for(group <- kindergarten.usersEmails; if group != usersEmailsGroup) yield group
+      else usersEmailsGroupAfter :: (for(group <- kindergarten.usersEmails; if group != usersEmailsGroup) yield group)
+
+    val query = MongoDBObject(
+      "name" -> kindergarten.name,
+      "street" -> kindergarten.street,
+      "num" -> kindergarten.num,
+      "city" -> kindergarten.city)
+    val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
+
+    (query, update)
+  }
+
+  def addUserToKindergarten(user: User, kindergarten: Kindergarten): (DBObject, DBObject, DBObject, DBObject, CommunityMessage) = {
+     /*
+     * Delete user from emails list in kindergarten
+      */
+
+    val dataToDB = deleteUserFromKindergarten(user, kindergarten)
+    MongoFactory.deleteUserFromKindergarten(dataToDB)
+
+    /*
+     * Change kindergarten data in user
+     */
+
+    val usersEmailsAfter = List(user.email) :: kindergarten.usersEmails
+    val queryKg = MongoDBObject(
+      "name" -> kindergarten.name,
+      "street" -> kindergarten.street,
+      "num" -> kindergarten.num,
+      "city" -> kindergarten.city)
+    val updateKg = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
+
+    val queryU = MongoDBObject("email" -> user.email)
+    val updateU = MongoDBObject("$set" -> MongoDBObject(
+      "kgname" -> kindergarten.name,
+      "kgstreet" -> kindergarten.street,
+      "kgnum" -> kindergarten.num,
+      "kgcity" -> kindergarten.city))
+
+    val content = s"${user.name} ${user.surname} change kindergarten to ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city}"
+    val message = CommunityMessage(new DateTime, kindergarten, content)
+
+    (queryKg, updateKg, queryU, updateU, message)
   }
 
   def find(kgName: String, kgStreet: String, kgNum: Int, kgCity: String): Kindergarten = {
@@ -56,7 +142,18 @@ object Kindergartens {
     val kgMongo = MongoFactory.kindergartens.findOne(query)
     kgMongo match {
       case Some(kg) => convertDBObjectToKindergarten(kg)
-      case None => throw new NoSuchElementException
+      case None => Kindergartens.emptyKindergarten//throw new NoSuchElementException
+    }
+  }
+
+  def find(kgHashCode: String): Kindergarten = {
+    println("in def find: " + kgHashCode)
+    val query = MongoDBObject(
+      "hashcode" -> kgHashCode)
+    val kgMongo = MongoFactory.kindergartens.findOne(query)
+    kgMongo match {
+      case Some(kg) => convertDBObjectToKindergarten(kg)
+      case None => Kindergartens.emptyKindergarten//throw new NoSuchElementException
     }
   }
 
@@ -81,8 +178,10 @@ object Kindergartens {
         city = kgMongo.getAs[String]("city").get
         len = kgMongo.getAs[String]("len").get
         lon = kgMongo.getAs[String]("lon").get
-        usersemails = kgMongo.getAs[List[List[String]]]("usersemails").get
-      } yield Kindergarten(name, street, num, city, len, lon, usersemails)
+        usersEmails = kgMongo.getAs[List[List[String]]]("usersemails").get
+        admin = kgMongo.getAs[String]("admin").get
+        hashCode = kgMongo.getAs[String]("hashcode").get
+      } yield Kindergarten(name, street, num, city, len, lon, usersEmails, admin, hashCode)
     res.toList
   }
 
@@ -93,6 +192,8 @@ object Kindergartens {
     val city = kgMongo.getAs[String]("city").get
     val len = kgMongo.getAs[String]("len").get
     val lon = kgMongo.getAs[String]("lon").get
+    val admin = kgMongo.getAs[String]("admin").get
+    val hashCode = kgMongo.getAs[String]("hashcode").get
     val usersEmails = {
       val listMongo = kgMongo.get("usersemails").get
       val obj = MongoDBObject("list" -> listMongo)
@@ -111,6 +212,6 @@ object Kindergartens {
       }
       list
     }
-    Kindergarten(name, street, num, city, len, lon, usersEmails)
+    Kindergarten(name, street, num, city, len, lon, usersEmails, admin, hashCode)
   }
 }
