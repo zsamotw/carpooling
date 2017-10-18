@@ -51,7 +51,7 @@ object Kindergartens {
      * Delete user from emails list in kindergarten
      */
 
-    val dataToDB = deleteUserFromKindergarten(user, kindergarten)
+    val dataToDB = deleteUserFromKindergarten(user)
     MongoFactory.deleteUserFromKindergarten(dataToDB)
 
     /*
@@ -72,8 +72,8 @@ object Kindergartens {
     (kindergarten, user, query, update, message)
   }
 
-  def deleteUserFromKindergarten(user: User, kindergarten: Kindergarten): (DBObject, DBObject) = {
-    val userGroup = Users.usersFromGroup(user.email)
+  def deleteUserFromKindergarten(user: User): (DBObject, DBObject) = {
+    //val userGroup = Users.usersFromGroup(user.email)
     val kindergarten = user.kindergarten
 
     val usersEmailsGroup = for {
@@ -87,7 +87,7 @@ object Kindergartens {
     } yield email
 
     val usersEmailsAfter =
-      if (usersEmailsGroup isEmpty) for(group <- kindergarten.usersEmails; if group != usersEmailsGroup) yield group
+      if (usersEmailsGroupAfter isEmpty) for(group <- kindergarten.usersEmails; if group != usersEmailsGroup) yield group
       else usersEmailsGroupAfter :: (for(group <- kindergarten.usersEmails; if group != usersEmailsGroup) yield group)
 
     val query = MongoDBObject(
@@ -101,17 +101,15 @@ object Kindergartens {
   }
 
   def addUserToKindergarten(user: User, kindergarten: Kindergarten): (DBObject, DBObject, DBObject, DBObject, CommunityMessage) = {
-     /*
+    /*
      * Delete user from emails list in kindergarten
-      */
-
-    val dataToDB = deleteUserFromKindergarten(user, kindergarten)
+     */
+    val dataToDB = deleteUserFromKindergarten(user)
     MongoFactory.deleteUserFromKindergarten(dataToDB)
 
     /*
      * Change kindergarten data in user
      */
-
     val usersEmailsAfter = List(user.email) :: kindergarten.usersEmails
     val queryKg = MongoDBObject(
       "name" -> kindergarten.name,
@@ -147,7 +145,6 @@ object Kindergartens {
   }
 
   def find(kgHashCode: String): Kindergarten = {
-    println("in def find: " + kgHashCode)
     val query = MongoDBObject(
       "hashcode" -> kgHashCode)
     val kgMongo = MongoFactory.kindergartens.findOne(query)

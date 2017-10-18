@@ -45,10 +45,6 @@ case class UserFormData(
   street: String,
   city: String,
   seats: Int)
-//  kgName: String,
-//  kgStreet: String,
-//  kgNum: Int,
-//  kgCity: String)
 
 case class Login(email: String, password: String)
 
@@ -62,10 +58,6 @@ object userForm {
       "street" -> text,
       "city" -> text,
       "seats" -> number)(UserFormData.apply)(UserFormData.unapply))
-//      "kgName" -> text,
-//      "kgStreet" -> text,
-//      "kgNum" -> number,
-//      "kgCity" -> text)
 }
 
 object loginForm {
@@ -102,19 +94,10 @@ object Users {
     convertCursorToUsersList(allUsers)
   }
 
-  def add(user: User): (User, CommunityMessage) = { // DBObject, DBObject,
-   // val kindergarten = user.kindergarten
-   // val usersEmailsAfter = List(user.email) :: kindergarten.usersEmails
-
-    // val query = MongoDBObject(
-    //   "name" -> kindergarten.name,
-    //   "street" -> kindergarten.street,
-    //   "num" -> kindergarten.num,
-    //   "city" -> kindergarten.city)
-    // val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
+  def add(user: User): (User, CommunityMessage) = {
     val content = s"Welcome new User: ${user.name} ${user.surname}"
     val message = CommunityMessage(new DateTime, user.kindergarten, content)
-    (user, message)//query, update, message)
+    (user, message)
   }
 
   def delete(user: User): (User, List[User], DBObject, DBObject) = {
@@ -132,7 +115,7 @@ object Users {
     } yield email
 
     val usersEmailsAfter =
-      if (usersEmailsGroup isEmpty) for(group <- kindergarten.usersEmails; if group != usersEmailsGroup) yield group
+      if (usersEmailsGroupAfter isEmpty) for(group <- kindergarten.usersEmails; if group != usersEmailsGroup) yield group
       else usersEmailsGroupAfter :: (for(group <- kindergarten.usersEmails; if group != usersEmailsGroup) yield group)
 
     val query = MongoDBObject(
@@ -184,6 +167,14 @@ object Users {
       for(email <- loggedUserGroup.flatten) yield findUserByEmail(email)
     }
     group
+  }
+
+  def emailsGroupWithoutUser(user: User): List[String] = {
+    val userEmailsGroup = user.kindergarten.usersEmails filter(group => group contains user.email)
+    val groupWithout = {
+      for(email <- userEmailsGroup.flatten; if(email != user.email)) yield email
+    }
+    groupWithout
   }
 
   def addToCarpools(userToReplyEmail: String, loggedUserEmail: String): (DBObject, DBObject, CommunityMessage) = {

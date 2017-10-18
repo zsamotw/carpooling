@@ -28,6 +28,14 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     }
   }
 
+  def indexWithMessage(sysMessage: String) = Action { implicit request =>
+    request.session.get("connected").map { loggedUserEmail =>
+      Ok(views.html.index(sysMessage))
+    }.getOrElse{
+      Ok(views.html.index(loginMessage))
+    }
+  }
+
   def login() = Action { implicit request =>
     try {
       request.session.get("connected").map { loggedUserEmail =>
@@ -174,7 +182,21 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   }
 
   def kindergartenMenu() = Action { implicit request =>
-      Ok(views.html.addkindergarten(KindergartenForm.form))
+    request.session.get("connected").map { loggedUserEmail =>
+      val user = Users.findUserByEmail(loggedUserEmail)
+      user match {
+        case u: User if(u.admin == false && (Users.emailsGroupWithoutUser(u)).length < 2) =>
+          Ok(views.html.addkindergarten(KindergartenForm.form))
+        case _ =>
+          val sysMessage = {
+            if(user.admin == true) "You are admin.You can't add more kindergartens."
+            else "You are linked with some people. Before create new kindergarten, first you have to leave your group in personal panel."
+          }
+          Ok(views.html.index(sysMessage))
+      }
+    }.getOrElse {
+      Ok(views.html.index(loginMessage))
+    }
   }
 
   def addKindergarten() = Action{ implicit request =>
@@ -186,35 +208,26 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
           },
           kindergartenData => {
             val user = Users.findUserByEmail(loggedUserEmail)
-            user match {
-              case u: User if(u.admin == false && (u.kindergarten.usersEmails filter(group => group contains loggedUserEmail )).length < 2) =>
-                val latLon = GeoUtils.searchGeoPoint(kindergartenData)
-                val usersList = List[String](loggedUserEmail) :: List[List[String]]()
-                val hashCode = (kindergartenData.name + kindergartenData.street + kindergartenData.num.toString + kindergartenData.city).hashCode.toString
-                val kindergarten =
-                  Kindergarten(
-                    kindergartenData.name,
-                    kindergartenData.street,
-                    kindergartenData.num,
-                    kindergartenData.city,
-                    latLon._1,
-                    latLon._2,
-                    usersList,
-                    loggedUserEmail,
-                    hashCode)
-                val dataToDB = Kindergartens.add(kindergarten, user)
-                MongoFactory.add(dataToDB)
-                val sysMessage = s"Kindergarten ${kindergarten.name} on ${kindergarten.street} was added by $loggedUserEmail"
-                Ok(views.html.index(sysMessage))
-              case _ =>
-                val sysMessage = {
-                  if(user.admin == true) "You are admin.You can't add more kindergartens."
-                  else "You are linked with some people. First you have to leave your group in personal panel"
-                }
-                Ok(views.html.index(sysMessage))
-            }
-            })
-      } getOrElse {
+            val latLon = GeoUtils.searchGeoPoint(kindergartenData)
+            val usersList = List[String](loggedUserEmail) :: List[List[String]]()
+            val hashCode = (kindergartenData.name + kindergartenData.street + kindergartenData.num.toString + kindergartenData.city).hashCode.toString
+            val kindergarten =
+              Kindergarten(
+                kindergartenData.name,
+                kindergartenData.street,
+                kindergartenData.num,
+                kindergartenData.city,
+                latLon._1,
+                latLon._2,
+                usersList,
+                loggedUserEmail,
+                hashCode)
+            val dataToDB = Kindergartens.add(kindergarten, user)
+            MongoFactory.add(dataToDB)
+            val sysMessage = s"Kindergarten ${kindergarten.name} on ${kindergarten.street} was added by $loggedUserEmail"
+            Ok(views.html.index(sysMessage))
+          })
+      }.getOrElse {
         Ok(views.html.index(loginMessage))
       }
     } catch {
@@ -231,18 +244,21 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     request.session.get("connected").map { loggedUserEmail =>
       val kindergarten = Kindergartens.find(kgHashCode)
       val user = Users.findUserByEmail(loggedUserEmail)
-      user match {
-        case u: User if(u.admin == false && (u.kindergarten.usersEmails filter(group => group contains loggedUserEmail )).length < 2) =>
+      (user, kindergarten) match {
+        case (u: User, kg: Kindergarten) if(u.admin == false &&
+            u.kindergarten.kgHashCode != kg.kgHashCode &&
+            (Users.emailsGroupWithoutUser(u)).length < 2) =>
           val dataToDB = Kindergartens.addUserToKindergarten(user, kindergarten)
           MongoFactory.addUserToKindergarten(dataToDB)
           val sysMessage = s"Success. You have change kindergarten to ${kindergarten.name}"
-          Redirect(routes.HomeController.showUserPanel(sysMessage))
+          Redirect(routes.HomeController.indexWithMessage(sysMessage))
         case _ =>
           val sysMessage = {
             if(user.admin == true) "You are admin.You can't add more kindergartens."
+            else if(user.kindergarten.kgHashCode == kindergarten.kgHashCode) "You can't add twice to same kindergarten"
             else "You are linked with some people. First you have to leave your group in personal panel"
           }
-          Redirect(routes.HomeController.showUserPanel(sysMessage))
+          Redirect(routes.HomeController.indexWithMessage(sysMessage))
       }
     }.getOrElse {
       Ok(views.html.index(loginMessage))
