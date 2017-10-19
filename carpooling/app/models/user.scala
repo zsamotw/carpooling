@@ -169,10 +169,10 @@ object Users {
     group
   }
 
-  def emailsGroupWithoutUser(user: User): List[String] = {
-    val userEmailsGroup = user.kindergarten.usersEmails filter(group => group contains user.email)
+  def userEmailsGroup(user: User): List[String] = {
+    val emailsGroup = user.kindergarten.usersEmails filter(group => group contains user.email)
     val groupWithout = {
-      for(email <- userEmailsGroup.flatten; if(email != user.email)) yield email
+      for(email <- emailsGroup.flatten) yield email
     }
     groupWithout
   }

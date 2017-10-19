@@ -80,8 +80,12 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def allKindergartens() = Action { implicit request =>
     try {
-      val all = Kindergartens.listAll
-      Ok(views.html.allkindergartens(all))
+      request.session.get("connected").map { loggedUserEmail =>
+        val all = Kindergartens.listAll
+        Ok(views.html.allkindergartens(all))
+      }.getOrElse {
+        Ok(views.html.index(loginMessage))
+      }
     } catch {
       case e: NoSuchElementException =>
         val sysMessage = "Ooops! Problem with searching element. Check you connection with database"
@@ -185,7 +189,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     request.session.get("connected").map { loggedUserEmail =>
       val user = Users.findUserByEmail(loggedUserEmail)
       user match {
-        case u: User if(u.admin == false && (Users.emailsGroupWithoutUser(u)).length < 2) =>
+        case u: User if(u.admin == false && (Users.userEmailsGroup(u)).length <= 1) =>
           Ok(views.html.addkindergarten(KindergartenForm.form))
         case _ =>
           val sysMessage = {
@@ -247,7 +251,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
       (user, kindergarten) match {
         case (u: User, kg: Kindergarten) if(u.admin == false &&
             u.kindergarten.kgHashCode != kg.kgHashCode &&
-            (Users.emailsGroupWithoutUser(u)).length < 2) =>
+            (Users.userEmailsGroup(u)).length <= 1) =>
           val dataToDB = Kindergartens.addUserToKindergarten(user, kindergarten)
           MongoFactory.addUserToKindergarten(dataToDB)
           val sysMessage = s"Success. You have change kindergarten to ${kindergarten.name}"
@@ -333,18 +337,18 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
   }
 
   def showUserPanel(sysMessage: String) = Action { implicit request =>
-//    try {
+    try {
       request.session.get("connected").map { email =>
         val user = Users.findUserByEmail(email)
         Ok(views.html.panel(user, sysMessage, MessageForm.form))
       }.getOrElse {
         Ok(views.html.index(loginMessage))
       }
-    // } catch {
-    //   case e: NoSuchElementException =>
-    //     val sysMessage = "Ooops! Problem with finding element. Check you connection with database"
-    //     Ok(views.html.index(sysMessage))
-    // }
+    } catch {
+      case e: NoSuchElementException =>
+        val sysMessage = "Ooops! Problem with finding element. Check you connection with database"
+        Ok(views.html.index(sysMessage))
+    }
   }
 
   def sendRequest(emailFromGet: String) = Action { implicit request =>
