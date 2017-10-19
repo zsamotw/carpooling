@@ -51,13 +51,13 @@ object Kindergartens {
     convertCursorToKindergartensList(kindergartens)
   }
 
-  def addKindergarten(kindergarten: Kindergarten, user: User): (Kindergarten, User, DBObject, DBObject, CommunityMessage) = {
+  def addKindergarten(kindergarten: Kindergarten, user: User): (Kindergarten, User, DBObject, DBObject, (DBObject, DBObject), CommunityMessage) = {
     /*
      * Delete user from users emails list in current kindergarten DB
      */
 
-    val dataToDB = deleteUserFromEmailsListInKindergarten(user)
-    MongoFactory.deleteUserFromEmailsListInKindergarten(dataToDB)
+    val dataToDeleteUserFromEmailList = deleteUserFromEmailsListInKindergarten(user)
+    //MongoFactory.deleteUserFromEmailsListInKindergarten(dataToDB)
 
     /*
      * Set kindergarten data to change in user DB and next kindergarten DB.
@@ -74,7 +74,7 @@ object Kindergartens {
 
     val content = s"New kindergarten has been added: ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city} by ${user.name} ${user.surname}"
     val message = CommunityMessage(new DateTime, kindergarten, content)
-    (kindergarten, user, query, update, message)
+    (kindergarten, user, query, update, dataToDeleteUserFromEmailList, message)
   }
 
   def deleteUserFromEmailsListInKindergarten(user: User): (DBObject, DBObject) = {
@@ -104,12 +104,12 @@ object Kindergartens {
     (query, update)
   }
 
-  def addUserToKindergarten(user: User, kindergarten: Kindergarten): (DBObject, DBObject, DBObject, DBObject, CommunityMessage) = {
+  def addUserToKindergarten(user: User, kindergarten: Kindergarten): (DBObject, DBObject, DBObject, DBObject, (DBObject, DBObject), CommunityMessage) = {
     /*
      * Delete user from users emails list in current kindergarten DB
      */
-    val dataToDB = deleteUserFromEmailsListInKindergarten(user)
-    MongoFactory.deleteUserFromEmailsListInKindergarten(dataToDB)
+    val dataToDeleteUserFromEmailList = deleteUserFromEmailsListInKindergarten(user)
+//    MongoFactory.deleteUserFromEmailsListInKindergarten(dataToDB)
 
     /*
      * Set kindergarten data to change in user DB and next kindergarten DB.
@@ -132,7 +132,7 @@ object Kindergartens {
     val content = s"${user.name} ${user.surname} change kindergarten to ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city}"
     val message = CommunityMessage(new DateTime, kindergarten, content)
 
-    (queryKg, updateKg, queryU, updateU, message)
+    (queryKg, updateKg, queryU, updateU, dataToDeleteUserFromEmailList, message)
   }
 
   def find(kgName: String, kgStreet: String, kgNum: Int, kgCity: String): Kindergarten = {

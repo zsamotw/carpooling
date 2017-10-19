@@ -181,15 +181,17 @@ object MongoFactory {
     }
   }
 
-  def addUserToKindergarten(data: (DBObject, DBObject, DBObject, DBObject, CommunityMessage)) {
-    val(queryKg, updateKg, queryU, updateU, message) = data
+  def addUserToKindergarten(data: (DBObject, DBObject, DBObject, DBObject,  (DBObject, DBObject), CommunityMessage)) {
+    val(queryKg, updateKg, queryU, updateU, dataToDeleteUserFromEmailList, message) = data
+    MongoFactory.deleteUserFromEmailsListInKindergarten(dataToDeleteUserFromEmailList)
     MongoFactory.kindergartens.findAndModify(queryKg, updateKg)
     MongoFactory.users.findAndModify(queryU, updateU)
     add(message)
   }
 
-  def addKindergarten(data: (Kindergarten, User, DBObject, DBObject, CommunityMessage)) {
-    val(kindergarten, user, query, update, message) = data
+  def addKindergarten(data: (Kindergarten, User, DBObject, DBObject, (DBObject, DBObject), CommunityMessage)) {
+    val(kindergarten, user, query, update, dataToDeleteUserFromEmailList, message) = data
+    MongoFactory.deleteUserFromEmailsListInKindergarten(dataToDeleteUserFromEmailList)
     kindergartens += buildMongoDbKindergarten(kindergarten)
     MongoFactory.users.findAndModify(query, update)
     add(message)
