@@ -123,7 +123,7 @@ object MongoFactory {
     users.remove("email" $eq user.email)
   }
 
-  def deleteUserFromKindergarten(data: (DBObject, DBObject)) {
+  def deleteUserFromEmailsListInKindergarten(data: (DBObject, DBObject)) {
     val(query, update) = data
     kindergartens.findAndModify(query, update)
   }
@@ -188,7 +188,7 @@ object MongoFactory {
     add(message)
   }
 
-  def add(data: (Kindergarten, User, DBObject, DBObject, CommunityMessage)) {
+  def addKindergarten(data: (Kindergarten, User, DBObject, DBObject, CommunityMessage)) {
     val(kindergarten, user, query, update, message) = data
     kindergartens += buildMongoDbKindergarten(kindergarten)
     MongoFactory.users.findAndModify(query, update)

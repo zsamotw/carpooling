@@ -189,7 +189,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
     request.session.get("connected").map { loggedUserEmail =>
       val user = Users.findUserByEmail(loggedUserEmail)
       user match {
-        case u: User if(u.admin == false && (Users.userEmailsGroup(u)).length <= 1) =>
+        case u: User if(u.admin == false && Users.userEmailsGroup(u).length <= 1) =>
           Ok(views.html.addkindergarten(KindergartenForm.form))
         case _ =>
           val sysMessage = {
@@ -213,8 +213,14 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
           kindergartenData => {
             val user = Users.findUserByEmail(loggedUserEmail)
             val latLon = GeoUtils.searchGeoPoint(kindergartenData)
-            val usersList = List[String](loggedUserEmail) :: List[List[String]]()
-            val hashCode = (kindergartenData.name + kindergartenData.street + kindergartenData.num.toString + kindergartenData.city).hashCode.toString
+            val usersList = List(List(loggedUserEmail)) //List[String](loggedUserEmail) :: List[List[String]]()
+            val adminEmail = loggedUserEmail 
+            val kgHashCode = (
+              kindergartenData.name +
+                kindergartenData.street +
+                kindergartenData.num.toString +
+                kindergartenData.city +
+                adminEmail).hashCode.toString
             val kindergarten =
               Kindergarten(
                 kindergartenData.name,
@@ -224,11 +230,11 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
                 latLon._1,
                 latLon._2,
                 usersList,
-                loggedUserEmail,
-                hashCode)
-            val dataToDB = Kindergartens.add(kindergarten, user)
-            MongoFactory.add(dataToDB)
-            val sysMessage = s"Kindergarten ${kindergarten.name} on ${kindergarten.street} was added by $loggedUserEmail"
+                adminEmail,
+                kgHashCode)
+            val dataToDB = Kindergartens.addKindergarten(kindergarten, user)
+            MongoFactory.addKindergarten(dataToDB)
+            val sysMessage = s"Kindergarten ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city}was added by ${user.name} ${user.surname}"
             Ok(views.html.index(sysMessage))
           })
       }.getOrElse {
@@ -251,15 +257,15 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
       (user, kindergarten) match {
         case (u: User, kg: Kindergarten) if(u.admin == false &&
             u.kindergarten.kgHashCode != kg.kgHashCode &&
-            (Users.userEmailsGroup(u)).length <= 1) =>
+            Users.userEmailsGroup(u).length <= 1) =>
           val dataToDB = Kindergartens.addUserToKindergarten(user, kindergarten)
           MongoFactory.addUserToKindergarten(dataToDB)
-          val sysMessage = s"Success. You have change kindergarten to ${kindergarten.name}"
+          val sysMessage = s"Success. You have changed your kindergarten. Your current kindergarten: ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city}"
           Redirect(routes.HomeController.indexWithMessage(sysMessage))
         case _ =>
           val sysMessage = {
             if(user.admin == true) "You are admin.You can't add more kindergartens."
-            else if(user.kindergarten.kgHashCode == kindergarten.kgHashCode) "You can't add twice to same kindergarten"
+            else if(user.kindergarten.kgHashCode == kindergarten.kgHashCode) "You can't add twice to the same kindergarten"
             else "You are linked with some people. First you have to leave your group in personal panel"
           }
           Redirect(routes.HomeController.indexWithMessage(sysMessage))
@@ -300,7 +306,7 @@ class HomeController @Inject()(val messagesApi: MessagesApi)  extends Controller
               val loggedUser = Users.findUserByEmail(loggedUserEmail)
               val loggedUserGroup = usersFrom filter (group => group contains loggedUser)
               val restGroups = usersFrom filter(group => group != loggedUserGroup.flatten)
-              val sysMessage = s"All users from kinderagrten ${kindergarten.name} on ${kindergarten.street} are possible to find"
+              val sysMessage = s"All users from kinderagrten ${kindergarten.name} on ${kindergarten.street} are possible to find."
               Ok(views.html.showusers(kindergarten, loggedUserGroup, restGroups, sysMessage))
             case None => throw new NoSuchElementException
           }

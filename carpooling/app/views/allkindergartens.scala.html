@@ -4,7 +4,7 @@
 <a href="/">homepage</a> <-> <a href="logout">logout</a><br><br>
     Registered kindergartens:<br><br>
     @for(kg <- all) {
-      @kg.name @kg.street @kg.num  @kg.city @kg.len @kg.lon groups: @kg.usersEmails.length <a href="addUserToKindergarten/@kg.kgHashCode">add youself</a><br>
+      @kg.name @kg.street @kg.num  @kg.city @kg.len @kg.lon users: @kg.numberOfUsers <a href="addUserToKindergarten/@kg.kgHashCode">add youself</a><br>
            }
 <br><a href="/">homepage</a>
 }

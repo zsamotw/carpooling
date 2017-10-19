@@ -14,7 +14,12 @@ case class Kindergarten(
   lon: String,
   usersEmails: List[List[String]],
   admin: String,
-  kgHashCode: String)
+  kgHashCode: String) {
+
+  def numberOfUsers = usersEmails.flatten.length
+
+  def numberOfGroups = usersEmails.length
+}
 
 /*
  * Case class and object for creating kindergartn from form
@@ -39,23 +44,23 @@ object KindergartenForm {
 
 object Kindergartens {
   val emptyKindergarten = Kindergarten(
-    "You are not linked to any kindergarten yet. You cane create new one or add yourself to existing kindergarten","", 0, "", "", "", List[List[String]](), "", "0")
+    "You are not linked to any kindergarten yet. You cane create new one or add yourself to existing kindergarten","Not exisiting", 0, "Not exisiting", "Not exisiting", "Not exisiting", List[List[String]](), "No admin", "0")
 
   def listAll: List[Kindergarten] = {
     val kindergartens = MongoFactory.kindergartens.find
     convertCursorToKindergartensList(kindergartens)
   }
 
-  def add(kindergarten: Kindergarten, user: User): (Kindergarten, User, DBObject, DBObject, CommunityMessage) = {
+  def addKindergarten(kindergarten: Kindergarten, user: User): (Kindergarten, User, DBObject, DBObject, CommunityMessage) = {
     /*
-     * Delete user from emails list in kindergarten
+     * Delete user from users emails list in current kindergarten DB
      */
 
-    val dataToDB = deleteUserFromKindergarten(user)
-    MongoFactory.deleteUserFromKindergarten(dataToDB)
+    val dataToDB = deleteUserFromEmailsListInKindergarten(user)
+    MongoFactory.deleteUserFromEmailsListInKindergarten(dataToDB)
 
     /*
-     * Change kindergarten data in user
+     * Set kindergarten data to change in user DB and next kindergarten DB.
      */
     
     val query = MongoDBObject(
@@ -72,8 +77,7 @@ object Kindergartens {
     (kindergarten, user, query, update, message)
   }
 
-  def deleteUserFromKindergarten(user: User): (DBObject, DBObject) = {
-    //val userGroup = Users.usersFromGroup(user.email)
+  def deleteUserFromEmailsListInKindergarten(user: User): (DBObject, DBObject) = {
     val kindergarten = user.kindergarten
 
     val usersEmailsGroup = for {
@@ -102,13 +106,13 @@ object Kindergartens {
 
   def addUserToKindergarten(user: User, kindergarten: Kindergarten): (DBObject, DBObject, DBObject, DBObject, CommunityMessage) = {
     /*
-     * Delete user from emails list in kindergarten
+     * Delete user from users emails list in current kindergarten DB
      */
-    val dataToDB = deleteUserFromKindergarten(user)
-    MongoFactory.deleteUserFromKindergarten(dataToDB)
+    val dataToDB = deleteUserFromEmailsListInKindergarten(user)
+    MongoFactory.deleteUserFromEmailsListInKindergarten(dataToDB)
 
     /*
-     * Change kindergarten data in user
+     * Set kindergarten data to change in user DB and next kindergarten DB.
      */
     val usersEmailsAfter = List(user.email) :: kindergarten.usersEmails
     val queryKg = MongoDBObject(
@@ -167,20 +171,41 @@ object Kindergartens {
   }
 
   def convertCursorToKindergartensList(mongoKindergatens: MongoCursor): List[Kindergarten] = {
-    val res =
-      for { kgMongo <- mongoKindergatens
-        name = kgMongo.getAs[String]("name").get
-        street = kgMongo.getAs[String]("street").get
-        num = kgMongo.getAs[Int]("num").get
-        city = kgMongo.getAs[String]("city").get
-        len = kgMongo.getAs[String]("len").get
-        lon = kgMongo.getAs[String]("lon").get
-        usersEmails = kgMongo.getAs[List[List[String]]]("usersemails").get
-        admin = kgMongo.getAs[String]("admin").get
-        hashCode = kgMongo.getAs[String]("hashcode").get
-      } yield Kindergarten(name, street, num, city, len, lon, usersEmails, admin, hashCode)
-    res.toList
+    for{kgMongo <- mongoKindergatens.toList}yield convertDBObjectToKindergarten(kgMongo)
   }
+
+    //   val res =
+  //     for { kgMongo <- mongoKindergatens
+  //       name = kgMongo.getAs[String]("name").get
+  //       street = kgMongo.getAs[String]("street").get
+  //       num = kgMongo.getAs[Int]("num").get
+  //       city = kgMongo.getAs[String]("city").get
+  //       len = kgMongo.getAs[String]("len").get
+  //       lon = kgMongo.getAs[String]("lon").get
+  //       //usersEmails = kgMongo.getAs[List[List[String]]]("usersemails").get
+  //       admin = kgMongo.getAs[String]("admin").get
+  //       hashCode = kgMongo.getAs[String]("hashcode").get
+  //       val usersEmails = {
+  //         val listMongo = kgMongo.get("usersemails").get
+  //         val obj = MongoDBObject("list" -> listMongo)
+  //         val res = obj.as[BasicDBList]("list").toList
+  //         val list ={
+  //           for(el <- res) yield {
+  //             val elemList = {
+  //               val obj = MongoDBObject("list" -> el)
+  //               val res2 = obj.as[BasicDBList]("list").toList
+  //               for(e <- res2) yield {
+  //                 e.toString
+  //               }
+  //             }
+  //             elemList
+  //           }
+  //         }
+  //         list
+  //       }
+  //     } yield Kindergarten(name, street, num, city, len, lon, usersEmails, admin, hashCode)
+  //   res.toList
+  // }
 
   def convertDBObjectToKindergarten(kgMongo: MongoDBObject): Kindergarten = {
     val name = kgMongo.getAs[String]("name").get
