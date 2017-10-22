@@ -4,7 +4,7 @@
 <a href="/">homepage</a> <-> <a href="logout">logout</a><br><br>
     If you want to find parents from concrete kindergarten fill this form:<br>
 
-    @helper.form(action=routes.HomeController.showUsersFromKindergarten()) {
+    @helper.form(action=routes.KindergartenController.showUsersFromKindergarten()) {
     @helper.select(
     kindergartenForm("name"),
     options = for(kg <- kindergartens) yield (kg.name -> kg.name),

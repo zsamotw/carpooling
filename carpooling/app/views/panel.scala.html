@@ -22,7 +22,7 @@ Reply for requests:<br>
     
 Follow with your message:
 
-    @helper.form(action=routes.HomeController.addUserMessage()) {
+    @helper.form(action=routes.MessageController.addUserMessage()) {
     @helper.select(
     messageForm("purpose"),
     options = Seq("Looking for free seat" -> "Looking for free seat", "Propose free seat" -> "Propose free seat"),

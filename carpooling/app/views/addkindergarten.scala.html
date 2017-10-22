@@ -4,7 +4,7 @@
 <a href="/">homepage</a> <-> <a href="logout">logout</a><br><br>
   Add kindergarten to database:
   
-  @helper.form(action=routes.HomeController.addKindergarten()) {
+  @helper.form(action=routes.KindergartenController.addKindergarten()) {
   @helper.inputText(kindergartenForm("name"))
   @helper.inputText(kindergartenForm("street"))
   @helper.inputText(kindergartenForm("num"))

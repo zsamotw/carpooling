@@ -4,29 +4,29 @@
 # ~~~~
 
 # An example controller showing a sample home page
-GET      /                                  controllers.HomeController.index
-GET      /indexWithMessage                  controllers.HomeController.indexWithMessage(msg: String)
-GET      /login				    controllers.HomeController.login
-GET      /logout                            controllers.HomeController.logout
-POST     /validatelogin                     controllers.HomeController.validateLoginAndPassword
-POST     /addUser                           controllers.HomeController.addUser
-GET      /addUserToKindergarten/:kgHashCode controllers.HomeController.addUserToKindergarten(kgHashCode)
-GET      /user                        	    controllers.HomeController.userMenu
-GET      /kindergarten                	    controllers.HomeController.kindergartenMenu
-POST     /addKindergarten            	    controllers.HomeController.addKindergarten
-GET      /findKindergarten           	    controllers.HomeController.findKindergarten
-POST     /findparents                	    controllers.HomeController.showUsersFromKindergarten
-GET      /findmyparents              	    controllers.HomeController.showUsersFromMyKindergarten(msg: String ?= "Users from my kindergarten")
-GET      /allkindergartens           	    controllers.HomeController.allKindergartens
-GET      /panel                      	    controllers.HomeController.showUserPanel(msg: String ?= "Nothing happens")
-GET      /deleteuser		     	    controllers.HomeController.deleteUser
-GET      /sendrequest/:email         	    controllers.HomeController.sendRequest(email)
-GET      /replyforrequest/:email     	    controllers.HomeController.replyForRequest(email)
-GET      /rejectrequest/:email       	    controllers.HomeController.rejectRequest(email)
-GET      /leavegroup                 	    controllers.HomeController.leaveGroup()
-POST     /addUserMessage             	    controllers.HomeController.addUserMessage()
-GET      /timeline                   	    controllers.HomeController.showTimeline()
-GET      /filterMessages             	    controllers.HomeController.filterMessages
+GET      /                                  controllers.UserController.index
+GET      /indexWithMessage                  controllers.UserController.indexWithMessage(msg: String)
+GET      /login				    controllers.UserController.login
+GET      /logout                            controllers.UserController.logout
+POST     /validatelogin                     controllers.UserController.validateLoginAndPassword
+POST     /addUser                           controllers.UserController.addUser
+GET      /addUserToKindergarten/:kgHashCode controllers.KindergartenController.addUserToKindergarten(kgHashCode)
+GET      /user                        	    controllers.UserController.userMenu
+GET      /kindergarten                	    controllers.KindergartenController.kindergartenMenu
+POST     /addKindergarten            	    controllers.KindergartenController.addKindergarten
+GET      /findKindergarten           	    controllers.KindergartenController.findKindergarten
+POST     /findparents                	    controllers.KindergartenController.showUsersFromKindergarten
+GET      /findmyparents              	    controllers.KindergartenController.showUsersFromMyKindergarten(msg: String ?= "Users from my kindergarten")
+GET      /allkindergartens           	    controllers.KindergartenController.allKindergartens
+GET      /panel                      	    controllers.UserController.showUserPanel(msg: String ?= "Nothing happens")
+GET      /deleteuser		     	    controllers.UserController.deleteUser
+GET      /sendrequest/:email         	    controllers.UserController.sendRequest(email)
+GET      /replyforrequest/:email     	    controllers.UserController.replyForRequest(email)
+GET      /rejectrequest/:email       	    controllers.UserController.rejectRequest(email)
+GET      /leavegroup                 	    controllers.UserController.leaveGroup()
+POST     /addUserMessage             	    controllers.MessageController.addUserMessage()
+GET      /timeline                   	    controllers.MessageController.showTimeline()
+GET      /filterMessages             	    controllers.MessageController.filterMessages
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

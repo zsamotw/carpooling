@@ -6,7 +6,7 @@
   
   You can add yourself to our database -> name, contact and location. Fill this form:<br>
   
-  @helper.form(action=routes.HomeController.addUser()) {
+  @helper.form(action=routes.UserController.addUser()) {
   @helper.inputText(userForm("email"))
   @helper.inputPassword(userForm("password"))
   @helper.inputText(userForm("name"))

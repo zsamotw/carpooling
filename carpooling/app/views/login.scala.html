@@ -2,7 +2,7 @@
 
 @main("Login") {
     LOGIN HERE:
-    @helper.form(action=routes.HomeController.validateLoginAndPassword()) {
+    @helper.form(action=routes.UserController.validateLoginAndPassword()) {
     @helper.inputText(loginForm("email"))
     @helper.inputPassword(loginForm("password"))
     <button type="submit">Login</button>
