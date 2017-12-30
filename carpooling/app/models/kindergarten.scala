@@ -171,7 +171,7 @@ object Kindergartens {
   }
 
   def convertCursorToKindergartensList(mongoKindergatens: MongoCursor): List[Kindergarten] = {
-    for{kgMongo <- mongoKindergatens.toList}yield convertDBObjectToKindergarten(kgMongo)
+    for{kgMongo <- mongoKindergatens.toList} yield convertDBObjectToKindergarten(kgMongo)
   }
 
     //   val res =
