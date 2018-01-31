@@ -36,12 +36,12 @@ class MessageController @Inject()(val messagesApi: MessagesApi)  extends Control
           }
         )
       }.getOrElse {
-        Ok(views.html.index(loginMessage))
+        Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
       }
     } catch {
       case e: NoSuchElementException =>
         val sysMessage = "Ooops! Problem with finding element. Check you connection with database"
-        Ok(views.html.index(sysMessage))
+        Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
     }
   }
 
@@ -52,12 +52,12 @@ class MessageController @Inject()(val messagesApi: MessagesApi)  extends Control
         val sysMessage = "Showing all messages"
         Ok(views.html.timeline(messages, sysMessage, MessageSearchForm.form))
       }.getOrElse {
-        Ok(views.html.index(loginMessage))
+        Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
       }
     } catch {
       case e: NoSuchElementException =>
         val sysMessage = "Ooops! Problem with finding element. Check you connection with database"
-        Ok(views.html.index(sysMessage))
+        Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
     }
   }
 
@@ -119,12 +119,12 @@ class MessageController @Inject()(val messagesApi: MessagesApi)  extends Control
           }
         )
       } getOrElse {
-        Ok(views.html.index(loginMessage))
+        Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
       }
     } catch {
       case e: NoSuchElementException =>
         val sysMessage = "Ooops! Problem with finding element. Check you connection with database"
-        Ok(views.html.index(sysMessage))
+        Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
     }
   }
 }

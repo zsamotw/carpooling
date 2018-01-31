@@ -6,12 +6,12 @@
 # An example controller showing a sample home page
 GET      /                                  controllers.UserController.index
 GET      /indexWithMessage                  controllers.UserController.indexWithMessage(msg: String)
-GET      /login				    controllers.UserController.login
+#GET      /login				    controllers.UserController.login
 GET      /logout                            controllers.UserController.logout
 POST     /validatelogin                     controllers.UserController.validateLoginAndPassword
 POST     /addUser                           controllers.UserController.addUser
 GET      /addUserToKindergarten/:kgHashCode controllers.KindergartenController.addUserToKindergarten(kgHashCode)
-GET      /user                        	    controllers.UserController.userMenu
+#GET      /user                        	    controllers.UserController.userMenu
 GET      /kindergarten                	    controllers.KindergartenController.kindergartenMenu
 POST     /addKindergarten            	    controllers.KindergartenController.addKindergarten
 GET      /findKindergarten           	    controllers.KindergartenController.findKindergarten
