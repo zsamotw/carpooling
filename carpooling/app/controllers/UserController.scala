@@ -31,7 +31,7 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
     request.session.get("connected").map { loggedUserEmail =>
       Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
     }.getOrElse{
-      Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
+      Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
     }
   }
 
@@ -60,8 +60,9 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
       },
       login => try {
         val user = Users.findUserByEmail(login.email)
+        val messages = Messages.getAllWithTimeFilter
         val sysMessage = s"Hello today. How are you ${user.name}?"
-        if(Users.validateLogin(login)) Ok(views.html.mainboard(sysMessage)).withSession("connected" -> login.email)
+        if(Users.validateLogin(login)) Ok(views.html.mainboard(messages, MessageSearchForm.form, sysMessage)).withSession("connected" -> login.email)
         else {
           val sysMessage = "Incorrect login or password"
           Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
@@ -79,6 +80,21 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
   }
 
 
+  def mainBoard() = Action { implicit request =>
+    try {
+      request.session.get("connected").map { loggedUserEmail =>
+        val messages = Messages.getAllWithTimeFilter
+        val sysMessage = "You are in mainboard"
+        Ok(views.html.mainboard(messages, MessageSearchForm.form, sysMessage))
+      }.getOrElse {
+        Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
+      }
+    } catch {
+      case e: NoSuchElementException =>
+        val sysMessage = "Ooops! Problem with finding element. Check you connection with database"
+        Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
+    }
+  }
  // nie potrzeba bo jest na poczatku
  //  def userMenu() = Action { implicit request =>
  //    request.session.get("connected").map {loggedUserEmail =>
@@ -119,7 +135,8 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
             val dataToDB = Users.add(user)
             MongoFactory.addUser(dataToDB)
             val sysMessage = s"User: ${user.name} ${user.surname} has been added. You are login"
-            Ok(views.html.mainboard(sysMessage)).withSession("connected" -> user.email)
+            val messages = Messages.getAllWithTimeFilter
+            Ok(views.html.mainboard(messages, MessageSearchForm.form, sysMessage)).withSession("connected" -> user.email)
           }
           else {
             val sysMessage = "User with this login exists."
@@ -178,7 +195,7 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
         val user = Users.findUserByEmail(email)
         Ok(views.html.panel(user, sysMessage, MessageForm.form))
       }.getOrElse {
-        Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
+        Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
       }
     } catch {
       case e: NoSuchElementException =>

@@ -31,7 +31,7 @@ class MessageController @Inject()(val messagesApi: MessagesApi)  extends Control
               data.to,
               simpleUser)
             MongoFactory.add(userMessage)
-            val sysMessage = "You message has been sent!"
+            val sysMessage = s"You message has been sent! $userMessage"
             Ok(views.html.panel(user, sysMessage, MessageForm.form))
           }
         )

@@ -38,7 +38,9 @@ class KindergartenController @Inject()(val messagesApi: MessagesApi)  extends Co
             if(user.admin == true) "You are admin.You can't add more kindergartens."
             else "You are linked with some people. Before create new kindergarten, first you have to leave your group in personal panel."
           }
-          Ok(views.html.mainboard(sysMessage))
+
+          val messages = Messages.getAllWithTimeFilter
+          Ok(views.html.mainboard(messages, MessageSearchForm.form, sysMessage))
       }
     }.getOrElse {
       Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
@@ -77,7 +79,8 @@ class KindergartenController @Inject()(val messagesApi: MessagesApi)  extends Co
             val dataToDB = Kindergartens.addKindergarten(kindergarten, user)
             MongoFactory.addKindergarten(dataToDB)
             val sysMessage = s"Kindergarten ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city}was added by ${user.name} ${user.surname}"
-            Ok(views.html.mainboard(sysMessage))
+            val messages = Messages.getAllWithTimeFilter
+            Ok(views.html.mainboard(messages, MessageSearchForm.form, sysMessage))
           })
       }.getOrElse {
         Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
