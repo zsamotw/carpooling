@@ -1,8 +1,8 @@
 @(sysMessage: String, loginForm: Form[Login], userForm: Form[UserFormData])(implicit messages: play.api.i18n.Messages)
 
 @main("Welcome to our carpooling family") {
-<div>
-    <div>
+<div class="contener">
+    <div id="login">
         LOGIN HERE:
         @helper.form(action=routes.UserController.validateLoginAndPassword()) {
             @helper.inputText(loginForm("email"))
@@ -10,7 +10,7 @@
             <button type="submit">Login</button>
             }
     </div>
-    <div>
+    <div id="adduser">
         You can add yourself to our database -> name, contact and location. Fill this form:<br>
         @helper.form(action=routes.UserController.addUser()) {
             @helper.inputText(userForm("email"))
