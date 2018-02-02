@@ -9,16 +9,17 @@ import play.api.mvc._
 
 class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller  with I18nSupport {
 
-  lazy val loginMessage = "You can't do anything without login"
+  lazy val loginMessage = "You can't do anything without login."
+  lazy val welcomeMessage = "Welcome and login!"
 
   def index() = Action { implicit request =>
     try {
       request.session.get("connected").map { loggedUserEmail =>
         val user = Users.findUserByEmail(loggedUserEmail)
-        val sysMessage = s"${user.name} ${user.surname} is connected"
-        Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
+        val sysMessage = s"${user.name} ${user.surname} is logout automaticly"
+        Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form)).withNewSession
       }.getOrElse {
-        Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
+        Ok(views.html.index(welcomeMessage,LoginForm.form, UserForm.form))
       }
     } catch {
       case e: NoSuchElementException =>
@@ -56,7 +57,8 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
   def validateLoginAndPassword() = Action { implicit request =>
     LoginForm.form.bindFromRequest.fold(
       formWithError => {
-        BadRequest(views.html.login(formWithError))
+        val sysMessage = "Fill form correctly"
+        BadRequest(views.html.index(sysMessage, formWithError, UserForm.form))
       },
       login => try {
         val user = Users.findUserByEmail(login.email)
@@ -76,7 +78,7 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def logout() = Action { implicit request =>
     val sysMessage = "Your session is finished. You are logout"
-    Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
+    Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))withNewSession
   }
 
 
@@ -111,8 +113,8 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
     try {
       UserForm.form.bindFromRequest.fold(
         formWithError => {
-          val kindergartens = Kindergartens.listAll
-          BadRequest(views.html.adduser(formWithError, kindergartens))
+          val sysMessage = "Fill form correctly"
+          BadRequest(views.html.index(sysMessage, LoginForm.form, formWithError))
         },
         userData => {
           val latLon = GeoUtils.searchGeoPoint(userData)
