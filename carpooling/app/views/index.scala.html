@@ -12,20 +12,20 @@
         <div id="login">
             Login here:
             @helper.form(action=routes.UserController.validateLoginAndPassword()) {
-                @helper.inputText(loginForm("email:"))
-                @helper.inputPassword(loginForm("password:"))
+                @helper.inputText(loginForm("email"))
+                @helper.inputPassword(loginForm("password"))
                 <button type="submit">Login</button>
                 }
         </div>
         <div id="adduser">
             Fill form if you haven't account yet:
             @helper.form(action=routes.UserController.addUser()) {
-                @helper.inputText(userForm("email:"))
-                @helper.inputPassword(userForm("password:"))
-                @helper.inputText(userForm("name:"))
-                @helper.inputText(userForm("surname:"))
-                @helper.inputText(userForm("street:"))
-                @helper.inputText(userForm("city:"))
+                @helper.inputText(userForm("email"))
+                @helper.inputPassword(userForm("password"))
+                @helper.inputText(userForm("name"))
+                @helper.inputText(userForm("surname"))
+                @helper.inputText(userForm("street"))
+                @helper.inputText(userForm("city"))
                 @helper.select(
                     userForm("seats:"),
                     options = for(i <- 1 to 10) yield (i.toString -> i.toString),
