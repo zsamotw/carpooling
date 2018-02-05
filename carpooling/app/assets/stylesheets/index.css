@@ -1,0 +1,36 @@
+#title_contener {
+    padding = 10%;
+    left: 0;
+    top: 0;
+    width: 40%;
+    float: left;
+    text-align: center;
+}
+
+#title {
+    font-size: 200%;
+    margin-top: 25%;
+    margin-bottom: 4%;
+}
+
+
+#under_title {
+    font-size: 120%;
+    margin-bottom: 10%;
+}
+
+#form_contener {
+    padding-right: 10%;
+    width: 40%;
+    float: right;
+
+}
+
+#login {
+    padding: 3%;
+}
+
+#adduser {
+    padding: 3%;
+}
+

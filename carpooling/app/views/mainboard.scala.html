@@ -1,0 +1,63 @@
+@(appMessages: List[Message], messageSearchForm: Form[MessageSearchFormData], messageForm: Form[MessageFormData], sysMessage: String)(implicit messages: play.api.i18n.Messages)
+
+@main("Welcome to our carpooling family") {
+    <div class="contener">
+        <div class="upper_menu">
+            <span class="upper_menu_item"><a href="findmyparents">CHECK OUT YOUR KINDERGARTEN</a></span>
+            <span class="upper_menu_item"><a href="findKindergarten">FIND USERS FROM OTHERS KINDERGARTES</a></span>
+            <span class="upper_menu_item"><a href="allkindergartens">LIST OF KINDERGARTENS</a></span>
+            <span class="upper_menu_item"><a href="panel">YOUR PANEL</a></span>
+            <span class="upper_menu_item"><a href="logout">LOGOUT</a></span>
+        </div>
+        <div class="sysmessage">@sysMessage</div>
+        <div id="timeline_contener">
+            <div id="timeline_filters">
+                Filter your timeline:
+                @helper.form(action=routes.MessageController.filterMessages()) {
+                    @helper.select(
+                        messageSearchForm("kind"),
+                        options = Seq("all" -> "all","look-for-free-seats" -> "look for free seats", "propose-free-seats" -> "propose free seats", "community-messages" -> "community messages"),
+                        '_label -> "Choose kind of messages")
+                    @helper.select(
+                        messageSearchForm("area"),
+                        options = Seq("all" -> "all", "your-city" -> "your city", "your-kindergarten" -> "your kindergarten"),
+                        '_label -> "Area of messages")
+                    <button type="submit">Search</button>
+                    }
+            </div>
+            <div id="timeline_messages">
+                @for(message <- appMessages) {
+                    <div id="timeline_message">
+		                    @message.toString<br><br>
+                    </div>
+		            }
+            </div>
+        </div>
+        <div id="messages_creator">
+            <div id="message_form">
+                Follow with your message:
+
+                @helper.form(action=routes.MessageController.addUserMessage()) {
+                    @helper.select(
+                        messageForm("purpose"),
+                        options = Seq("Looking for free seat" -> "Looking for free seat", "Propose free seat" -> "Propose free seat"),
+                        '_default -> "Your purpose",
+    '_label -> "Purpose")
+                    @helper.select(
+                        messageForm("seats"),
+                        options = for(i <- 1 to 10) yield (i.toString -> i.toString),
+                        '_default -> "Number of free seats in your car",
+      '_label -> "Seats")
+                    @helper.inputText(messageForm("year"))
+                    @helper.inputText(messageForm("month"))
+                    @helper.inputText(messageForm("day"))
+                    @helper.inputText(messageForm("hour"))
+                    @helper.inputText(messageForm("minutes"))
+                    @helper.inputText(messageForm("from"))
+                    @helper.inputText(messageForm("to"))
+                    <button type="send">Send message</button>
+                    }
+            </div>
+        </div>
+    </div>
+}

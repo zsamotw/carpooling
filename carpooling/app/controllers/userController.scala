@@ -64,7 +64,7 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
         val user = Users.findUserByEmail(login.email)
         val messages = Messages.getAllWithTimeFilter
         val sysMessage = s"Hello today. How are you ${user.name}?"
-        if(Users.validateLogin(login)) Ok(views.html.mainboard(messages, MessageSearchForm.form, sysMessage)).withSession("connected" -> login.email)
+        if(Users.validateLogin(login)) Ok(views.html.mainboard(messages, MessageSearchForm.form,  MessageForm.form, sysMessage)).withSession("connected" -> login.email)
         else {
           val sysMessage = "Incorrect login or password"
           Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
@@ -87,7 +87,7 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
       request.session.get("connected").map { loggedUserEmail =>
         val messages = Messages.getAllWithTimeFilter
         val sysMessage = "You are in mainboard"
-        Ok(views.html.mainboard(messages, MessageSearchForm.form, sysMessage))
+        Ok(views.html.mainboard(messages, MessageSearchForm.form, MessageForm.form, sysMessage))
       }.getOrElse {
         Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
       }
@@ -138,7 +138,7 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
             MongoFactory.addUser(dataToDB)
             val sysMessage = s"User: ${user.name} ${user.surname} has been added. You are login"
             val messages = Messages.getAllWithTimeFilter
-            Ok(views.html.mainboard(messages, MessageSearchForm.form, sysMessage)).withSession("connected" -> user.email)
+            Ok(views.html.mainboard(messages, MessageSearchForm.form, MessageForm.form,  sysMessage)).withSession("connected" -> user.email)
           }
           else {
             val sysMessage = "User with this login exists."
