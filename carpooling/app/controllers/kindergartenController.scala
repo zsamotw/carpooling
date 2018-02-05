@@ -40,7 +40,7 @@ class KindergartenController @Inject()(val messagesApi: MessagesApi)  extends Co
           }
 
           val messages = Messages.getAllWithTimeFilter
-          Ok(views.html.mainboard(messages, MessageSearchForm.form, sysMessage))
+          Ok(views.html.mainboard(messages, MessageSearchForm.form, MessageForm.form, sysMessage))
       }
     }.getOrElse {
       Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
@@ -80,7 +80,7 @@ class KindergartenController @Inject()(val messagesApi: MessagesApi)  extends Co
             MongoFactory.addKindergarten(dataToDB)
             val sysMessage = s"Kindergarten ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city}was added by ${user.name} ${user.surname}"
             val messages = Messages.getAllWithTimeFilter
-            Ok(views.html.mainboard(messages, MessageSearchForm.form, sysMessage))
+            Ok(views.html.mainboard(messages, MessageSearchForm.form, MessageForm.form, sysMessage))
           })
       }.getOrElse {
         Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))

@@ -31,8 +31,9 @@ class MessageController @Inject()(val messagesApi: MessagesApi)  extends Control
               data.to,
               simpleUser)
             MongoFactory.add(userMessage)
+            val messages = Messages.getAllWithTimeFilter
             val sysMessage = s"You message has been sent! $userMessage"
-            Ok(views.html.panel(user, sysMessage, MessageForm.form))
+            Ok(views.html.mainboard(messages, MessageSearchForm.form, MessageForm.form, sysMessage))
           }
         )
       }.getOrElse {
@@ -115,7 +116,7 @@ class MessageController @Inject()(val messagesApi: MessagesApi)  extends Control
             val finalFilter = Messages.everyFilters(messagesFilter2, messagesFilter1)
             val finalSysMessage = sysMessage1 + sysMessage2
             val finalMessages = Messages.filterTimeline(finalFilter)(sortingCriteria)(messages)
-            Ok(views.html.timeline(finalMessages, finalSysMessage, MessageSearchForm.form))
+            Ok(views.html.mainboard(finalMessages, MessageSearchForm.form, MessageForm.form, finalSysMessage))
           }
         )
       } getOrElse {
