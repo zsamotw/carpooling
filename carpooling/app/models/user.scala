@@ -48,7 +48,7 @@ case class UserFormData(
 
 case class Login(email: String, password: String)
 
-object userForm {
+object UserForm {
   val form = Form(
     mapping(
       "email" -> text,
@@ -60,7 +60,7 @@ object userForm {
       "seats" -> number)(UserFormData.apply)(UserFormData.unapply))
 }
 
-object loginForm {
+object LoginForm {
   val form = Form(
     mapping(
       "email" -> text,

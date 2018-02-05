@@ -1,0 +1,36 @@
+#timeline_contener {
+    float: left;
+    left: 0;
+    top: 0;
+    width: 40%;
+    margin-top: 2%;
+    margin-left: 1%;
+}
+
+#timeline_filters {
+    margin-bottom: 1%;
+}
+
+#timeline_messages {
+    margin-top: 2%;
+}
+
+#timeline_message {
+    margin-bottom: 1%;
+    padding: 20px;
+    letter-spacing: 2px;
+    border-color: gray;
+    border-style: solid;
+    border-width: 1px;
+}
+
+#messages_creator {
+    float: right;
+    width: 40%;
+    margin-top: 2%;
+    margin-left: 1%;
+}
+
+#message_form {
+    
+}

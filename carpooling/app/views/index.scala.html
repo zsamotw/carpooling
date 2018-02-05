@@ -1,16 +1,38 @@
-@(sysMessage: String)
+@(sysMessage: String, loginForm: Form[Login], userForm: Form[UserFormData])(implicit messages: play.api.i18n.Messages)
 
 @main("Welcome to our carpooling family") {
-<a href="user">sign up</a>   <->   <a href="login">log in</a>  <->  <a href="logout">logout</a><br><br>
-Welcome to carpooling app for parents! Don't afraid about design. App is in progress.<br>
-There are plethora possibilities for you!!!<br><br>
-<b>Short menu:</b><br><br>
-    <a href="allkindergartens">list of kindergartens</a><br>
-    <a href="kindergarten">add new kindergarten</a><br>
-    <a href="findKindergarten">find users from kindergaten</a><br>
-    <a href="findmyparents">jump to your kindergarten</a><br>
-    <a href="panel">personal panel</a><br>
-    <a href="timeline">timeline</a><br><br><br><br><br>
-
-<b>current info: @sysMessage</b>
+<div class="contener">
+    <div id="title_contener">
+        <div id="title">CarPar</div>
+        <div id="under_title">Carpooling for parents<br>Parents for carpooling</div>
+        <div class="sysmessage">@sysMessage</div>
+    </div>
+    <div id="form_contener">
+        <div id="login">
+            Login here:
+            @helper.form(action=routes.UserController.validateLoginAndPassword()) {
+                @helper.inputText(loginForm("email"))
+                @helper.inputPassword(loginForm("password"))
+                <button type="submit">Login</button>
+                }
+        </div>
+        <div id="adduser">
+            Fill form if you haven't account yet:
+            @helper.form(action=routes.UserController.addUser()) {
+                @helper.inputText(userForm("email"))
+                @helper.inputPassword(userForm("password"))
+                @helper.inputText(userForm("name"))
+                @helper.inputText(userForm("surname"))
+                @helper.inputText(userForm("street"))
+                @helper.inputText(userForm("city"))
+                @helper.select(
+                    userForm("seats:"),
+                    options = for(i <- 1 to 10) yield (i.toString -> i.toString),
+                    '_default -> "Number of free seats in your car",
+    '_label -> "Seats:")
+                <button type="submit">Add user</button>
+                }
+        </div>
+    </div>
+</div>
 }

@@ -31,17 +31,18 @@ class MessageController @Inject()(val messagesApi: MessagesApi)  extends Control
               data.to,
               simpleUser)
             MongoFactory.add(userMessage)
-            val sysMessage = "You message has been sent!"
-            Ok(views.html.panel(user, sysMessage, MessageForm.form))
+            val messages = Messages.getAllWithTimeFilter
+            val sysMessage = s"You message has been sent! $userMessage"
+            Ok(views.html.mainboard(messages, MessageSearchForm.form, MessageForm.form, sysMessage))
           }
         )
       }.getOrElse {
-        Ok(views.html.index(loginMessage))
+        Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
       }
     } catch {
       case e: NoSuchElementException =>
         val sysMessage = "Ooops! Problem with finding element. Check you connection with database"
-        Ok(views.html.index(sysMessage))
+        Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
     }
   }
 
@@ -52,12 +53,12 @@ class MessageController @Inject()(val messagesApi: MessagesApi)  extends Control
         val sysMessage = "Showing all messages"
         Ok(views.html.timeline(messages, sysMessage, MessageSearchForm.form))
       }.getOrElse {
-        Ok(views.html.index(loginMessage))
+        Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
       }
     } catch {
       case e: NoSuchElementException =>
         val sysMessage = "Ooops! Problem with finding element. Check you connection with database"
-        Ok(views.html.index(sysMessage))
+        Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
     }
   }
 
@@ -115,16 +116,16 @@ class MessageController @Inject()(val messagesApi: MessagesApi)  extends Control
             val finalFilter = Messages.everyFilters(messagesFilter2, messagesFilter1)
             val finalSysMessage = sysMessage1 + sysMessage2
             val finalMessages = Messages.filterTimeline(finalFilter)(sortingCriteria)(messages)
-            Ok(views.html.timeline(finalMessages, finalSysMessage, MessageSearchForm.form))
+            Ok(views.html.mainboard(finalMessages, MessageSearchForm.form, MessageForm.form, finalSysMessage))
           }
         )
       } getOrElse {
-        Ok(views.html.index(loginMessage))
+        Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
       }
     } catch {
       case e: NoSuchElementException =>
         val sysMessage = "Ooops! Problem with finding element. Check you connection with database"
-        Ok(views.html.index(sysMessage))
+        Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
     }
   }
 }

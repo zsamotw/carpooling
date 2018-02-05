@@ -17,12 +17,12 @@ class KindergartenController @Inject()(val messagesApi: MessagesApi)  extends Co
         val all = Kindergartens.listAll
         Ok(views.html.allkindergartens(all))
       }.getOrElse {
-        Ok(views.html.index(loginMessage))
+        Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
       }
     } catch {
       case e: NoSuchElementException =>
         val sysMessage = "Ooops! Problem with searching element. Check you connection with database"
-        Ok(views.html.index(sysMessage))
+        Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
       }
   }
 
@@ -38,10 +38,12 @@ class KindergartenController @Inject()(val messagesApi: MessagesApi)  extends Co
             if(user.admin == true) "You are admin.You can't add more kindergartens."
             else "You are linked with some people. Before create new kindergarten, first you have to leave your group in personal panel."
           }
-          Ok(views.html.index(sysMessage))
+
+          val messages = Messages.getAllWithTimeFilter
+          Ok(views.html.mainboard(messages, MessageSearchForm.form, MessageForm.form, sysMessage))
       }
     }.getOrElse {
-      Ok(views.html.index(loginMessage))
+      Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
     }
   }
 
@@ -77,18 +79,19 @@ class KindergartenController @Inject()(val messagesApi: MessagesApi)  extends Co
             val dataToDB = Kindergartens.addKindergarten(kindergarten, user)
             MongoFactory.addKindergarten(dataToDB)
             val sysMessage = s"Kindergarten ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city}was added by ${user.name} ${user.surname}"
-            Ok(views.html.index(sysMessage))
+            val messages = Messages.getAllWithTimeFilter
+            Ok(views.html.mainboard(messages, MessageSearchForm.form, MessageForm.form, sysMessage))
           })
       }.getOrElse {
-        Ok(views.html.index(loginMessage))
+        Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
       }
     } catch {
       case e: IOException =>
         val sysMessage = "Oooops, something wrong with kindergarten address or internet connection"
-        Ok(views.html.index(sysMessage))
+        Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
       case e: NoSuchElementException =>
         val sysMessage = "Ooops! Problem with finding element. Check you connection with database"
-        Ok(views.html.index(sysMessage))
+        Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
     }
   }
 
@@ -113,7 +116,7 @@ class KindergartenController @Inject()(val messagesApi: MessagesApi)  extends Co
           Redirect(routes.UserController.indexWithMessage(sysMessage))
       }
     }.getOrElse {
-      Ok(views.html.index(loginMessage))
+      Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
     }
   }
 
@@ -123,12 +126,12 @@ class KindergartenController @Inject()(val messagesApi: MessagesApi)  extends Co
         val kindergartens = Kindergartens.listAll
         Ok(views.html.findusersfromkindergarten(KindergartenForm.form, kindergartens))
       }.getOrElse {
-        Ok(views.html.index(loginMessage))
+        Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
       }
     } catch {
       case e: NoSuchElementException =>
         val sysMessage = "Ooops! Problem with finding element. Check you connection with database"
-        Ok(views.html.index(sysMessage))
+        Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
     }
   }
 
@@ -157,7 +160,7 @@ class KindergartenController @Inject()(val messagesApi: MessagesApi)  extends Co
     } catch {
       case e: NoSuchElementException =>
         val sysMessage = "There is no such kindergarten in db or there are problems with finding users"
-        Ok(views.html.index(sysMessage))
+        Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
     }
   }
 
@@ -175,12 +178,12 @@ class KindergartenController @Inject()(val messagesApi: MessagesApi)  extends Co
         val restGroups = usersFrom filter(group => group != loggedUserGroup.flatten)
         Ok(views.html.showusers(kindergarten, loggedUserGroup, restGroups, sysMessage))
       } getOrElse {
-        Ok(views.html.index(loginMessage))
+        Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
       }
     } catch {
       case e: NoSuchElementException =>
         val sysMessage = "Ooops! Problem with finding element. Check you connection with database"
-        Ok(views.html.index(sysMessage))
+        Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
     }
   }
 }
