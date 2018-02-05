@@ -1,49 +1,53 @@
 @(user: User, sysMessage: String, messageForm: Form[MessageFormData])(implicit messages: play.api.i18n.Messages)
 
 @main("Panel") {
-<a href="/mainboard">homepage</a> <-> <a href="logout">logout</a><br><br>
-<br><b>Current info: @sysMessage</b><br><br>
-@user.name  @user.surname<br>
-Address:
-@user.street  @user.city<br>
-Free seats: @user.seats<br>
-Kindergaten:
-@user.kindergarten.name, @user.kindergarten.street no. @user.kindergarten.num in @user.kindergarten.city with admin: @user.kindergarten.admin<br>
-email:
-@user.email<br><br>
+    <div class="contener">
+        <div class="upper_menu">
+            <span class="upper_menu_item"><a href="mainboard">MAINBOARD</a></span>
+            <span class="upper_menu_item"><a href="findmyparents">CHECK OUT YOUR KINDERGARTEN</a></span>
+            <span class="upper_menu_item"><a href="findKindergarten">FIND USERS FROM OTHERS KINDERGARTES</a></span>
+            <span class="upper_menu_item"><a href="allkindergartens">LIST OF KINDERGARTENS</a></span>
+            <span class="upper_menu_item"><a href="panel">YOUR PANEL</a></span>
+            <span class="upper_menu_item"><a href="logout">LOGOUT</a></span>
+        </div>
+        <div class="sysmessage">
+            @sysMessage
+        </div>
+        <div id="personal_data">
+            <div class="personal_data_item">
+                @user.name  @user.surname
+            </div>
+            <div class="personal_data_item">
+                Address:
+                @user.street  @user.city
+            </div>
+            <div class="personal_data_item">
+                Free seats: @user.seats
+            </div>
+            <div class="personal_data_item">
+                Kindergaten:
+                @user.kindergarten.name, @user.kindergarten.street no. @user.kindergarten.num in @user.kindergarten.city with admin: @user.kindergarten.admin<br>
+            </div>
+            <div class="personal_data_item">
+                email:
+                @user.email
+            </div>
 
-Reply for requests:<br>
-@for(email <- user.requests) {
-  @email <a href="/replyforrequest/@email">reply</a> or <a href="/rejectrequest/@email">reject</a><br>
-}
+            <div id="left_menu">
+                <span class="left_menu_item"><a href="/leavegroup">BE SINGLE</a></span> 
+                <span class="left_menu_item"><a href="/deleteuser">DELETE YOURSELF</a></span>
+                <span class="left_menu_item" ><a href="kindergarten">ADD NEW KINDERGARTEN</a></span>
+            </div>
+        </div>
+        <div id="requests">
+            Reply for requests:
+            @for(email <- user.requests) {
+                @email <a href="/replyforrequest/@email">reply</a> or <a href="/rejectrequest/@email">reject</a>
+                }
+        </div>
+    </div>
 
-<br><a href="/leavegroup">be single => create your new net</a>  or <a href="/deleteuser">Delete myself and take me somewhere else!</a><br><br>
 
-    
-Follow with your message:
 
-    @helper.form(action=routes.MessageController.addUserMessage()) {
-    @helper.select(
-    messageForm("purpose"),
-    options = Seq("Looking for free seat" -> "Looking for free seat", "Propose free seat" -> "Propose free seat"),
-    '_default -> "Your purpose",
-    '_label -> "Purpose")
-    @helper.select(
-    messageForm("seats"),
-    options = for(i <- 1 to 10) yield (i.toString -> i.toString),
-      '_default -> "Number of free seats in your car",
-      '_label -> "Seats")
-    @helper.inputText(messageForm("year"))
-    @helper.inputText(messageForm("month"))
-    @helper.inputText(messageForm("day"))
-    @helper.inputText(messageForm("hour"))
-    @helper.inputText(messageForm("minutes"))
-    @helper.inputText(messageForm("from"))
-    @helper.inputText(messageForm("to"))
-    <button type="send">Send message</button>
-    }
-	      
-            <a href="kindergarten">add new kindergarten</a><br>
-<br><a href="/">homepage</a><br><br><br>
 
 }

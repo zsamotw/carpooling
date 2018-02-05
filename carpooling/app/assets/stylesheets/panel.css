@@ -1,0 +1,28 @@
+#personal_data {
+    float: left;
+    left: 0;
+    top: 0;
+    width: 40%;
+    margin-top: 2%;
+    margin-left: 1%;
+}
+
+.personal_data_item {
+    margin-bottom: 5px;
+}
+
+#requests {
+    float: right;
+    width: 40% ;
+    margin-top: 2%;
+    margin-left: 1%;
+}
+
+#left_menu {
+    margin-top: 10%;
+}
+
+.left_menu_item {
+    display: block;
+    margin-top: 10px;
+}
