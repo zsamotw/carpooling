@@ -1,15 +1,7 @@
 @(user: User, sysMessage: String, messageForm: Form[MessageFormData])(implicit messages: play.api.i18n.Messages)
 
 @main("Panel") {
-    <div class="contener">
-        <div class="upper_menu">
-            <span class="upper_menu_item"><a href="mainboard">MAINBOARD</a></span>
-            <span class="upper_menu_item"><a href="findmyparents">CHECK OUT YOUR KINDERGARTEN</a></span>
-            <span class="upper_menu_item"><a href="findKindergarten">FIND USERS FROM OTHERS KINDERGARTES</a></span>
-            <span class="upper_menu_item"><a href="allkindergartens">LIST OF KINDERGARTENS</a></span>
-            <span class="upper_menu_item"><a href="panel">YOUR PANEL</a></span>
-            <span class="upper_menu_item"><a href="logout">LOGOUT</a></span>
-        </div>
+@contener {
         <div class="sysmessage">
             @sysMessage
         </div>
@@ -45,8 +37,7 @@
                 @email <a href="/replyforrequest/@email">reply</a> or <a href="/rejectrequest/@email">reject</a>
                 }
         </div>
-    </div>
-
+}
 
 
 
