@@ -68,7 +68,7 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
     try {
       request.session.get("connected").map { loggedUserEmail =>
         val messages = Messages.getAllWithTimeFilter
-        val sysMessage = "You are in mainboard"
+        val sysMessage = "You are in mainboard. Let's do great things!"
         Ok(views.html.mainboard(messages, MessageSearchForm.form, MessageForm.form, sysMessage))
       }.getOrElse {
         Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
