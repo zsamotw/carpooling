@@ -36,24 +36,6 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
     }
   }
 
-  //jnie potrzeba bo nie ma widoku loginu
-  // def login() = Action { implicit request =>
-  //   try {
-  //     request.session.get("connected").map { loggedUserEmail =>
-  //       val user = Users.findUserByEmail(loggedUserEmail)
-  //       val sysMessage = s"${user.name} you have just logged in. If you are not ${user.name} logout in the second!!!!"
-  //       Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
-
-  //     }.getOrElse {
-  //       Ok(views.html.login(loginForm.form))
-  //     }
-  //   } catch {
-  //     case e: NoSuchElementException =>
-  //       val sysMessage = "Ooops! Problem with searching element. Check you connection with database"
-  //       Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
-  //   }
-  // }
-
   def validateLoginAndPassword() = Action { implicit request =>
     LoginForm.form.bindFromRequest.fold(
       formWithError => {
@@ -97,17 +79,6 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
         Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
     }
   }
- // nie potrzeba bo jest na poczatku
- //  def userMenu() = Action { implicit request =>
- //    request.session.get("connected").map {loggedUserEmail =>
- //      val user = Users.findUserByEmail(loggedUserEmail)
- //      val sysMessage = s"Hallo user with login: ${user.name} ${user.surname}.You can't create more account"
- //      Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
- //    }.getOrElse {
- //      val kindergartens = Kindergartens.listAll
- //      Ok(views.html.adduser(userForm.form, kindergartens))
- //    }
- //  }
 
   def addUser() = Action { implicit  request =>
     try {
