@@ -84,7 +84,7 @@ trait Message {
 case class CommunityMessage(creationDateTime: DateTime = new DateTime, kindergarten: Kindergarten, content: String) extends Message {
   override def toString: String =
     s"""$content
-       | Created: ${creationDateTime.toDate}""".stripMargin
+       | Created: ${creationDateTime.toString("yyyy/MM/dd")}""".stripMargin
 }
 
 case class UserMessage(
@@ -104,7 +104,7 @@ case class UserMessage(
        | To: $to
        | Who: ${user.name} ${user.surname} from kindergarten ${user.kindergarten.name} on ${user.kindergarten.street} in ${user.kindergarten.city}
        | Contact: ${user.email}
-       | Created: ${creationDateTime.toDate}
+       | Created: ${creationDateTime.toString("yyyy/MM/dd")}
      """.stripMargin
 }
 

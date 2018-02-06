@@ -115,7 +115,8 @@ class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Co
             else if (user.kindergarten.kgHashCode == kindergarten.kgHashCode) "You can't add twice to the same kindergarten"
             else "You are linked with some people. First you have to leave your group in personal panel"
           }
-          Redirect(routes.UserController.indexWithMessage(sysMessage))
+        val all = Kindergartens.listAll
+        Ok(views.html.allkindergartens(all, sysMessage))
       }
     }.getOrElse {
       Ok(views.html.index(loginMessage, LoginForm.form, UserForm.form))
