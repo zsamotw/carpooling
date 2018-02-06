@@ -1,7 +1,7 @@
-@(user: User, sysMessage: String, messageForm: Form[MessageFormData])(implicit messages: play.api.i18n.Messages)
+@(user: User, sysMessage: String)(implicit messages: play.api.i18n.Messages)
 
 @main("Panel") {
-@contener {
+    @contener {
         <div class="sysmessage">
             @sysMessage
         </div>
@@ -24,7 +24,7 @@
                 email:
                 @user.email
             </div>
-
+            
             <div id="left_menu">
                 <span class="left_menu_item"><a href="/leavegroup">BE SINGLE</a></span> 
                 <span class="left_menu_item"><a href="/deleteuser">DELETE YOURSELF</a></span>
@@ -37,8 +37,5 @@
                 @email <a href="/replyforrequest/@email">reply</a> or <a href="/rejectrequest/@email">reject</a>
                 }
         </div>
-}
-
-
-
-}
+    	 }
+        }

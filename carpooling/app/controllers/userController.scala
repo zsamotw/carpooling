@@ -167,7 +167,7 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
     try {
       request.session.get("connected").map { email =>
         val user = Users.findUserByEmail(email)
-        Ok(views.html.panel(user, sysMessage, MessageForm.form))
+        Ok(views.html.panel(user, sysMessage))
       }.getOrElse {
         Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
       }

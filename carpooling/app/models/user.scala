@@ -14,7 +14,7 @@ case class User(
   street: String,
   city: String,
   seats: Int,
-  kindergarten: Kindergarten,
+  kindergarten: Kindergarten, //TODO Option[Kindergarten]
   requests: Set[String],
   len: String,
   lon: String,
@@ -29,7 +29,7 @@ case class SimpleUser(
   seats: Int,
   len: String,
   lon: String,
-  kindergarten: Kindergarten,
+  kindergarten: Kindergarten,//TODO Option[Kindergarten]
   admin: Boolean)
 
 /**

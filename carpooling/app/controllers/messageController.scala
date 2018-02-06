@@ -19,7 +19,9 @@ class MessageController @Inject()(val messagesApi: MessagesApi)  extends Control
         MessageForm.form.bindFromRequest.fold(
           formWithErrors => {
             val sysMessage = "Fill form correctly!"
-            BadRequest(views.html.panel(user, sysMessage, formWithErrors))
+            val messages = Messages.getAllWithTimeFilter
+//            BadRequest(views.html.panel(user, sysMessage, formWithErrors))
+            BadRequest(views.html.mainboard(messages, MessageSearchForm.form, formWithErrors, sysMessage))
           },
           data => {
             val userMessage = UserMessage(

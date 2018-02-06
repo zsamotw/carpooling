@@ -26,6 +26,22 @@ class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Co
         Ok(views.html.allkindergartens(List[Kindergarten](), sysMessage))
     }
   }
+  
+  def allKindergartensWithMessage(message: String) = Action { implicit request =>
+    try {
+      request.session.get("connected").map { loggedUserEmail =>
+        val all = Kindergartens.listAll
+        Ok(views.html.allkindergartens(all, message))
+      }.getOrElse {
+        Ok(views.html.index(loginMessage, LoginForm.form, UserForm.form))
+      }
+    } catch {
+      case e: NoSuchElementException =>
+        val sysMessage = "Ooops! Problem with searching element. Check you connection with database"
+        Ok(views.html.allkindergartens(List[Kindergarten](), sysMessage))
+    }
+    
+  }
 
   def kindergartenMenu() = Action { implicit request =>
     request.session.get("connected").map { loggedUserEmail =>
@@ -41,7 +57,7 @@ class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Co
           }
 
           val messages = Messages.getAllWithTimeFilter
-          Ok(views.html.mainboard(messages, MessageSearchForm.form, MessageForm.form, sysMessage))
+          Ok(views.html.panel(user,  sysMessage))
       }
     }.getOrElse {
       Ok(views.html.index(loginMessage, LoginForm.form, UserForm.form))
@@ -92,7 +108,7 @@ class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Co
         val sysMessage = "Oooops, something wrong with kindergarten address or internet connection"
         Ok(views.html.addkindergarten(KindergartenForm.form, sysMessage))
       case e: NoSuchElementException =>
-        val sysMessage = "Ooops! Problem with finding element. Check you connection with database"
+      val sysMessage = "Ooops! Problem with finding element. Check you connection with database"
         Ok(views.html.addkindergarten(KindergartenForm.form, sysMessage))
     }
   }
@@ -108,15 +124,16 @@ class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Co
           val dataToDB = Kindergartens.addUserToKindergarten(user, kindergarten)
           MongoFactory.addUserToKindergarten(dataToDB)
           val sysMessage = s"Success. You have changed your kindergarten. Your current kindergarten: ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city}"
-          Redirect(routes.UserController.indexWithMessage(sysMessage))
+          val all = Kindergartens.listAll
+          Redirect(routes.KindergartenController.allKindergartens)
         case _ =>
           val sysMessage = {
-            if (user.admin == true) "You are admin.You can't add more kindergartens."
+            if (user.admin == true) "You are admin of this kindergartens."
             else if (user.kindergarten.kgHashCode == kindergarten.kgHashCode) "You can't add twice to the same kindergarten"
             else "You are linked with some people. First you have to leave your group in personal panel"
           }
-        val all = Kindergartens.listAll
-        Ok(views.html.allkindergartens(all, sysMessage))
+          val all = Kindergartens.listAll
+          Redirect(routes.KindergartenController.allKindergartensWithMessage(sysMessage))
       }
     }.getOrElse {
       Ok(views.html.index(loginMessage, LoginForm.form, UserForm.form))
