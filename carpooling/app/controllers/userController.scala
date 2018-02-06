@@ -78,7 +78,7 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def logout() = Action { implicit request =>
     val sysMessage = "Your session is finished. You are logout"
-    Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))withNewSession
+    Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form)).withNewSession
   }
 
 
