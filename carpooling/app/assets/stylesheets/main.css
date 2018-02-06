@@ -22,6 +22,30 @@ body {
 .upper_menu_item {
     padding: 1%;
 }
+.left_contener {
+    float: left;
+    left: 0;
+    top: 0;
+    width: 40%;
+    margin-top: 2%;
+    margin-left: 1%;
+}
+
+.text {
+	
+}
+
+.form {
+	
+}
+
+.iterator {
+	
+}
+
+.item {
+	
+}
 
 a:link {
     color: grey;

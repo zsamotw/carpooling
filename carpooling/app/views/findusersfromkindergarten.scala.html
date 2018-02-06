@@ -2,23 +2,24 @@
 
 @main("Find users") {
 @contener {
-<a href="/mainboard">homepage</a> <-> <a href="logout">logout</a><br><br>
-    If you want to find parents from concrete kindergarten fill this form:<br>
+	<div class="left_contener">
+		<div class="text">If you want to find parents from concrete kindergarten fill this form:</div>
+		<div class="form">
+		    @helper.form(action=routes.KindergartenController.showUsersFromKindergarten()) {
+   			 @helper.select(
+   	 	kindergartenForm("name"),
+    	options = for(kg <- kindergartens) yield (kg.name -> kg.name),
+   	 	'_default -> "choose yours",
+    		'_label -> "Kindergarten name"
 
-    @helper.form(action=routes.KindergartenController.showUsersFromKindergarten()) {
-    @helper.select(
-    kindergartenForm("name"),
-    options = for(kg <- kindergartens) yield (kg.name -> kg.name),
-    '_default -> "choose yours",
-    '_label -> "Kindergarten name"
+		    )
+    	@helper.inputText(kindergartenForm("street"))
+    	@helper.inputText(kindergartenForm("num"))
+    	@helper.inputText(kindergartenForm("city"))
+    	<button type="submit">Find</button>
+		</div>
+	</div>
 
-    )
-    @helper.inputText(kindergartenForm("street"))
-    @helper.inputText(kindergartenForm("num"))
-    @helper.inputText(kindergartenForm("city"))
-    <button type="submit">Find</button>
     }
-
-    <br><a href="/">homepage</a>
     }
 }

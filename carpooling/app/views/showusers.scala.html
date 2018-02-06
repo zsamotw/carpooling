@@ -2,10 +2,15 @@
 
 @main("Welcome to our Family of Familis") {
 @contener {
-<a href="/mainboard">homepage</a> <-> <a href="logout">logout</a><br><br>
-    <b>current info: @sysMessage</b><br><br>
-  Parents from @kindergarten.name on @kindergarten.street in @kindergarten.city: @kindergarten.len @kindergarten.lon<br><br>
-  List of users:<br><br>
+    <div class="sysmessage">@sysMessage</div>
+    <div class="left_contener">
+    	<div class="text">
+			  Parents from @kindergarten.name on @kindergarten.street in @kindergarten.city: @kindergarten.len @kindergarten.lon<br><br>
+    	</div>
+    	<div class="text">
+			  List of users:<br><br>
+    	</div>
+    	<div class="iterator">
   @for(groupOfUsers <- loggedUserGroup) {
     <b>Your group:</b><br><br>
     @for(user <- groupOfUsers) {
@@ -21,6 +26,7 @@
       <a href="/sendrequest/@user.email">send request</a><br><br>
     }
   }
-  <br><a href="/">homepage</a><br><br>
+    	</div>
+    </div>
   }
 }

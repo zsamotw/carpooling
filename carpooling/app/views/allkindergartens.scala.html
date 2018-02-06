@@ -2,11 +2,15 @@
 
 @main("All kindergartens") {
 	@contener {
-	<a href="/mainboard">homepage</a> <-> <a href="logout">logout</a><br><br>
-    	Registered kindergartens:<br><br>
+	<div class="left_contener">
+		<div class="text">Registered kindergartens:</div>
+		<div class="iterator">
     	@for(kg <- all) {
-      	@kg.name @kg.street @kg.num  @kg.city @kg.len @kg.lon users: @kg.numberOfUsers <a href="addUserToKindergarten/@kg.kgHashCode">add youself</a><br>
+    	<div class="item">
+      	@kg.name @kg.street @kg.num  @kg.city @kg.len @kg.lon users: @kg.numberOfUsers <a href="addUserToKindergarten/@kg.kgHashCode">add youself</a>
+    	</div>
            }
-	<br><a href="/">homepage</a>
+		</div>
+	</div>
 	}
 }
