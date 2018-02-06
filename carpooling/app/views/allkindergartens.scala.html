@@ -1,7 +1,8 @@
-@(all: List[Kindergarten])
+@(all: List[Kindergarten], sysMessage: String)
 
 @main("All kindergartens") {
 	@contener {
+	<div class="sysmessage">@sysMessage</div>
 	<div class="left_contener">
 		<div class="text">Registered kindergartens:</div>
 		<div class="iterator">

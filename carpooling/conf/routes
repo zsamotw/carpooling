@@ -17,8 +17,8 @@ GET      /findKindergarten            	    controllers.KindergartenController.fi
 POST     /findparents                 	    controllers.KindergartenController.showUsersFromKindergarten
 GET      /findmyparents               	    controllers.KindergartenController.showUsersFromMyKindergarten(msg: String ?= "Users from my kindergarten")
 GET      /allkindergartens            	    controllers.KindergartenController.allKindergartens
-GET      /panel                       	    controllers.UserController.showUserPanel(msg: String ?= "Nothing happens")
-GET      /deleteuser		     	              controllers.UserController.deleteUser
+GET      /panel                        	    controllers.UserController.showUserPanel(msg: String ?= "Nothing happens")
+GET      /deleteuser	    	              controllers.UserController.deleteUser
 GET      /sendrequest/:email         	      controllers.UserController.sendRequest(email)
 GET      /replyforrequest/:email     	      controllers.UserController.replyForRequest(email)
 GET      /rejectrequest/:email        	    controllers.UserController.rejectRequest(email)

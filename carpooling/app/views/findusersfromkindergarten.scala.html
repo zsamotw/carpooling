@@ -1,7 +1,8 @@
-@(kindergartenForm: Form[KindergartenFormData], kindergartens: List[models.Kindergarten])(implicit messages: play.api.i18n.Messages)
+@(kindergartenForm: Form[KindergartenFormData], kindergartens: List[models.Kindergarten], sysMessage: String)(implicit messages: play.api.i18n.Messages)
 
 @main("Find users") {
 @contener {
+	<div class="sysmessage">@sysMessage</div>
 	<div class="left_contener">
 		<div class="text">If you want to find parents from concrete kindergarten fill this form:</div>
 		<div class="form">

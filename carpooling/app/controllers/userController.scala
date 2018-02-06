@@ -148,6 +148,7 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
       )
     } catch {
       case e: IOException =>
+        println(e)
         val sysMessage = "Oooops, something wrong with address or internet connection"
         Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
       case e: NoSuchElementException =>

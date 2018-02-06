@@ -1,7 +1,8 @@
-@(kindergartenForm: Form[KindergartenFormData])(implicit messages: play.api.i18n.Messages)
+@(kindergartenForm: Form[KindergartenFormData], sysMessage: String)(implicit messages: play.api.i18n.Messages)
 
 @main("Welcome to our Family of Familis") {
 	@contener {
+	<div class="sysmessage">@sysMessage</div>
 	<div class="left_contener">
 		<div class="text">
   			Add kindergarten to database:
