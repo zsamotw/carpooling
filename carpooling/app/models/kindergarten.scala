@@ -27,6 +27,7 @@ case class Kindergarten(
 
 case class KindergartenFormData(name: String, street: String, num: Int, city: String)
 
+
 object KindergartenForm {
   val form = Form (
     mapping (
