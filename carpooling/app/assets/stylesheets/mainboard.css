@@ -15,7 +15,7 @@
     margin-top: 2%;
 }
 
-#timeline_message {
+.timeline_message {
     margin-bottom: 1%;
     padding: 20px;
     letter-spacing: 2px;

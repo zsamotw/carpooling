@@ -11,8 +11,8 @@
     <head>
         @* Here's where we render the page title `String`. *@
         <title>@title</title>
-        <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheet/main.css")">
-        <link rel="shortcut icon" type="image/png" href="@routes.Assets.versioned("images/favicon.png")">
+            <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheet/main.css")">
+            <link rel="shortcut icon" type="image/png" href="@routes.Assets.versioned("images/favicon.png")">
             <link href="https://fonts.googleapis.com/css?family=Raleway|Roboto" rel="stylesheet">
             <link rel="stylesheet" type="text/css" href='@routes.Assets.at("stylesheets/main.css")'>
             <link rel="stylesheet" type="text/css" href='@routes.Assets.at("stylesheets/index.css")'>
@@ -23,7 +23,6 @@
         @* And here's where we render the `Html` object containing
          * the page content. *@
         @content
-
-      <script src="@routes.Assets.versioned("javascripts/main.js")" type="text/javascript"></body>
+        <script src="@routes.Assets.versioned("javascripts/main.js")" type="text/javascript"></body>
     </body>
 </html>

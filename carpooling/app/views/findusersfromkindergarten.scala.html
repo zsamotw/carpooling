@@ -1,26 +1,24 @@
 @(kindergartenForm: Form[KindergartenFormData], kindergartens: List[models.Kindergarten], sysMessage: String)(implicit messages: play.api.i18n.Messages)
 
 @main("Find users") {
-@contener {
-	<div class="sysmessage">@sysMessage</div>
-	<div class="left_contener">
-		<div class="text">If you want to find parents from concrete kindergarten fill this form:</div>
-		<div class="form">
+    @contener {
+	      <div class="sysmessage">@sysMessage</div>
+	      <div class="left_contener">
+		    <div class="text">If you want to find parents from concrete kindergarten fill this form:</div>
+		    <div class="form">
 		    @helper.form(action=routes.KindergartenController.showUsersFromKindergarten()) {
-   			 @helper.select(
-   	 	kindergartenForm("name"),
-    	options = for(kg <- kindergartens) yield (kg.name -> kg.name),
-   	 	'_default -> "choose yours",
+   			    @helper.select(
+   	 	          kindergartenForm("name"),
+    	          options = for(kg <- kindergartens) yield (kg.name -> kg.name),
+   	 	          '_default -> "choose yours",
     		'_label -> "Kindergarten name"
-
-		    )
-    	@helper.inputText(kindergartenForm("street"))
-    	@helper.inputText(kindergartenForm("num"))
-    	@helper.inputText(kindergartenForm("city"))
-    	<button type="submit">Find</button>
-		</div>
-	</div>
-
-    }
+		        )
+    	      @helper.inputText(kindergartenForm("street"))
+    	      @helper.inputText(kindergartenForm("num"))
+    	      @helper.inputText(kindergartenForm("city"))
+    	      <button type="submit">Find</button>
+		        </div>
+	          </div>
+        }
     }
 }

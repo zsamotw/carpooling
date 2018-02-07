@@ -12,18 +12,18 @@
     	          </div>
     	          <div class="iterator">
                     @for(groupOfUsers <- loggedUserGroup) {
-                        <b>Your group:</b>
+                        <b>Your group:</b><br>
                         @for(user <- groupOfUsers) {
                             @user.name @user.surname lives on @user.street in @user.city @user.lon @user.len
-                            free seats: @user.seats    email: @user.email
+                            free seats: @user.seats    email: @user.email<br>
                             }
                             }
                             @for(groupOfUsers <- restGroups) {
-                                <b>Group:</b>
+                                <b>Group:</b><br>
                                 @for(user <- groupOfUsers) {
                                     @user.name @user.surname lives on @user.street in @user.city @user.lon @user.len
                                     free seats: @user.seats    email: @user.email
-                                    <a href="/sendrequest/@user.email">send request</a>
+                                    <a href="/sendrequest/@user.email">send request</a><br>
                                     }
                                     }
     	          </div>

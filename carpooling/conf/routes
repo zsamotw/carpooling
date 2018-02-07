@@ -15,9 +15,9 @@ GET      /kindergarten                	     controllers.KindergartenController.k
 POST     /addKindergarten             	     controllers.KindergartenController.addKindergarten
 GET      /findKindergarten            	     controllers.KindergartenController.findKindergarten
 POST     /findparents                 	     controllers.KindergartenController.showUsersFromKindergarten
-GET      /findmyparents               	     controllers.KindergartenController.showUsersFromMyKindergarten(msg: String ?= "Users from my kindergarten")
+GET      /findmyparents               	     controllers.KindergartenController.showUsersFromMyKindergarten(msg: String ?= "All my carpoolers here")
 GET      /allkindergartens            	     controllers.KindergartenController.allKindergartens
-GET      /allkindergartensWithMessage            	     controllers.KindergartenController.allKindergartensWithMessage(msg: String)
+GET      /allkindergartensWithMessage        controllers.KindergartenController.allKindergartensWithMessage(msg: String)
 GET      /panel                        	     controllers.UserController.showUserPanel(msg: String ?= "Nothing happens")
 GET      /deleteuser	    	             controllers.UserController.deleteUser
 GET      /sendrequest/:email         	     controllers.UserController.sendRequest(email)
@@ -25,7 +25,6 @@ GET      /replyforrequest/:email     	     controllers.UserController.replyForRe
 GET      /rejectrequest/:email        	     controllers.UserController.rejectRequest(email)
 GET      /leavegroup                  	     controllers.UserController.leaveGroup()
 POST     /addUserMessage             	     controllers.MessageController.addUserMessage()
-GET      /timeline                   	     controllers.MessageController.showTimeline()
 GET      /filterMessages             	     controllers.MessageController.filterMessages
 
 GET     /public/*file                        controllers.Assets.at(path="/public", file)

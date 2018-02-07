@@ -202,7 +202,6 @@ class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Co
         val usersFrom = Kindergartens.findUsersFromKindergarten(kindergarten)
         val loggedUserGroup = usersFrom filter (group => group contains loggedUser)
         val restGroups = usersFrom filter (group => group != loggedUserGroup.flatten)
-        val sysMessage = "All my carpoolers here!"
         Ok(views.html.showusers(kindergarten, loggedUserGroup, restGroups, sysMessage))
       } getOrElse {
         Ok(views.html.index(loginMessage, LoginForm.form, UserForm.form))

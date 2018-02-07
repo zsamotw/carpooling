@@ -47,22 +47,22 @@ class MessageController @Inject()(val messagesApi: MessagesApi)  extends Control
         Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
     }
   }
-
-  def showTimeline = Action { implicit request =>
-    try {
-      request.session.get("connected").map { loggedUserEmail =>
-        val messages = Messages.getAllWithTimeFilter
-        val sysMessage = "Showing all messages"
-        Ok(views.html.timeline(messages, sysMessage, MessageSearchForm.form))
-      }.getOrElse {
-        Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
-      }
-    } catch {
-      case e: NoSuchElementException =>
-        val sysMessage = "Ooops! Problem with finding element. Check you connection with database"
-        Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
-    }
-  }
+// all in mainboard
+//  def showTimeline = Action { implicit request =>
+//    try {
+//      request.session.get("connected").map { loggedUserEmail =>
+//        val messages = Messages.getAllWithTimeFilter
+//        val sysMessage = "Showing all messages"
+//        Ok(views.html.timeline(messages, sysMessage, MessageSearchForm.form))
+//      }.getOrElse {
+//        Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
+//      }
+//    } catch {
+//      case e: NoSuchElementException =>
+//        val sysMessage = "Ooops! Problem with finding element. Check you connection with database"
+//        Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
+//    }
+//  }
 
   def filterMessages() = Action { implicit request =>
     try {
@@ -71,7 +71,7 @@ class MessageController @Inject()(val messagesApi: MessagesApi)  extends Control
         MessageSearchForm.form.bindFromRequest.fold(
           formWithErrors => {
             val sysMessage = "Fill form correctly!"
-            BadRequest(views.html.timeline(messages, sysMessage, formWithErrors))
+            BadRequest(views.html.mainboard(messages, formWithErrors, MessageForm.form, sysMessage))
           },
           messagesSearchData => {
             val loggedUser = Users.findUserByEmail(loggedUserEmail)
