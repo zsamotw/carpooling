@@ -38,4 +38,13 @@
                 }
         </div>
     	 }
+    	  }
+        }
+
+        //fuction for display kindergarten data
+        @displayKindergarten(kindergarten: Kindergarten) = { @kindergarten match {
+                                                             case kg: Kindergarten =>
+                                                             <div>@kindergarten.name, @kindergarten.street no. @kindergarten.num in kindergarten.city with admin: kindergarten.admin</div>
+
+                                                             }
         }

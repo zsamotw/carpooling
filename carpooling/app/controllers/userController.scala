@@ -90,6 +90,7 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
         userData => {
           val latLon = GeoUtils.searchGeoPoint(userData)
           val kindergarten = Kindergartens.emptyKindergarten
+          val kindergarten = KindergartenForSingles
           val user =
             User(
               userData.email,
