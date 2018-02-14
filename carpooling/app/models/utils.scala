@@ -116,7 +116,11 @@ object MongoFactory {
     add(message)
   }
 
-  def deleteUser(data: (User, List[User], DBObject, DBObject)) {
+  def deleteUser(user: User): Unit = {
+    users.remove("email" $eq user.email)
+  }
+
+  def deleteUserWithKindergarten(data: (User, List[User], DBObject, DBObject)) {
     val(user, userGroup, query, update) = data
     for(user <- userGroup filter(_ != user)) MongoFactory.updateUserIntDataInDB(user, "seats", 1, (x:Int, y: Int) => x + y)
     kindergartens.findAndModify(query, update)

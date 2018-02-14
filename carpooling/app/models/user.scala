@@ -14,7 +14,7 @@ case class User(
   street: String,
   city: String,
   seats: Int,
-  kindergarten: Kindergarten, //TODO Option[Kindergarten]
+  kindergartenOpt: Option[Kindergarten], //TODO Option[Kindergarten]
   requests: Set[String],
   len: String,
   lon: String,
@@ -29,7 +29,7 @@ case class SimpleUser(
   seats: Int,
   len: String,
   lon: String,
-  kindergarten: Kindergarten,//TODO Option[Kindergarten]
+  kindergartenOpt: Option[Kindergarten],//TODO Option[Kindergarten]
   admin: Boolean)
 
 /**
@@ -96,13 +96,12 @@ object Users {
 
   def add(user: User): (User, CommunityMessage) = {
     val content = s"Welcome new User: ${user.name} ${user.surname}"
-    val message = CommunityMessage(new DateTime, user.kindergarten, content)
+    val message = CommunityMessage(new DateTime, user.kindergartenOpt.get, content) // only get checkit out
     (user, message)
   }
 
-  def delete(user: User): (User, List[User], DBObject, DBObject) = {
+  def deleteUserWithKindergarten(user: User, kindergarten: Kindergarten): (User, List[User], DBObject, DBObject) = {
     val userGroup = usersFromGroup(user.email)
-    val kindergarten = user.kindergarten
 
     val usersEmailsGroup = for {
       group <- kindergarten.usersEmails
@@ -127,10 +126,9 @@ object Users {
     (user, userGroup, query, update)
   }
 
-  def leaveGroup(loggedUserEmail: String): (User, List[User], (DBObject, DBObject, CommunityMessage)) = {
-    val user = findUserByEmail(loggedUserEmail)
-    val userGroup = Users.usersFromGroup(loggedUserEmail)
-    val dataToDB = Users.removeFromCarpools(loggedUserEmail)
+  def leaveGroup(user: User, kindergarten: Kindergarten): (User, List[User], (DBObject, DBObject, CommunityMessage)) = {
+    val userGroup = Users.usersFromGroup(user, kindergarten)
+    val dataToDB = Users.removeFromCarpools(user, kindergarten)
     (user, userGroup, dataToDB)
   }
 
@@ -158,11 +156,8 @@ object Users {
   def areEnoughSeats(fstGroup: List[User], scdGroup: List[User]): Boolean =
     fstGroup.forall(user => user.seats >= scdGroup.length) && scdGroup.forall(user => user.seats >= fstGroup.length)
 
-  def usersFromGroup(loggedUserEmail: String): List[User] = {
-    val loggedUser = Users.findUserByEmail(loggedUserEmail)
-    val kindergarten = loggedUser.kindergarten
-
-    val loggedUserGroup = kindergarten.usersEmails filter(group => group contains loggedUser.email)
+  def usersFromGroup(user: User, kindergarten: Kindergarten): List[User] = {
+    val loggedUserGroup = kindergarten.usersEmails filter(group => group contains user.email)
     val group = {
       for(email <- loggedUserGroup.flatten) yield findUserByEmail(email)
     }
@@ -217,22 +212,20 @@ object Users {
     (query, update, message)
   }
 
-  def removeFromCarpools(loggedUserEmail: String): (DBObject, DBObject, CommunityMessage) = {
-    val loggedUser = Users.findUserByEmail(loggedUserEmail)
-    val kindergarten = loggedUser.kindergarten
+  def removeFromCarpools(user: User, kindergarten: Kindergarten): (DBObject, DBObject, CommunityMessage) = {
 
     val usersEmailsWithoutLoggedUser = for {
       group <- kindergarten.usersEmails
-      if group contains loggedUserEmail
+      if group contains user
       email <- group
-      if email != loggedUserEmail
+      if email != user
     } yield email
 
-    val restUsersEmails = kindergarten.usersEmails filter(group => !(group contains loggedUserEmail))
-    val usersEmailsAfter = List(loggedUserEmail) :: usersEmailsWithoutLoggedUser :: restUsersEmails
+    val restUsersEmails = kindergarten.usersEmails filter(group => !(group contains user))
+    val usersEmailsAfter = List(user.email) :: usersEmailsWithoutLoggedUser :: restUsersEmails
 
-    val content = s"User: ${loggedUser.name} ${loggedUser.surname} from ${loggedUser.kindergarten.name} has just leaved his group"
-    val message = CommunityMessage(new DateTime, loggedUser.kindergarten, content)
+    val content = s"User: ${user.name} ${user.surname} from ${kindergarten.name} has just leaved his group"
+    val message = CommunityMessage(new DateTime, kindergarten, content)
     val query = MongoDBObject(
       "name" -> kindergarten.name,
       "street" -> kindergarten.street,

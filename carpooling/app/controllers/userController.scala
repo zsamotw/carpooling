@@ -89,7 +89,7 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
         },
         userData => {
           val latLon = GeoUtils.searchGeoPoint(userData)
-          val kindergarten = Kindergartens.emptyKindergarten
+          val kindergarten = None
           val user =
             User(
               userData.email,
@@ -132,9 +132,14 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
     try {
       request.session.get("connected").map { loggedUserEmail =>
         val user = Users.findUserByEmail(loggedUserEmail)
-        val dataToDB = Users.delete(user)
+        user.kindergartenOpt match {
+          case None =>
+            MongoFactory.deleteUser(user)
+          case Some(kindergarten) =>
+            val dataToDB = Users.deleteUserWithKindergarten(user, kindergarten)
+            MongoFactory.deleteUserWithKindergarten(dataToDB)
 
-        MongoFactory.deleteUser(dataToDB)
+        }
         val sysMessage = s"${user.name}just delete yourself. We missing you like Facebook"
         Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form)).withNewSession
       } getOrElse {
@@ -150,8 +155,15 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
   def leaveGroup() = Action { implicit request =>
     try {
       request.session.get("connected").map { loggedUserEmail =>
-        val dataToDB = Users.leaveGroup(loggedUserEmail)
-        val message = MongoFactory.leaveGroup(dataToDB)
+        val user = Users.findUserByEmail(loggedUserEmail)
+        val message = user.kindergartenOpt match {
+          case None =>
+            "You are not in any kindergarten and not participaten in any group"
+          case Some(kindergarten) =>
+            val dataToDB = Users.leaveGroup(loggedUserEmail)
+            MongoFactory.leaveGroup(dataToDB)
+
+        }
         Redirect(routes.UserController.showUserPanel(message))
       } getOrElse {
         Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
