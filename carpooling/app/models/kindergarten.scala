@@ -52,18 +52,34 @@ object Kindergartens {
     convertCursorToKindergartensList(kindergartens)
   }
 
-  def addKindergarten(kindergarten: Kindergarten, user: User): (Kindergarten, User, DBObject, DBObject, (DBObject, DBObject), CommunityMessage) = {
+  def addKindergartenBySingleUser(kindergarten: Kindergarten, user: User): (Kindergarten, User, DBObject, DBObject, CommunityMessage) = {
+    /*
+     * Set kindergarten data to change in user DB and next kindergarten DB.
+     */
+    val query = MongoDBObject(
+      "email" -> user.email)
+    val update = MongoDBObject("$set" -> MongoDBObject(
+                                 "admin" -> true,
+                                 "kgname" -> kindergarten.name,
+                                 "kgstreet" -> kindergarten.street,
+                                 "kgnum" -> kindergarten.num,
+                                 "kgcity" -> kindergarten.city))
+
+    val content = s"New kindergarten has been added: ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city} by ${user.name} ${user.surname}"
+    val message = CommunityMessage(new DateTime, kindergarten, content)
+    (kindergarten, user, query, update,  message)
+
+  }
+
+  def addKindergartenByUserWithKindergarten(kindergarten: Kindergarten, userKg: Kindergarten, user: User): (Kindergarten, User, DBObject, DBObject, (DBObject, DBObject), CommunityMessage) = {
     /*
      * Delete user from users emails list in current kindergarten DB
      */
-
-    val dataToDeleteUserFromEmailList = deleteUserFromEmailsListInKindergarten(user)
-    //MongoFactory.deleteUserFromEmailsListInKindergarten(dataToDB)
+    val dataToDeleteUserFromEmailList = deleteUserFromEmailsListInKindergarten(user, userKg)
 
     /*
      * Set kindergarten data to change in user DB and next kindergarten DB.
      */
-
     val query = MongoDBObject(
       "email" -> user.email)
     val update = MongoDBObject("$set" -> MongoDBObject(
@@ -78,8 +94,7 @@ object Kindergartens {
     (kindergarten, user, query, update, dataToDeleteUserFromEmailList, message)
   }
 
-  def deleteUserFromEmailsListInKindergarten(user: User): (DBObject, DBObject) = {
-    val kindergarten = user.kindergarten
+  def deleteUserFromEmailsListInKindergarten(user: User, kindergarten: Kindergarten): (DBObject, DBObject) = {
 
     val usersEmailsGroup = for {
       group <- kindergarten.usersEmails
@@ -103,6 +118,33 @@ object Kindergartens {
     val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
 
     (query, update)
+  }
+
+  
+  def addSingleUserToKindergarten(user: User, kindergarten: Kindergarten): (DBObject, DBObject, DBObject, DBObject,  CommunityMessage) = {
+
+    /*
+     * Set kindergarten data to change in user DB and next kindergarten DB.
+     */
+    val usersEmailsAfter = List(user.email) :: kindergarten.usersEmails
+    val queryKg = MongoDBObject(
+      "name" -> kindergarten.name,
+      "street" -> kindergarten.street,
+      "num" -> kindergarten.num,
+      "city" -> kindergarten.city)
+    val updateKg = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
+
+    val queryU = MongoDBObject("email" -> user.email)
+    val updateU = MongoDBObject("$set" -> MongoDBObject(
+      "kgname" -> kindergarten.name,
+      "kgstreet" -> kindergarten.street,
+      "kgnum" -> kindergarten.num,
+      "kgcity" -> kindergarten.city))
+
+    val content = s"${user.name} ${user.surname} change kindergarten to ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city}"
+    val message = CommunityMessage(new DateTime, kindergarten, content)
+
+    (queryKg, updateKg, queryU, updateU,  message)
   }
 
   def addUserToKindergarten(user: User, kindergarten: Kindergarten): (DBObject, DBObject, DBObject, DBObject, (DBObject, DBObject), CommunityMessage) = {

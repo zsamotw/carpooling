@@ -93,8 +93,13 @@ class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Co
                 usersList,
                 adminEmail,
                 kgHashCode)
-            val dataToDB = Kindergartens.addKindergarten(kindergarten, user)
-            MongoFactory.addKindergarten(dataToDB)
+            user.kindergartenOpt match {
+              case None =>
+                val dataToDB = Kindergartens.addKindergartenBySingleUser(kindergarten, user)
+              case Some(userKg) =>
+                val dataToDB = Kindergartens.addKindergartenByUserWithKindergarten(kindergarten, userKg, user)
+                MongoFactory.addKindergarten(dataToDB)
+            }
             val sysMessage = s"Kindergarten ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city}was added by ${user.name} ${user.surname}"
             val messages = Messages.getAllWithTimeFilter
             Ok(views.html.mainboard(messages, MessageSearchForm.form, MessageForm.form, sysMessage))
@@ -118,7 +123,7 @@ class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Co
       val user = Users.findUserByEmail(loggedUserEmail)
       (user.kindergartenOpt, kindergarten) match {
         case (None, kg: Kindergarten) =>
-          val dataToDB = Kindergartens.addUserToKindergarten(user, kindergarten)
+          val dataToDB = Kindergartens.addSingleUserToKindergarten(user, kindergarten)
           MongoFactory.addUserToKindergarten(dataToDB)
           val sysMessage = s"Success. You have  added yourself to kindergarten. Your current kindergarten: ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city}"
           val all = Kindergartens.listAll

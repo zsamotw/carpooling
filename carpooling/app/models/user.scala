@@ -263,7 +263,7 @@ object Users {
         street,
         city,
         seats,
-        kindergarten,
+        Some(kindergarten),
         requests,
         len,
         lon,
@@ -281,7 +281,7 @@ object Users {
     user.seats,
     user.len,
     user.lon,
-    user.kindergarten,
+    user.kindergartenOpt,
     user.admin)
 
 
@@ -314,7 +314,7 @@ object Users {
       street,
       city,
       seats,
-      kindergarten,
+      Some(kindergarten),
       requests,
       len,
       lon,
