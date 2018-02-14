@@ -158,9 +158,9 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
         val user = Users.findUserByEmail(loggedUserEmail)
         val message = user.kindergartenOpt match {
           case None =>
-            "You are not in any kindergarten and not participaten in any group"
+            "You are not in any kindergarten and in any group"
           case Some(kindergarten) =>
-            val dataToDB = Users.leaveGroup(loggedUserEmail)
+            val dataToDB = Users.leaveGroup(user, kindergarten)
             MongoFactory.leaveGroup(dataToDB)
 
         }
@@ -193,17 +193,24 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
   def sendRequest(emailFromGet: String) = Action { implicit request =>
     try {
       request.session.get("connected").map { loggedUserEmail =>
-        val loggedUserGroup = Users.usersFromGroup(loggedUserEmail)
-        val requestedUserGroup = Users.usersFromGroup(emailFromGet)
-        if(Users.areEnoughSeats(loggedUserGroup, requestedUserGroup)) {
-          val dataToDB = Users.addRequest(emailFromGet, loggedUserEmail)
-          MongoFactory.updateUserRequests(dataToDB)
-          val sysMessage = "Request has been sent with success. Let's make peace and love"
-          Redirect(routes.KindergartenController.showUsersFromMyKindergarten(sysMessage))
-        } else {
-          val sysMessage = "You or some users from the group don't have enough seats in cars. Find other group to join"
-          Redirect(routes.KindergartenController.showUsersFromMyKindergarten(sysMessage))
+        val user = Users.findUserByEmail(loggedUserEmail)
+        val requestedUser = Users.findUserByEmail(emailFromGet)
+        val sysMessage = user.kindergartenOpt match {
+          case None =>
+            "How....?"
+          case Some(kindergarten) =>
+            val loggedUserGroup = Users.usersFromGroup(user, kindergarten)
+            val requestedUserGroup = Users.usersFromGroup(user, kindergarten)
+            if(Users.areEnoughSeats(loggedUserGroup, requestedUserGroup)) {
+              val dataToDB = Users.addRequest(emailFromGet, loggedUserEmail)
+              MongoFactory.updateUserRequests(dataToDB)
+              "Request has been sent with success. Let's make peace and love"
+            } else {
+              "You or some users from the group don't have enough seats in cars. Find other group to join"
+
+            }
         }
+        Redirect(routes.KindergartenController.showUsersFromMyKindergarten(sysMessage))
       }.getOrElse {
         Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
       }
