@@ -26,7 +26,7 @@ class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Co
         Ok(views.html.allkindergartens(List[Kindergarten](), sysMessage))
     }
   }
-  
+
   def allKindergartensWithMessage(message: String) = Action { implicit request =>
     try {
       request.session.get("connected").map { loggedUserEmail =>
@@ -40,7 +40,6 @@ class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Co
         val sysMessage = "Ooops! Problem with searching element. Check you connection with database"
         Ok(views.html.allkindergartens(List[Kindergarten](), sysMessage))
     }
-    
   }
 
   def kindergartenMenu() = Action { implicit request =>
@@ -75,7 +74,7 @@ class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Co
           kindergartenData => {
             val user = Users.findUserByEmail(loggedUserEmail)
             val latLon = GeoUtils.searchGeoPoint(kindergartenData)
-            val usersList = List(List(loggedUserEmail)) //List[String](loggedUserEmail) :: List[List[String]]()
+            val usersList = List(List(loggedUserEmail))
             val adminEmail = loggedUserEmail
             val kgHashCode = (
               kindergartenData.name +
@@ -117,19 +116,25 @@ class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Co
     request.session.get("connected").map { loggedUserEmail =>
       val kindergarten = Kindergartens.find(kgHashCode)
       val user = Users.findUserByEmail(loggedUserEmail)
-      (user, kindergarten) match {
-        case (u: User, kg: Kindergarten) if (u.admin == false &&
-          u.kindergarten.kgHashCode != kg.kgHashCode &&
-          Users.userEmailsGroup(u).length <= 1) =>
+      (user.kindergartenOpt, kindergarten) match {
+        case (None, kg: Kindergarten) =>
+          val dataToDB = Kindergartens.addUserToKindergarten(user, kindergarten)
+          MongoFactory.addUserToKindergarten(dataToDB)
+          val sysMessage = s"Success. You have  added yourself to kindergarten. Your current kindergarten: ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city}"
+          val all = Kindergartens.listAll
+          Redirect(routes.KindergartenController.allKindergartens)
+        case (Some(userKg), kg: Kindergarten) if (user.admin == false &&
+          userKg.kgHashCode != kg.kgHashCode &&
+          Users.userEmailsGroup(user).length <= 1) =>
           val dataToDB = Kindergartens.addUserToKindergarten(user, kindergarten)
           MongoFactory.addUserToKindergarten(dataToDB)
           val sysMessage = s"Success. You have changed your kindergarten. Your current kindergarten: ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city}"
           val all = Kindergartens.listAll
           Redirect(routes.KindergartenController.allKindergartens)
-        case _ =>
+        case (Some(userKg), _) =>
           val sysMessage = {
             if (user.admin == true) "You are admin of this kindergartens."
-            else if (user.kindergarten.kgHashCode == kindergarten.kgHashCode) "You can't add twice to the same kindergarten"
+            else if (userKg.kgHashCode == kindergarten.kgHashCode) "You can't add twice to the same kindergarten"
             else "You are linked with some people. First you have to leave your group in personal panel"
           }
           val all = Kindergartens.listAll
@@ -193,16 +198,19 @@ class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Co
   def showUsersFromMyKindergarten(sysMessage: String) = Action { implicit request =>
     try {
       request.session.get("connected").map { loggedUserEmail =>
-        val loggedUser = Users.findUserByEmail(loggedUserEmail)
-        val kindergarten = Kindergartens.find(
-          loggedUser.kindergarten.name,
-          loggedUser.kindergarten.street,
-          loggedUser.kindergarten.num,
-          loggedUser.kindergarten.city)
-        val usersFrom = Kindergartens.findUsersFromKindergarten(kindergarten)
-        val loggedUserGroup = usersFrom filter (group => group contains loggedUser)
-        val restGroups = usersFrom filter (group => group != loggedUserGroup.flatten)
-        Ok(views.html.showusers(kindergarten, loggedUserGroup, restGroups, sysMessage))
+        val user = Users.findUserByEmail(loggedUserEmail)
+        user.kindergartenOpt match {
+          case None =>
+            val sysMessage = "You aren't conected with any kindergarten"
+            val messages = Messages.getAllWithTimeFilter
+            Ok(views.html.mainboard(messages, MessageSearchForm.form, MessageForm.form, sysMessage))
+          case Some(kindergarten) =>
+            val usersFrom = Kindergartens.findUsersFromKindergarten(kindergarten)
+            val loggedUserGroup = usersFrom filter (group => group contains user)
+            val restGroups = usersFrom filter (group => group != loggedUserGroup.flatten)
+            Ok(views.html.showusers(kindergarten, loggedUserGroup, restGroups, sysMessage))
+
+        }
       } getOrElse {
         Ok(views.html.index(loginMessage, LoginForm.form, UserForm.form))
       }

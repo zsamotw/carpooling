@@ -63,7 +63,7 @@ object Kindergartens {
     /*
      * Set kindergarten data to change in user DB and next kindergarten DB.
      */
-    
+
     val query = MongoDBObject(
       "email" -> user.email)
     val update = MongoDBObject("$set" -> MongoDBObject(
@@ -110,7 +110,6 @@ object Kindergartens {
      * Delete user from users emails list in current kindergarten DB
      */
     val dataToDeleteUserFromEmailList = deleteUserFromEmailsListInKindergarten(user)
-//    MongoFactory.deleteUserFromEmailsListInKindergarten(dataToDB)
 
     /*
      * Set kindergarten data to change in user DB and next kindergarten DB.
@@ -145,7 +144,7 @@ object Kindergartens {
     val kgMongo = MongoFactory.kindergartens.findOne(query)
     kgMongo match {
       case Some(kg) => convertDBObjectToKindergarten(kg)
-      case None => Kindergartens.emptyKindergarten//throw new NoSuchElementException
+      case None => throw new NoSuchElementException
     }
   }
 
@@ -155,7 +154,7 @@ object Kindergartens {
     val kgMongo = MongoFactory.kindergartens.findOne(query)
     kgMongo match {
       case Some(kg) => convertDBObjectToKindergarten(kg)
-      case None => Kindergartens.emptyKindergarten//throw new NoSuchElementException
+      case None => throw new NoSuchElementException
     }
   }
 
