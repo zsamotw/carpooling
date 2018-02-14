@@ -165,7 +165,7 @@ object Users {
   }
 
   def userEmailsGroup(user: User): List[String] = {
-    val emailsGroup = user.kindergarten.usersEmails filter(group => group contains user.email)
+    val emailsGroup = user.kindergartenOpt.get.usersEmails filter(group => group contains user.email)
     val groupWithout = {
       for(email <- emailsGroup.flatten) yield email
     }
@@ -174,7 +174,7 @@ object Users {
 
   def addToCarpools(userToReplyEmail: String, loggedUserEmail: String): (DBObject, DBObject, CommunityMessage) = {
     val loggedUser = Users.findUserByEmail(loggedUserEmail)
-    val kindergarten = loggedUser.kindergarten
+    val kindergarten = loggedUser.kindergartenOpt.get
 
     val loggedUserGroupEmailsList = for {
       group <- kindergarten.usersEmails

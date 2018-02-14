@@ -200,7 +200,7 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
             "How....?"
           case Some(kindergarten) =>
             val loggedUserGroup = Users.usersFromGroup(user, kindergarten)
-            val requestedUserGroup = Users.usersFromGroup(user, kindergarten)
+            val requestedUserGroup = Users.usersFromGroup(requestedUser, requestedUser.kindergartenOpt.get)
             if(Users.areEnoughSeats(loggedUserGroup, requestedUserGroup)) {
               val dataToDB = Users.addRequest(emailFromGet, loggedUserEmail)
               MongoFactory.updateUserRequests(dataToDB)
@@ -224,22 +224,30 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
   def replyForRequest(emailFromGet: String) = Action { implicit request =>
     try {
       request.session.get("connected").map { loggedUserEmail =>
-        val userToReplyGroup = Users.usersFromGroup(emailFromGet)
-        val loggedUserGroup = Users.usersFromGroup(loggedUserEmail)
-        if(Users.areEnoughSeats(loggedUserGroup, userToReplyGroup)){
-          val dataToDBCarpools = Users.addToCarpools(emailFromGet, loggedUserEmail)
-          val dataToDBRequests = Users.deleteRequest(emailFromGet, loggedUserEmail)
+        val user = Users.findUserByEmail(loggedUserEmail)
+        val userToReply = Users.findUserByEmail(emailFromGet)
+        val sysMessage = user.kindergartenOpt match {
+          case None =>
+            "How....."
+          case Some(kindergarten) =>
+            val userToReplyGroup = Users.usersFromGroup(userToReply, userToReply.kindergartenOpt.get)
+            val loggedUserGroup = Users.usersFromGroup(user, kindergarten)
+            if(Users.areEnoughSeats(loggedUserGroup, userToReplyGroup)){
+              val dataToDBCarpools = Users.addToCarpools(emailFromGet, loggedUserEmail)
+              val dataToDBRequests = Users.deleteRequest(emailFromGet, loggedUserEmail)
 
-          for(user <- userToReplyGroup) MongoFactory.updateUserIntDataInDB(user, "seats", loggedUserGroup.length, (x:Int, y: Int) => x - y)
-          for(user <- loggedUserGroup) MongoFactory.updateUserIntDataInDB(user, "seats", userToReplyGroup.length, (x:Int, y: Int) => x - y)
-          MongoFactory.updateCarpools(dataToDBCarpools)
-          MongoFactory.updateUserRequests(dataToDBRequests)
-          val sysMessage = "You have just replied for request. Bravo!!! More peope on the group means less driving"
-          Redirect(routes.UserController.showUserPanel(sysMessage))
+              for(user <- userToReplyGroup) MongoFactory.updateUserIntDataInDB(user, "seats", loggedUserGroup.length, (x:Int, y: Int) => x - y)
+              for(user <- loggedUserGroup) MongoFactory.updateUserIntDataInDB(user, "seats", userToReplyGroup.length, (x:Int, y: Int) => x - y)
+
+              MongoFactory.updateCarpools(dataToDBCarpools)
+              MongoFactory.updateUserRequests(dataToDBRequests)
+              "You have just replied for request. Bravo!!! More peope on the group means less driving"
         } else {
-          val sysMessage = "You or some users from the group don't have enough seats in cars. Find other group to join"
-          Redirect(routes.UserController.showUserPanel(sysMessage))
+              "You or some users from the group don't have enough seats in cars. Find other group to join"
+            }
+
         }
+        Redirect(routes.UserController.showUserPanel(sysMessage))
       }.getOrElse {
         Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
       }
