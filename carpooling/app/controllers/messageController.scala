@@ -20,7 +20,6 @@ class MessageController @Inject()(val messagesApi: MessagesApi)  extends Control
           formWithErrors => {
             val sysMessage = "Fill form correctly!"
             val messages = Messages.getAllWithTimeFilter
-//            BadRequest(views.html.panel(user, sysMessage, formWithErrors))
             BadRequest(views.html.mainboard(messages, MessageSearchForm.form, formWithErrors, sysMessage))
           },
           data => {
@@ -47,22 +46,6 @@ class MessageController @Inject()(val messagesApi: MessagesApi)  extends Control
         Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
     }
   }
-// all in mainboard
-//  def showTimeline = Action { implicit request =>
-//    try {
-//      request.session.get("connected").map { loggedUserEmail =>
-//        val messages = Messages.getAllWithTimeFilter
-//        val sysMessage = "Showing all messages"
-//        Ok(views.html.timeline(messages, sysMessage, MessageSearchForm.form))
-//      }.getOrElse {
-//        Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
-//      }
-//    } catch {
-//      case e: NoSuchElementException =>
-//        val sysMessage = "Ooops! Problem with finding element. Check you connection with database"
-//        Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
-//    }
-//  }
 
   def filterMessages() = Action { implicit request =>
     try {
@@ -74,7 +57,7 @@ class MessageController @Inject()(val messagesApi: MessagesApi)  extends Control
             BadRequest(views.html.mainboard(messages, formWithErrors, MessageForm.form, sysMessage))
           },
           messagesSearchData => {
-            val loggedUser = Users.findUserByEmail(loggedUserEmail)
+            val user = Users.findUserByEmail(loggedUserEmail)
 
             val kindFieldResult = {
               messagesSearchData.kind match {
@@ -101,12 +84,12 @@ class MessageController @Inject()(val messagesApi: MessagesApi)  extends Control
             val areaFieldResult = {
               messagesSearchData.area match {
                 case "your-kindergarten" =>
-                  val filter = Messages.kindergartenFilter(loggedUser.kindergarten)
+                  val filter = Messages.kindergartenFilter(user.kindergarten)
                   val sysMessage = "Messages from your kindergarten in category: "
                   (filter, sysMessage)
                 case "your-city" =>
-                  val filter = Messages.cityFilter(loggedUser.city)
-                  val sysMessage = s"Messages from ${loggedUser.city} in category: "
+                  val filter = Messages.cityFilter(user.city)
+                  val sysMessage = s"Messages from ${user.city} in category: "
                   (filter, sysMessage)
                 case "all" => (Messages.notFiltered, "Messages from all kindergartens in category: ")
                 case _ => (Messages.notFiltered, "Wrong area!!!")
