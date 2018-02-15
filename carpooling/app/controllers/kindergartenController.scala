@@ -72,28 +72,13 @@ class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Co
             val sysMessage = "Something wrong with form"
             Ok(views.html.addkindergarten(formWithError, sysMessage))
           },
-          kindergartenData => {
+          kgData => {
             val user = Users.findUserByEmail(loggedUserEmail)
-            val latLon = GeoUtils.searchGeoPoint(kindergartenData)
-            val usersList = List(List(loggedUserEmail)) //List[String](loggedUserEmail) :: List[List[String]]()
+            val(lat, lon)  = GeoUtils.searchGeoPoint(kgData)
+            val users = List(List(loggedUserEmail))
             val adminEmail = loggedUserEmail
-            val kgHashCode = (
-              kindergartenData.name +
-              kindergartenData.street +
-              kindergartenData.num.toString +
-              kindergartenData.city +
-              adminEmail).hashCode.toString
-            val kindergarten =
-              Kindergarten(
-                kindergartenData.name,
-                kindergartenData.street,
-                kindergartenData.num,
-                kindergartenData.city,
-                latLon._1,
-                latLon._2,
-                usersList,
-                adminEmail,
-                kgHashCode)
+            val hashCode = Kindergartens.returnHashCode(kgData.name, kgData.street, kgData.num, kgData.city, loggedUserEmail)
+            val kindergarten = Kindergartens.returnNewKindergarten(kgData.name, kgData.street, kgData.num, kgData.city, lat, lon, users, loggedUserEmail, hashCode)
             val dataToDB = Kindergartens.addKindergarten(kindergarten, user)
             MongoFactory.addKindergarten(dataToDB)
             val sysMessage = s"Kindergarten ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city}was added by ${user.name} ${user.surname}"

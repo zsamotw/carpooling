@@ -46,7 +46,6 @@ case class UserFormData(
   city: String,
   seats: Int)
 
-case class Login(email: String, password: String)
 
 object UserForm {
   val form = Form(
@@ -59,6 +58,8 @@ object UserForm {
       "city" -> text,
       "seats" -> number)(UserFormData.apply)(UserFormData.unapply))
 }
+
+case class Login(email: String, password: String)
 
 object LoginForm {
   val form = Form(
@@ -73,6 +74,20 @@ object LoginForm {
 
 
 object Users {
+
+  def returnNewUser(email: String,
+                    password: String,
+                    name: String,
+                    surname: String,
+                    street: String,
+                    city: String,
+                    seats: Int,
+                    kindergarten: Kindergarten,
+                    requests: Set[String],
+                    len: String,
+                    lon: String,
+                    admin: Boolean) = new User(email, password, name, surname, street, city, seats, kindergarten, requests, len, lon, admin)
+
   def validateLogin(login: Login): Boolean = {
     val userMongoOpt = MongoFactory.users.findOne(MongoDBObject("email" -> login.email))
     userMongoOpt match {
@@ -86,6 +101,15 @@ object Users {
     userMongo match {
       case None => true
       case Some(u) => false
+    }
+  }
+
+  def findUserByEmail(email: String): User = {
+    val userOpt = MongoFactory.users.findOne("email" $eq email)
+    userOpt match {
+      case Some(user) =>
+        convertDBObjectToUser(user)
+      case None => throw new NoSuchElementException
     }
   }
 
@@ -115,8 +139,12 @@ object Users {
     } yield email
 
     val usersEmailsAfter =
-      if (usersEmailsGroupAfter isEmpty) for(group <- kindergarten.usersEmails; if group != usersEmailsGroup) yield group
-      else usersEmailsGroupAfter :: (for(group <- kindergarten.usersEmails; if group != usersEmailsGroup) yield group)
+      if (usersEmailsGroupAfter isEmpty) {
+        for(group <- kindergarten.usersEmails; if group != usersEmailsGroup) yield group
+      }
+      else {
+        usersEmailsGroupAfter :: (for(group <- kindergarten.usersEmails; if group != usersEmailsGroup) yield group)
+      }
 
     val query = MongoDBObject(
       "name" -> kindergarten.name,
@@ -129,25 +157,16 @@ object Users {
     (user, userGroup, query, update)
   }
 
-  def leaveGroup(loggedUserEmail: String): (User, List[User], (DBObject, DBObject, CommunityMessage)) = {
-    val user = findUserByEmail(loggedUserEmail)
-    val userGroup = Users.usersFromGroup(loggedUserEmail)
-    val dataToDB = Users.removeFromCarpools(loggedUserEmail)
+  def leaveGroup(user: User): (User, List[User], (DBObject, DBObject, CommunityMessage)) = {
+    val userGroup = Users.usersFromGroup(user)
+    val dataToDB = Users.removeFromCarpools(user)
     (user, userGroup, dataToDB)
   }
 
-  def findUserByEmail(email: String): User = {
-      val userOpt = MongoFactory.users.findOne("email" $eq email)
-      userOpt match {
-        case Some(user) =>
-          convertDBObjectToUser(user)
-        case None => throw new NoSuchElementException
-      }
-  }
 
   def addRequest(requestedUserEmail: String, loggedUserEmail: String): (User, String, (Set[String], String) => Set[String]) = {
     val requestedUser = findUserByEmail(requestedUserEmail)
-    val f = (xs: Set[String], y: String) => xs + y 
+    val f = (xs: Set[String], y: String) => xs + y
     (requestedUser, loggedUserEmail, f)
   }
 
@@ -160,11 +179,10 @@ object Users {
   def areEnoughSeats(fstGroup: List[User], scdGroup: List[User]): Boolean =
     fstGroup.forall(user => user.seats >= scdGroup.length) && scdGroup.forall(user => user.seats >= fstGroup.length)
 
-  def usersFromGroup(loggedUserEmail: String): List[User] = {
-    val loggedUser = Users.findUserByEmail(loggedUserEmail)
-    val kindergarten = loggedUser.kindergarten
+  def usersFromGroup(user: User): List[User] = {
+    val kindergarten = user.kindergarten
+    val loggedUserGroup = kindergarten.usersEmails filter(group => group contains user.email)
 
-    val loggedUserGroup = kindergarten.usersEmails filter(group => group contains loggedUser.email)
     val group = {
       for(email <- loggedUserGroup.flatten) yield findUserByEmail(email)
     }
@@ -219,22 +237,21 @@ object Users {
     (query, update, message)
   }
 
-  def removeFromCarpools(loggedUserEmail: String): (DBObject, DBObject, CommunityMessage) = {
-    val loggedUser = Users.findUserByEmail(loggedUserEmail)
-    val kindergarten = loggedUser.kindergarten
+  def removeFromCarpools(user: User): (DBObject, DBObject, CommunityMessage) = {
+    val kindergarten = user.kindergarten
 
     val usersEmailsWithoutLoggedUser = for {
       group <- kindergarten.usersEmails
-      if group contains loggedUserEmail
+      if group contains user
       email <- group
-      if email != loggedUserEmail
+      if email != user.email
     } yield email
 
-    val restUsersEmails = kindergarten.usersEmails filter(group => !(group contains loggedUserEmail))
-    val usersEmailsAfter = List(loggedUserEmail) :: usersEmailsWithoutLoggedUser :: restUsersEmails
+    val restUsersEmails = kindergarten.usersEmails filter(group => !(group contains user.email))
+    val usersEmailsAfter = List(user.email) :: usersEmailsWithoutLoggedUser :: restUsersEmails
 
-    val content = s"User: ${loggedUser.name} ${loggedUser.surname} from ${loggedUser.kindergarten.name} has just leaved his group"
-    val message = CommunityMessage(new DateTime, loggedUser.kindergarten, content)
+    val content = s"User: ${user.name} ${user.surname} from ${user.kindergarten.name} has just leaved his group"
+    val message = CommunityMessage(new DateTime, user.kindergarten, content)
     val query = MongoDBObject(
       "name" -> kindergarten.name,
       "street" -> kindergarten.street,

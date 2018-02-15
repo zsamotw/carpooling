@@ -5,7 +5,7 @@
 
 # An example controller showing a sample home page
 GET      /                                   controllers.UserController.index
-GET      /indexWithMessage                   controllers.UserController.indexWithMessage(msg: String)
+#GET      /indexWithMessage                   controllers.UserController.indexWithMessage(msg: String)
 GET      /logout                             controllers.UserController.logout
 POST     /validatelogin                      controllers.UserController.validateLoginAndPassword
 GET      /mainboard                          controllers.UserController.mainBoard

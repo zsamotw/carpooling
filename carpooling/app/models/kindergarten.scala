@@ -44,8 +44,15 @@ object KindergartenForm {
  */
 
 object Kindergartens {
+
   val initialKindergarten = Kindergarten(
     "-","-", 0, "-", "-", "-", List[List[String]](), "-", "-")
+
+  def returnNewKindergarten(name: String, street: String, num: Int, city: String, lat: String, lon: String, users: List[List[String]] , adminEmail: String, hashCode: String): Kindergarten =
+    Kindergarten(name, street, num, city, lat, lon, users, adminEmail, hashCode)
+
+  def returnHashCode(name: String, street: String, num: Int, city: String, adminEmail: String): String =
+    (name + street + num.toString + city + adminEmail).hashCode.toString
 
   def listAll: List[Kindergarten] = {
     val kindergartens = MongoFactory.kindergartens.find

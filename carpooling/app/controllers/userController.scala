@@ -28,13 +28,13 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
     }
   }
 
-  def indexWithMessage(sysMessage: String) = Action { implicit request =>
-    request.session.get("connected").map { loggedUserEmail =>
-      Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
-    }.getOrElse{
-      Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
-    }
-  }
+  // def indexWithMessage(sysMessage: String) = Action { implicit request =>
+  //   request.session.get("connected").map { loggedUserEmail =>
+  //     Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
+  //   }.getOrElse{
+  //     Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
+  //   }
+  // }
 
   def validateLoginAndPassword() = Action { implicit request =>
     LoginForm.form.bindFromRequest.fold(
@@ -88,22 +88,20 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
           BadRequest(views.html.index(sysMessage, LoginForm.form, formWithError))
         },
         userData => {
-          val latLon = GeoUtils.searchGeoPoint(userData)
+          val (lat, lon) = GeoUtils.searchGeoPoint(userData)
           val kindergarten = Kindergartens.initialKindergarten
-          val user =
-            User(
-              userData.email,
-              userData.password,
-              userData.name,
-              userData.surname,
-              userData.street,
-              userData.city,
-              userData.seats,
-              kindergarten,
-              Set[String](),
-              latLon._1,
-              latLon._2,
-              false)
+          val user = Users.returnNewUser(userData.email,
+                                         userData.password,
+                                         userData.name,
+                                         userData.surname,
+                                         userData.street,
+                                         userData.city,
+                                         userData.seats,
+                                         kindergarten,
+                                         Set[String](),
+                                         lat,
+                                         lon,
+                                         false)
           if (Users.isOnlyOne(user)) {
             val dataToDB = Users.add(user)
             MongoFactory.addUser(dataToDB)
