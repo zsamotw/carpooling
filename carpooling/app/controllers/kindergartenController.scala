@@ -167,7 +167,7 @@ class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Co
         kindergartenData => {
           val kindergarten = Kindergartens.find(kindergartenData.name, kindergartenData.street, kindergartenData.num, kindergartenData.city)
           kindergarten match {
-            case k: Kindergarten if k == Kindergartens.emptyKindergarten => throw new NoSuchElementException
+            case k: Kindergarten if k == Kindergartens.initialKindergarten => throw new NoSuchElementException
             case kindergarten: Kindergarten =>
 
               val usersFrom = Kindergartens.findUsersFromKindergarten(kindergarten)

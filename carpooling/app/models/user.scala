@@ -14,7 +14,7 @@ case class User(
   street: String,
   city: String,
   seats: Int,
-  kindergarten: Kindergarten, //TODO Option[Kindergarten]
+  kindergarten: Kindergarten, 
   requests: Set[String],
   len: String,
   lon: String,
@@ -29,7 +29,7 @@ case class SimpleUser(
   seats: Int,
   len: String,
   lon: String,
-  kindergarten: Kindergarten,//TODO Option[Kindergarten]
+  kindergarten: Kindergarten,
   admin: Boolean)
 
 /**
@@ -123,7 +123,9 @@ object Users {
       "street" -> kindergarten.street,
       "num" -> kindergarten.num,
       "city" -> kindergarten.city)
+
     val update = MongoDBObject("$set" -> MongoDBObject("usersemails" -> usersEmailsAfter))
+
     (user, userGroup, query, update)
   }
 

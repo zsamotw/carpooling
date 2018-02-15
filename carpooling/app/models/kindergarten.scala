@@ -44,8 +44,8 @@ object KindergartenForm {
  */
 
 object Kindergartens {
-  val emptyKindergarten = Kindergarten(
-    "You are not linked to any kindergarten yet. You cane create new one or add yourself to existing kindergarten","Not exisiting", 0, "Not exisiting", "Not exisiting", "Not exisiting", List[List[String]](), "No admin", "0")
+  val initialKindergarten = Kindergarten(
+    "-","-", 0, "-", "-", "-", List[List[String]](), "-", "-")
 
   def listAll: List[Kindergarten] = {
     val kindergartens = MongoFactory.kindergartens.find
@@ -58,7 +58,6 @@ object Kindergartens {
      */
 
     val dataToDeleteUserFromEmailList = deleteUserFromEmailsListInKindergarten(user)
-    //MongoFactory.deleteUserFromEmailsListInKindergarten(dataToDB)
 
     /*
      * Set kindergarten data to change in user DB and next kindergarten DB.
@@ -110,7 +109,6 @@ object Kindergartens {
      * Delete user from users emails list in current kindergarten DB
      */
     val dataToDeleteUserFromEmailList = deleteUserFromEmailsListInKindergarten(user)
-//    MongoFactory.deleteUserFromEmailsListInKindergarten(dataToDB)
 
     /*
      * Set kindergarten data to change in user DB and next kindergarten DB.
@@ -145,7 +143,7 @@ object Kindergartens {
     val kgMongo = MongoFactory.kindergartens.findOne(query)
     kgMongo match {
       case Some(kg) => convertDBObjectToKindergarten(kg)
-      case None => Kindergartens.emptyKindergarten//throw new NoSuchElementException
+      case None => Kindergartens.initialKindergarten//throw new NoSuchElementException
     }
   }
 
@@ -155,7 +153,7 @@ object Kindergartens {
     val kgMongo = MongoFactory.kindergartens.findOne(query)
     kgMongo match {
       case Some(kg) => convertDBObjectToKindergarten(kg)
-      case None => Kindergartens.emptyKindergarten//throw new NoSuchElementException
+      case None => Kindergartens.initialKindergarten//throw new NoSuchElementException
     }
   }
 
