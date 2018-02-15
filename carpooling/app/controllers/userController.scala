@@ -90,18 +90,19 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
         userData => {
           val (lat, lon) = GeoUtils.searchGeoPoint(userData)
           val kindergarten = Kindergartens.initialKindergarten
-          val user = Users.returnNewUser(userData.email,
-                                         userData.password,
-                                         userData.name,
-                                         userData.surname,
-                                         userData.street,
-                                         userData.city,
-                                         userData.seats,
-                                         kindergarten,
-                                         Set[String](),
-                                         lat,
-                                         lon,
-                                         false)
+          val user = Users.returnNewUser(
+            userData.email,
+            userData.password,
+            userData.name,
+            userData.surname,
+            userData.street,
+            userData.city,
+            userData.seats,
+            kindergarten,
+            Set[String](),
+            lat,
+            lon,
+            false)
           if (Users.isOnlyOne(user)) {
             val dataToDB = Users.add(user)
             MongoFactory.addUser(dataToDB)
@@ -148,7 +149,8 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
   def leaveGroup() = Action { implicit request =>
     try {
       request.session.get("connected").map { loggedUserEmail =>
-        val dataToDB = Users.leaveGroup(loggedUserEmail)
+        val user = Users.findUserByEmail(loggedUserEmail)
+        val dataToDB = Users.leaveGroup(user)
         val message = MongoFactory.leaveGroup(dataToDB)
         Redirect(routes.UserController.showUserPanel(message))
       } getOrElse {
@@ -163,8 +165,8 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
 
   def showUserPanel(sysMessage: String) = Action { implicit request =>
     try {
-      request.session.get("connected").map { email =>
-        val user = Users.findUserByEmail(email)
+      request.session.get("connected").map { loggedUserEmail =>
+        val user = Users.findUserByEmail(loggedUserEmail)
         Ok(views.html.panel(user, sysMessage))
       }.getOrElse {
         Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
@@ -179,8 +181,10 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
   def sendRequest(emailFromGet: String) = Action { implicit request =>
     try {
       request.session.get("connected").map { loggedUserEmail =>
-        val loggedUserGroup = Users.usersFromGroup(loggedUserEmail)
-        val requestedUserGroup = Users.usersFromGroup(emailFromGet)
+        val user = Users.findUserByEmail(loggedUserEmail)
+        val userToSend = Users.findUserByEmail(emailFromGet)
+        val loggedUserGroup = Users.usersFromGroup(user)
+        val requestedUserGroup = Users.usersFromGroup(userToSend)
         if(Users.areEnoughSeats(loggedUserGroup, requestedUserGroup)) {
           val dataToDB = Users.addRequest(emailFromGet, loggedUserEmail)
           MongoFactory.updateUserRequests(dataToDB)
@@ -203,8 +207,10 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
   def replyForRequest(emailFromGet: String) = Action { implicit request =>
     try {
       request.session.get("connected").map { loggedUserEmail =>
-        val userToReplyGroup = Users.usersFromGroup(emailFromGet)
-        val loggedUserGroup = Users.usersFromGroup(loggedUserEmail)
+        val user = Users.findUserByEmail(loggedUserEmail)
+        val userToReply = Users.findUserByEmail(emailFromGet)
+        val userToReplyGroup = Users.usersFromGroup(userToReply)
+        val loggedUserGroup = Users.usersFromGroup(user)
         if(Users.areEnoughSeats(loggedUserGroup, userToReplyGroup)){
           val dataToDBCarpools = Users.addToCarpools(emailFromGet, loggedUserEmail)
           val dataToDBRequests = Users.deleteRequest(emailFromGet, loggedUserEmail)

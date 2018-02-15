@@ -48,8 +48,16 @@ object Kindergartens {
   val initialKindergarten = Kindergarten(
     "-","-", 0, "-", "-", "-", List[List[String]](), "-", "-")
 
-  def returnNewKindergarten(name: String, street: String, num: Int, city: String, lat: String, lon: String, users: List[List[String]] , adminEmail: String, hashCode: String): Kindergarten =
-    Kindergarten(name, street, num, city, lat, lon, users, adminEmail, hashCode)
+  def returnNewKindergarten(
+    name: String,
+    street: String,
+    num: Int,
+    city: String,
+    lat: String,
+    lon: String,
+    users: List[List[String]],
+    adminEmail: String,
+    hashCode: String): Kindergarten = Kindergarten(name, street, num, city, lat, lon, users, adminEmail, hashCode)
 
   def returnHashCode(name: String, street: String, num: Int, city: String, adminEmail: String): String =
     (name + street + num.toString + city + adminEmail).hashCode.toString
@@ -179,39 +187,6 @@ object Kindergartens {
   def convertCursorToKindergartensList(mongoKindergatens: MongoCursor): List[Kindergarten] = {
     for{kgMongo <- mongoKindergatens.toList} yield convertDBObjectToKindergarten(kgMongo)
   }
-
-    //   val res =
-  //     for { kgMongo <- mongoKindergatens
-  //       name = kgMongo.getAs[String]("name").get
-  //       street = kgMongo.getAs[String]("street").get
-  //       num = kgMongo.getAs[Int]("num").get
-  //       city = kgMongo.getAs[String]("city").get
-  //       len = kgMongo.getAs[String]("len").get
-  //       lon = kgMongo.getAs[String]("lon").get
-  //       //usersEmails = kgMongo.getAs[List[List[String]]]("usersemails").get
-  //       admin = kgMongo.getAs[String]("admin").get
-  //       hashCode = kgMongo.getAs[String]("hashcode").get
-  //       val usersEmails = {
-  //         val listMongo = kgMongo.get("usersemails").get
-  //         val obj = MongoDBObject("list" -> listMongo)
-  //         val res = obj.as[BasicDBList]("list").toList
-  //         val list ={
-  //           for(el <- res) yield {
-  //             val elemList = {
-  //               val obj = MongoDBObject("list" -> el)
-  //               val res2 = obj.as[BasicDBList]("list").toList
-  //               for(e <- res2) yield {
-  //                 e.toString
-  //               }
-  //             }
-  //             elemList
-  //           }
-  //         }
-  //         list
-  //       }
-  //     } yield Kindergarten(name, street, num, city, len, lon, usersEmails, admin, hashCode)
-  //   res.toList
-  // }
 
   def convertDBObjectToKindergarten(kgMongo: MongoDBObject): Kindergarten = {
     val name = kgMongo.getAs[String]("name").get

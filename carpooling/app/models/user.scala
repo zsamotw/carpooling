@@ -75,18 +75,19 @@ object LoginForm {
 
 object Users {
 
-  def returnNewUser(email: String,
-                    password: String,
-                    name: String,
-                    surname: String,
-                    street: String,
-                    city: String,
-                    seats: Int,
-                    kindergarten: Kindergarten,
-                    requests: Set[String],
-                    len: String,
-                    lon: String,
-                    admin: Boolean) = new User(email, password, name, surname, street, city, seats, kindergarten, requests, len, lon, admin)
+  def returnNewUser(
+    email: String,
+    password: String,
+    name: String,
+    surname: String,
+    street: String,
+    city: String,
+    seats: Int,
+    kindergarten: Kindergarten,
+    requests: Set[String],
+    len: String,
+    lon: String,
+    admin: Boolean) = User(email, password, name, surname, street, city, seats, kindergarten, requests, len, lon, admin)
 
   def validateLogin(login: Login): Boolean = {
     val userMongoOpt = MongoFactory.users.findOne(MongoDBObject("email" -> login.email))
@@ -125,7 +126,7 @@ object Users {
   }
 
   def delete(user: User): (User, List[User], DBObject, DBObject) = {
-    val userGroup = usersFromGroup(user.email)
+    val userGroup = usersFromGroup(user)
     val kindergarten = user.kindergarten
 
     val usersEmailsGroup = for {

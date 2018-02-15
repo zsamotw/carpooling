@@ -77,10 +77,26 @@ class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Co
             val(lat, lon)  = GeoUtils.searchGeoPoint(kgData)
             val users = List(List(loggedUserEmail))
             val adminEmail = loggedUserEmail
-            val hashCode = Kindergartens.returnHashCode(kgData.name, kgData.street, kgData.num, kgData.city, loggedUserEmail)
-            val kindergarten = Kindergartens.returnNewKindergarten(kgData.name, kgData.street, kgData.num, kgData.city, lat, lon, users, loggedUserEmail, hashCode)
+            val hashCode = Kindergartens.returnHashCode(
+              kgData.name,
+              kgData.street,
+              kgData.num,
+              kgData.city,
+              loggedUserEmail)
+            val kindergarten = Kindergartens.returnNewKindergarten(
+              kgData.name,
+              kgData.street,
+              kgData.num,
+              kgData.city,
+              lat,
+              lon,
+              users,
+              loggedUserEmail,
+              hashCode)
+
             val dataToDB = Kindergartens.addKindergarten(kindergarten, user)
             MongoFactory.addKindergarten(dataToDB)
+
             val sysMessage = s"Kindergarten ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city}was added by ${user.name} ${user.surname}"
             val messages = Messages.getAllWithTimeFilter
             Ok(views.html.mainboard(messages, MessageSearchForm.form, MessageForm.form, sysMessage))
@@ -102,8 +118,9 @@ class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Co
     request.session.get("connected").map { loggedUserEmail =>
       val kindergarten = Kindergartens.find(kgHashCode)
       val user = Users.findUserByEmail(loggedUserEmail)
+
       (user, kindergarten) match {
-        case (u: User, kg: Kindergarten) if (u.admin == false &&
+        case (u, kg) if (u.admin == false &&
           u.kindergarten.kgHashCode != kg.kgHashCode &&
           Users.userEmailsGroup(u).length <= 1) =>
           val dataToDB = Kindergartens.addUserToKindergarten(user, kindergarten)
@@ -128,9 +145,9 @@ class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Co
   def findKindergarten() = Action { implicit request =>
     try {
       request.session.get("connected").map { loggedUserEmail =>
-        val kindergartens = Kindergartens.listAll
+        val all = Kindergartens.listAll
         val sysMessage = "What's going on in others kindergartens!"
-        Ok(views.html.findusersfromkindergarten(KindergartenForm.form, kindergartens, sysMessage))
+        Ok(views.html.findusersfromkindergarten(KindergartenForm.form, all, sysMessage))
       }.getOrElse {
         Ok(views.html.index(loginMessage, LoginForm.form, UserForm.form))
       }
@@ -145,17 +162,21 @@ class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Co
     try {
       KindergartenForm.form.bindFromRequest.fold(
         formWithError => {
-          val kindergartens = Kindergartens.listAll
+          val all = Kindergartens.listAll
           val sysMessage = "All your carpoolers here!"
-          Ok(views.html.findusersfromkindergarten(formWithError, kindergartens, sysMessage))
+          Ok(views.html.findusersfromkindergarten(formWithError, all, sysMessage))
         },
         kindergartenData => {
-          val kindergarten = Kindergartens.find(kindergartenData.name, kindergartenData.street, kindergartenData.num, kindergartenData.city)
-          kindergarten match {
-            case k: Kindergarten if k == Kindergartens.initialKindergarten => throw new NoSuchElementException
-            case kindergarten: Kindergarten =>
+          val kindergarten = Kindergartens.find(
+            kindergartenData.name,
+            kindergartenData.street,
+            kindergartenData.num,
+            kindergartenData.city)
 
-              val usersFrom = Kindergartens.findUsersFromKindergarten(kindergarten)
+          kindergarten match {
+            case kg if kg == Kindergartens.initialKindergarten => throw new NoSuchElementException
+            case kg=>
+              val usersFrom = Kindergartens.findUsersFromKindergarten(kg)
               val loggedUserEmailOpt = request.session.get("connected")
               loggedUserEmailOpt match {
                 case Some(loggedUserEmail) =>
@@ -163,7 +184,7 @@ class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Co
                   val loggedUserGroup = usersFrom filter (group => group contains loggedUser)
                   val restGroups = usersFrom filter (group => group != loggedUserGroup.flatten)
                   val sysMessage = s"All users from kinderagrten ${kindergarten.name} on ${kindergarten.street} are possible to find."
-                  Ok(views.html.showusers(kindergarten, loggedUserGroup, restGroups, sysMessage))
+                  Ok(views.html.showusers(kg, loggedUserGroup, restGroups, sysMessage))
                 case None => throw new NoSuchElementException
               }
           }
@@ -178,16 +199,23 @@ class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Co
   def showUsersFromMyKindergarten(sysMessage: String) = Action { implicit request =>
     try {
       request.session.get("connected").map { loggedUserEmail =>
-        val loggedUser = Users.findUserByEmail(loggedUserEmail)
+        val user = Users.findUserByEmail(loggedUserEmail)
         val kindergarten = Kindergartens.find(
-          loggedUser.kindergarten.name,
-          loggedUser.kindergarten.street,
-          loggedUser.kindergarten.num,
-          loggedUser.kindergarten.city)
-        val usersFrom = Kindergartens.findUsersFromKindergarten(kindergarten)
-        val loggedUserGroup = usersFrom filter (group => group contains loggedUser)
-        val restGroups = usersFrom filter (group => group != loggedUserGroup.flatten)
-        Ok(views.html.showusers(kindergarten, loggedUserGroup, restGroups, sysMessage))
+          user.kindergarten.name,
+          user.kindergarten.street,
+          user.kindergarten.num,
+          user.kindergarten.city)
+        kindergarten match {
+          case kg if(kg.name == Kindergartens.initialKindergarten.name) =>
+            val sysMessage = "You haven't decided to join to any kindergarten yet"
+            val messages = Messages.getAllWithTimeFilter
+            Ok(views.html.mainboard(messages, MessageSearchForm.form, MessageForm.form, sysMessage))
+          case kg =>
+            val usersFrom = Kindergartens.findUsersFromKindergarten(kindergarten)
+            val loggedUserGroup = usersFrom filter (group => group contains user)
+            val restGroups = usersFrom filter (group => group != loggedUserGroup.flatten)
+            Ok(views.html.showusers(kindergarten, loggedUserGroup, restGroups, sysMessage))
+        }
       } getOrElse {
         Ok(views.html.index(loginMessage, LoginForm.form, UserForm.form))
       }
