@@ -18,13 +18,16 @@
             </div>
             <div class="personal_data_item">
                 Kindergaten:
-                @user.kindergarten.name, @user.kindergarten.street no. @user.kindergarten.num in @user.kindergarten.city with admin: @user.kindergarten.admin<br>
+                @if(user.kindergarten == Kindergartens.initialKindergarten) {
+                        No kindergarten
+                } else {
+                    @user.kindergarten.name, @user.kindergarten.street no. @user.kindergarten.num in @user.kindergarten.city with admin: @user.kindergarten.admin
+                    }
             </div>
             <div class="personal_data_item">
                 email:
                 @user.email
             </div>
-            
             <div id="left_menu">
                 <span class="left_menu_item"><a href="/leavegroup">BE SINGLE</a></span> 
                 <span class="left_menu_item"><a href="/deleteuser">DELETE YOURSELF</a></span>
@@ -37,6 +40,5 @@
                 @email <a href="/replyforrequest/@email">reply</a> or <a href="/rejectrequest/@email">reject</a>
                 }
         </div>
-    	 }
     	  }
-
+    	  }
