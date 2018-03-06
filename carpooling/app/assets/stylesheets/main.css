@@ -63,3 +63,10 @@ a:active {
     color: grey;
     text-decoration: none; 
 }
+#map {
+    height: 180px;
+    width: 300px;
+}
+
+
+
