@@ -4,13 +4,13 @@
     @contener {
         <div class="sysmessage">@sysMessage</div>
             <div class="left_contener">
-    	          <div class="text">
+                <div class="text">
 			              Parents from @kindergarten.name on @kindergarten.street in @kindergarten.city: @kindergarten.len @kindergarten.lon<br><br>
-    	          </div>
-    	          <div class="text">
+                </div>
+                <div class="text">
 			              List of users:
-    	          </div>
-    	          <div class="iterator">
+                </div>
+                <div class="iterator">
                     @for(groupOfUsers <- loggedUserGroup) {
                         <b>Your group:</b><br>
                         @for(user <- groupOfUsers) {
@@ -26,16 +26,34 @@
                                     <a href="/sendrequest/@user.email">send request</a><br>
                                     }
                                     }
-    	          </div>
-                <div id="map">
-                    <link rel="stylesheet" href="https://unpkg.com/leaflet@@1.3.1/dist/leaflet.css"
-                          integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ=="
-                          crossorigin=""/>
-                    <script src="https://unpkg.com/leaflet@@1.3.1/dist/leaflet.js"
-                            integrity="sha512-/Nsx9X4HebavoBvEBuyp3I7od5tA0UzAxs+j83KgC8PU0kgB4XiK4Lfe4y4cgBtaRJQEIFCW+oC506aPT2L1zw=="
-                            crossorigin=""></script>
-                    <script>var mymap = L.map('map').setView([51.505, -0.09], 13);</script>
                 </div>
+
+                <div id="mapdiv" style="height: 500px"></div>
+                <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
+                <script>
+                    map = new OpenLayers.Map("mapdiv");
+                    map.addLayer(new OpenLayers.Layer.OSM());
+                    var len = "@kindergarten.len"
+                    var lon = "@kindergarten.lon"
+                    document.write(typeof len)
+                    document.write(lon)
+                    var lonLat = new OpenLayers.LonLat(lon, len)
+                    .transform(
+                    new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
+                    map.getProjectionObject() // to Spherical Mercator Projection
+                    );
+
+                    var zoom=16;
+
+                    var markers = new OpenLayers.Layer.Markers( "Markers" );
+                    map.addLayer(markers);
+
+                    markers.addMarker(new OpenLayers.Marker(lonLat));
+
+                    map.setCenter (lonLat, zoom);
+                </script>
+
             </div>
+
             }
             }
