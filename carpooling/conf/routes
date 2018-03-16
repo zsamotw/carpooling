@@ -18,13 +18,13 @@ GET      /findmyparents               	     controllers.KindergartenController.s
 GET      /allkindergartens            	     controllers.KindergartenController.allKindergartens
 GET      /allkindergartensWithMessage        controllers.KindergartenController.allKindergartensWithMessage(msg: String)
 GET      /panel                        	     controllers.UserController.showUserPanel(msg: String ?= "Nothing happens")
-GET      /deleteuser	    	                 controllers.UserController.deleteUser
+GET      /deleteuser	    	             controllers.UserController.deleteUser
 GET      /sendrequest/:email          	     controllers.UserController.sendRequest(email)
 GET      /replyforrequest/:email      	     controllers.UserController.replyForRequest(email)
 GET      /rejectrequest/:email        	     controllers.UserController.rejectRequest(email)
 GET      /leavegroup                  	     controllers.UserController.leaveGroup()
-POST     /addUserMessage             	       controllers.MessageController.addUserMessage()
-GET      /filterMessages             	       controllers.MessageController.filterMessages
+POST     /addUserMessage             	     controllers.MessageController.addUserMessage()
+GET      /filterMessages             	     controllers.MessageController.filterMessages
 
 GET     /public/*file                        controllers.Assets.at(path="/public", file)
 

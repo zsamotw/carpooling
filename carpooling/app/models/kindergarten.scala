@@ -10,8 +10,8 @@ case class Kindergarten(
   street: String,
   num: Int,
   city: String,
-  len: String,
-  lon: String,
+  lat: Double,
+  lon: Double,
   usersEmails: List[List[String]],
   admin: String,
   kgHashCode: String) {
@@ -46,15 +46,15 @@ object KindergartenForm {
 object Kindergartens {
 
   val initialKindergarten = Kindergarten(
-    "-","-", 0, "-", "-", "-", List[List[String]](), "-", "-")
+    "-","-", 0, "-", 0.0.toDouble, 0.0.toDouble, List[List[String]](), "-", "-")
 
   def returnNewKindergarten(
     name: String,
     street: String,
     num: Int,
     city: String,
-    lat: String,
-    lon: String,
+    lat: Double,
+    lon: Double,
     users: List[List[String]],
     adminEmail: String,
     hashCode: String): Kindergarten = Kindergarten(name, street, num, city, lat, lon, users, adminEmail, hashCode)
@@ -193,8 +193,8 @@ object Kindergartens {
     val street = kgMongo.getAs[String]("street").get
     val num = kgMongo.getAs[Int]("num").get
     val city = kgMongo.getAs[String]("city").get
-    val len = kgMongo.getAs[String]("len").get
-    val lon = kgMongo.getAs[String]("lon").get
+    val lat = kgMongo.getAs[Double]("lat").get
+    val lon = kgMongo.getAs[Double]("lon").get
     val admin = kgMongo.getAs[String]("admin").get
     val hashCode = kgMongo.getAs[String]("hashcode").get
     val usersEmails = {
@@ -215,6 +215,6 @@ object Kindergartens {
       }
       list
     }
-    Kindergarten(name, street, num, city, len, lon, usersEmails, admin, hashCode)
+    Kindergarten(name, street, num, city, lat, lon, usersEmails, admin, hashCode)
   }
 }

@@ -16,8 +16,8 @@ case class User(
   seats: Int,
   kindergarten: Kindergarten, 
   requests: Set[String],
-  len: String,
-  lon: String,
+  lat: Double,
+  lon: Double,
   admin: Boolean)
 
 case class SimpleUser(
@@ -27,8 +27,8 @@ case class SimpleUser(
   street: String,
   city: String,
   seats: Int,
-  len: String,
-  lon: String,
+  lat: Double,
+  lon: Double,
   kindergarten: Kindergarten,
   admin: Boolean)
 
@@ -85,9 +85,9 @@ object Users {
     seats: Int,
     kindergarten: Kindergarten,
     requests: Set[String],
-    len: String,
-    lon: String,
-    admin: Boolean) = User(email, password, name, surname, street, city, seats, kindergarten, requests, len, lon, admin)
+    lat: Double,
+    lon: Double,
+    admin: Boolean) = User(email, password, name, surname, street, city, seats, kindergarten, requests, lat, lon, admin)
 
   def validateLogin(login: Login): Boolean = {
     val userMongoOpt = MongoFactory.users.findOne(MongoDBObject("email" -> login.email))
@@ -278,8 +278,8 @@ object Users {
         kgNum = userMongo.getAs[Int]("kgnum").get
         kgCity = userMongo.getAs[String]("kgcity").get
         requests = userMongo.getAs[List[String]]("requests").get.toSet
-        len = userMongo.getAs[String]("len").get
-        lon = userMongo.getAs[String]("lon").get
+        lat = userMongo.getAs[Double]("lat").get
+        lon = userMongo.getAs[Double]("lon").get
         kindergarten = Kindergartens.find(kgName, kgStreet, kgNum,kgCity)
         admin = userMongo.getAs[Boolean]("admin").get
       } yield User(
@@ -292,7 +292,7 @@ object Users {
         seats,
         kindergarten,
         requests,
-        len,
+        lat,
         lon,
         admin)
     res.toList
@@ -306,7 +306,7 @@ object Users {
     user.street,
     user.city,
     user.seats,
-    user.len,
+    user.lat,
     user.lon,
     user.kindergarten,
     user.admin)
@@ -329,8 +329,8 @@ object Users {
     val kgNum =  userMongo.getAs[Int]("kgnum").get
     val kgCity =  userMongo.getAs[String]("kgcity").get
     val requests = userMongo.getAs[List[String]]("requests").get.toSet
-    val len =  userMongo.getAs[String]("len").get
-    val lon =  userMongo.getAs[String]("lon").get
+    val len =  userMongo.getAs[Double]("lat").get
+    val lon =  userMongo.getAs[Double]("lon").get
     val kindergarten = Kindergartens.find(kgName, kgStreet, kgNum,kgCity)
     val admin =  userMongo.getAs[Boolean]("admin").get
     User(

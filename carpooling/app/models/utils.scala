@@ -12,26 +12,30 @@ import com.mongodb.casbah.commons.conversions.scala._
  */
 
 object GeoUtils {
-  def searchGeoPoint(user: UserFormData): (String, String) = {
+  def searchGeoPoint(user: UserFormData): (Double, Double) = {
     val street = user.street split(" ") mkString("%20")
     val city = user.city split(" ") mkString("%20")
     val query = "http://nominatim.openstreetmap.org/search/" + street + "," + city + ",Poland?format=json&polygon=1&addressdetails=1&limit=1"
     parseLatLonFromQuery(query)
   }
 
-  def searchGeoPoint(kg: KindergartenFormData): (String, String) = {
+  def searchGeoPoint(kg: KindergartenFormData): (Double, Double) = {
      val street = kg.street split(" ") mkString("%20")
     val city = kg.city split(" ") mkString("%20")
     val query = "http://nominatim.openstreetmap.org/search/" + street + "," + city + ",Poland?format=json&polygon=1&addressdetails=1&limit=1"
     parseLatLonFromQuery(query)
   }
 
-  def parseLatLonFromQuery(query: String): (String, String) = {
+  def parseLatLonFromQuery(query: String): (Double, Double) = {
     val res = Source.fromURL(query).mkString
     val jsonRes = Json.parse(res)
-    val lat = (jsonRes \\ "lat").head.toString
-    val lon = (jsonRes \\ "lon").head.toString
+    val lat = quotationRemoval((jsonRes \\ "lat").head.toString).toDouble
+    val lon = quotationRemoval((jsonRes \\ "lon").head.toString).toDouble
     (lat, lon)
+  }
+  
+  def quotationRemoval(str: String): String = {
+    str.filter(_ != '"')    
   }
 }
 
@@ -67,7 +71,7 @@ object MongoFactory {
     builder += "kgnum" -> user.kindergarten.num
     builder += "kgcity" -> user.kindergarten.city
     builder += "requests" -> user.requests
-    builder += "len" -> user.len
+    builder += "lat" -> user.lat
     builder += "lon" -> user.lon
     builder += "admin"-> user.admin
     builder.result
@@ -79,7 +83,7 @@ object MongoFactory {
     builder += "street" -> kg.street
     builder += "num" -> kg.num
     builder += "city" -> kg.city
-    builder += "len" -> kg.len
+    builder += "lat" -> kg.lat
     builder += "lon" -> kg.lon
     builder += "usersemails" -> kg.usersEmails
     builder += "admin" -> kg.admin

@@ -28,13 +28,6 @@ class UserController @Inject()(val messagesApi: MessagesApi)  extends Controller
     }
   }
 
-  // def indexWithMessage(sysMessage: String) = Action { implicit request =>
-  //   request.session.get("connected").map { loggedUserEmail =>
-  //     Ok(views.html.index(sysMessage,LoginForm.form, UserForm.form))
-  //   }.getOrElse{
-  //     Ok(views.html.index(loginMessage,LoginForm.form, UserForm.form))
-  //   }
-  // }
 
   def validateLoginAndPassword() = Action { implicit request =>
     LoginForm.form.bindFromRequest.fold(
