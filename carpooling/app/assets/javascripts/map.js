@@ -34,17 +34,8 @@ function addMarkersLayer(map) {
 	return markers;
 }
 
-function setMarker(lon, lat, markers, popupText) {
-	var lonLat = setLonLat(lon, lat); 
-                 
-    markers.addMarker(new OpenLayers.Marker(lonLat));
-                 	
-    var popup = new OpenLayers.Popup("popup", lonLat,
-                new OpenLayers.Size(200,20),
-                popupText,
-                 true);
-    popup.show;
-    map.addPopup(popup);
+function setMarker(lon, lat, map, email) {
+	var marker = L.marker([lon, lat]).addTo(map);
     }
 
 
