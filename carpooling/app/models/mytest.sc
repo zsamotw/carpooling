@@ -30,8 +30,6 @@ val ys = List(g2, g2, g2)
 xs ::: ys
 
 
-
-
 val dt1 = new DateTime(2016, 9,12,12,5)
 val dt = new DateTime()
 dt.hourOfDay()
