@@ -45,6 +45,6 @@ function setMarker(lon, lat, markers, popupText) {
                  true);
     popup.show;
     map.addPopup(popup);
-    }
+}
 
 
