@@ -27,7 +27,7 @@ object GeoUtils {
   }
 
   def parseLatLonFromQuery(query: String): (Double, Double) = {
-    val res = Source.fromURL(query).mkString
+    val res = Source.fromURL(query)("ISO-8859-1").mkString
     val jsonRes = Json.parse(res)
     val lat = quotationRemoval((jsonRes \\ "lat").head.toString).toDouble
     val lon = quotationRemoval((jsonRes \\ "lon").head.toString).toDouble
