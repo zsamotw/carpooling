@@ -1,46 +1,55 @@
 package controllers
 
 import java.io.IOException
+
 import javax.inject.Inject
 import models._
 import org.joda.time.DateTime
-import play.api.i18n.{ I18nSupport, MessagesApi }
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
+
+import scala.util.{Failure, Success, Try}
 
 class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Controller with I18nSupport {
 
   lazy val loginMessage = "You can't do anything without login"
 
   def allKindergartens() = Action { implicit request =>
-    try {
       request.session.get("connected").map { loggedUserEmail =>
-        val all = Kindergartens.listAll
+        val allKindertens = Try {
+          Kindergartens.listAll
+        }
         val sysMessage = "There are many kindergartens here!!!"
-        Ok(views.html.allkindergartens(all, sysMessage))
+        allKindertens match {
+          case Success(all) => Ok(views.html.allkindergartens(all, sysMessage))
+          case Failure(ex) =>
+                  val sysMessage = "Ooops! Problem with searching element. Check you connection with database"
+                  Ok(views.html.allkindergartens(List[Kindergarten](), sysMessage))
+        }
       }.getOrElse {
         Ok(views.html.index(loginMessage, LoginForm.form, UserForm.form))
       }
-    } catch {
-      case e: NoSuchElementException =>
-        val sysMessage = "Ooops! Problem with searching element. Check you connection with database"
-        Ok(views.html.allkindergartens(List[Kindergarten](), sysMessage))
-    }
   }
-  
+
   def allKindergartensWithMessage(message: String) = Action { implicit request =>
-    try {
       request.session.get("connected").map { loggedUserEmail =>
-        val all = Kindergartens.listAll
-        Ok(views.html.allkindergartens(all, message))
+        val viewInTry = Try {
+          val all = Kindergartens.listAll
+          Ok(views.html.allkindergartens(all, message))
+        } recover {
+          case e: NoSuchElementException =>
+            val sysMessage = "Ooops! Problem with searching element. Check you connection with database"
+            Ok(views.html.allkindergartens(List[Kindergarten](), sysMessage))
+          case _ =>
+            val sysMessage = "Ooops! Problem unknown exception"
+            Ok(views.html.allkindergartens(List[Kindergarten](), sysMessage))
+        }
+        viewInTry match {
+          case Success(view) => view
+        }
       }.getOrElse {
         Ok(views.html.index(loginMessage, LoginForm.form, UserForm.form))
       }
-    } catch {
-      case e: NoSuchElementException =>
-        val sysMessage = "Ooops! Problem with searching element. Check you connection with database"
-        Ok(views.html.allkindergartens(List[Kindergarten](), sysMessage))
-    }
-    
   }
 
   def kindergartenMenu() = Action { implicit request =>
@@ -120,9 +129,9 @@ class KindergartenController @Inject() (val messagesApi: MessagesApi) extends Co
       val user = Users.findUserByEmail(loggedUserEmail)
 
       (user, kindergarten) match {
-        case (u, kg) if (u.admin == false &&
+        case (u, kg) if !u.admin &&
           u.kindergarten.kgHashCode != kg.kgHashCode &&
-          Users.userEmailsGroup(u).length <= 1) =>
+          Users.userEmailsGroup(u).length <= 1 =>
           val dataToDB = Kindergartens.addUserToKindergarten(user, kindergarten)
           MongoFactory.addUserToKindergarten(dataToDB)
           val sysMessage = s"Success. You have changed your kindergarten. Your current kindergarten: ${kindergarten.name} on ${kindergarten.street} in ${kindergarten.city}"
